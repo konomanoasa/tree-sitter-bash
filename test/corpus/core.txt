@@ -1,0 +1,1034 @@
+==================
+assignments command name arguments and ordered redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+A=one 2>err echo "$A" tail >out
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            assignment: (assignment_word
+              name: (variable_name)
+              value: (assignment_value
+                (literal)))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                filename: (word
+                  (literal))))
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name))))
+            argument: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_file
+                filename: (word
+                  (literal))))))))))
+
+==================
+quoted and expanded command names
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+"printf" value; ${runner} arg
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (double_quoted
+                (double_quote_text)))
+            argument: (word
+              (literal))))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (parameter_expansion
+                parameter: (variable_name)))
+            argument: (word
+              (literal))))))))
+
+==================
+reserved words remain words outside keyword positions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo if then do done fi
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
+pipeline negation lists and asynchronous terminators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+! echo a | cat && echo yes || echo no; wait &
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        negation: (bang)
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal)))))
+      operator: (and_if)
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)))))
+      operator: (or_if)
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))))))
+    terminator: (separator_op)))
+
+==================
+line continuations join words and operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+ec\
+ho a\
+b |\
+| echo c
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal
+                (line_continuation)))
+            argument: (word
+              (literal
+                (line_continuation))))))
+      operator: (or_if
+        (line_continuation))
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
+single double and dollar single quotes retain source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo '$x' "a$x\"" $'line\n' \*
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (single_quoted
+                (single_quote_content)))
+            argument: (word
+              (double_quoted
+                (double_quote_text)
+                (parameter_expansion
+                  parameter: (variable_name))
+                (double_quote_escape)))
+            argument: (word
+              (dollar_single_quoted
+                (dollar_single_quote_text)
+                (dollar_single_quote_escape)))
+            argument: (word
+              (escaped_character))))))))
+
+==================
+basic parameter forms and patterns
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $x ${x} ${x:-default} ${#x} ${x%%a*} "$@"
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                operator: (parameter_value_operator)
+                word: (parameter_word
+                  (literal))))
+            argument: (word
+              (parameter_expansion
+                operator: (parameter_length_operator)
+                parameter: (variable_name)))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                operator: (parameter_pattern_operator)
+                pattern: (parameter_pattern
+                  (literal)
+                  (pattern_star_source))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (special_parameter))))))))))
+
+==================
+command substitution resets quote context
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo "$(printf '%s' "$x")"
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (command_substitution
+                  body: (command_substitution_body
+                    (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              argument: (word
+                                (single_quoted
+                                  (single_quote_content)))
+                              argument: (word
+                                (double_quoted
+                                  (parameter_expansion
+                                    parameter: (variable_name)))))))))))))))))))
+
+==================
+backquote substitution retains nested command source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo `printf '%s' "$x"`
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (single_quoted
+                                (single_quote_content)))
+                            argument: (word
+                              (double_quoted
+                                (parameter_expansion
+                                  parameter: (variable_name))))))))))))))))))
+
+==================
+structured arithmetic retains precedence assignment and conditional
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((x = 1 + 2 * 3)) $((x ? y : z))
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_assignment_expression
+                  left: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_binary_expression
+                    left: (arithmetic_number)
+                    operator: (arithmetic_operator)
+                    right: (arithmetic_binary_expression
+                      left: (arithmetic_number)
+                      operator: (arithmetic_operator)
+                      right: (arithmetic_number))))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_conditional_expression
+                  condition: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  consequence: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  alternative: (arithmetic_variable))))))))))
+
+==================
+arithmetic source fragments stay together before expansion
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((0x$y)) $((12${suffix}))
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_source_fragment)
+                  (parameter_expansion
+                    parameter: (variable_name)))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (parameter_expansion
+                    parameter: (variable_name)))))))))))
+
+==================
+arithmetic evaluation errors remain arithmetic source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((0xg)) $((printf hi)) $(((x)=1)) $((1;2)) $((1/0))
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_source_fragment))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_variable)
+                  (arithmetic_variable))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (parenthesized_arithmetic_source
+                    (arithmetic_variable))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_binary_expression
+                  left: (arithmetic_number)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_number))))))))))
+
+==================
+empty arithmetic and quoted arithmetic remain expansions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $(()) $(('1')) $(("2"))
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (single_quoted
+                    (single_quote_content)))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (double_quoted
+                    (double_quote_text)))))))))))
+
+==================
+command substitution selected by shell boundary
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((printf hi);:) $( (echo yes))
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (subshell
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal)))))))))))
+                    separator: (separator_op)
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))))))))))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (subshell
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal)))))))))))))))))))))
+
+==================
+groups own nested lists and following redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+{ echo one; echo two; } >out; (echo three) <in
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (brace_group
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op))
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              terminator: (separator
+                operator: (separator_op))))
+          redirect: (io_redirect
+            body: (io_file
+              filename: (word
+                (literal)))))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (subshell
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))))
+          redirect: (io_redirect
+            body: (io_file
+              filename: (word
+                (literal)))))))))
+
+==================
+functions own compound bodies and redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+run() { echo "$1"; } >log
+run value
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (function_definition
+            name: (function_name)
+            body: (function_body
+              body: (brace_group
+                body: (list
+                  and_or: (and_or
+                    pipeline: (pipeline
+                      command: (command
+                        body: (simple_command
+                          name: (word
+                            (literal))
+                          argument: (word
+                            (double_quoted
+                              (parameter_expansion
+                                parameter: (positional_parameter))))))))
+                  terminator: (separator
+                    operator: (separator_op))))
+              redirect: (io_redirect
+                body: (io_file
+                  filename: (word
+                    (literal)))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
+conditionals preserve condition consequence and alternatives
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (if_clause
+            (if_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            (then_keyword)
+            consequence: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              terminator: (separator
+                operator: (separator_op)))
+            alternative: (else_part
+              (elif_keyword)
+              condition: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (double_quoted
+                            (parameter_expansion
+                              parameter: (variable_name))))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (then_keyword)
+              consequence: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              alternative: (else_part
+                (else_keyword)
+                body: (list
+                  and_or: (and_or
+                    pipeline: (pipeline
+                      command: (command
+                        body: (simple_command
+                          name: (word
+                            (literal))
+                          argument: (word
+                            (literal))))))
+                  terminator: (separator
+                    operator: (separator_op)))))
+            (fi_keyword)))))))
+
+==================
+loops preserve variables word lists conditions and bodies
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+for x in one two; do echo "$x"; done
+while test "$x"; do :; done
+until test "$y"; do :; done
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (for_clause
+            (for_keyword)
+            name: (name)
+            in: (in_keyword)
+            word: (word
+              (literal))
+            word: (word
+              (literal))
+            separator: (sequential_sep)
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (double_quoted
+                            (parameter_expansion
+                              parameter: (variable_name))))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (while_clause
+            (while_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (until_clause
+            (until_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))))
+
+==================
+case patterns and fall through terminators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (case_clause
+            (case_keyword)
+            word: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name))))
+            in: (in_keyword)
+            item: (case_item
+              patterns: (pattern_list
+                word: (word
+                  (literal))
+                word: (word
+                  (literal)))
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (literal)))))))
+              terminator: (dsemi))
+            item: (case_item
+              patterns: (pattern_list
+                word: (word
+                  (literal)))
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal)))))))
+              terminator: (semi_and))
+            item: (case_item
+              patterns: (pattern_list
+                word: (word
+                  (pattern_star_source)))
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (literal)))))))
+              terminator: (dsemi))
+            (esac_keyword)))))))
+
+==================
+file descriptor duplication and redirection operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+exec 3<input 4>output 5>>append 6<>both 7>&1 8<&0 9>|force
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                operator: (dgreat)
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                operator: (lessgreat)
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                operator: (greatand)
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                operator: (lessand)
+                filename: (word
+                  (literal))))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                operator: (clobber)
+                filename: (word
+                  (literal))))))))))
+
+==================
+comments stop at physical newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+# header\
+echo ok # trailing
+
+---
+
+(program
+  leading: (comment
+    (comment_text))
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)))))))
+  trailing: (comment
+    (comment_text)))
+
+==================
+unicode words retain input source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo 日本語 "é$x"
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (double_quote_text)
+                (parameter_expansion
+                  parameter: (variable_name))))))))))

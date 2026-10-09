@@ -1,0 +1,1003 @@
+{
+  "lexical": [
+    {
+      "begin": "_subscript_all_elements_begin",
+      "scanner": "SUBSCRIPT_ALL_ELEMENTS_BEGIN"
+    },
+    {
+      "begin": "_io_number_begin",
+      "scanner": "FILE_DESCRIPTOR"
+    },
+    {
+      "begin": "_bang_begin",
+      "scanner": "PIPELINE_NEGATION"
+    },
+    {
+      "begin": "_empty_bang_begin",
+      "scanner": "EMPTY_BANG_BEGIN",
+      "whole": true
+    },
+    {
+      "begin": "_if_keyword_begin",
+      "scanner": "IF_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_then_keyword_begin",
+      "scanner": "THEN_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_elif_keyword_begin",
+      "scanner": "ELIF_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_else_keyword_begin",
+      "scanner": "ELSE_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_fi_keyword_begin",
+      "scanner": "FI_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_for_keyword_begin",
+      "scanner": "FOR_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_in_keyword_begin",
+      "scanner": "IN_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_do_keyword_begin",
+      "scanner": "DO_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_done_keyword_begin",
+      "scanner": "DONE_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_case_keyword_begin",
+      "scanner": "CASE_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_esac_keyword_begin",
+      "scanner": "ESAC_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_while_keyword_begin",
+      "scanner": "WHILE_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_until_keyword_begin",
+      "scanner": "UNTIL_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_here_document_line_end_begin",
+      "scanner": "HERE_DOCUMENT_LINE_END"
+    },
+    {
+      "begin": "_quoted_here_document_end_text_begin",
+      "scanner": "QUOTED_HERE_DOCUMENT_END_TEXT"
+    },
+    {
+      "begin": "_quoted_here_document_text_begin",
+      "scanner": "QUOTED_HERE_DOCUMENT_TEXT"
+    },
+    {
+      "begin": "_newline_begin",
+      "scanner": "NEWLINE"
+    },
+    {
+      "begin": "_comment_text_begin",
+      "scanner": "COMMENT_START"
+    },
+    {
+      "begin": "_braced_positional_parameter_begin",
+      "scanner": "BRACED_POSITIONAL_PARAMETER_START"
+    },
+    {
+      "begin": "_pattern_bracket_character_begin",
+      "scanner": "PATTERN_BRACKET_CHARACTER"
+    },
+    {
+      "begin": "_parameter_pattern_bracket_character_begin",
+      "scanner": "PARAMETER_PATTERN_BRACKET_CHARACTER"
+    },
+    {
+      "begin": "_pattern_bracket_hyphen_begin",
+      "scanner": "PATTERN_BRACKET_HYPHEN"
+    },
+    {
+      "begin": "_pattern_bracket_range_operator_begin",
+      "scanner": "PATTERN_BRACKET_RANGE_OPERATOR"
+    },
+    {
+      "begin": "_assignment_name_begin",
+      "scanner": "ASSIGNMENT_NAME_TOKEN"
+    },
+    {
+      "begin": "_fname_begin",
+      "scanner": "FNAME_TOKEN"
+    },
+    {
+      "begin": "_pre_newline_blank_begin",
+      "scanner": "PRE_NEWLINE_BLANK"
+    },
+    {
+      "begin": "_dollar_single_quote_escape_begin",
+      "scanner": "DOLLAR_SINGLE_QUOTE_ESCAPE"
+    },
+    {
+      "begin": "_literal_begin",
+      "scanner": "LITERAL_BEGIN"
+    },
+    {
+      "begin": "_assignment_literal_begin",
+      "scanner": "ASSIGNMENT_LITERAL_BEGIN"
+    },
+    {
+      "begin": "_parameter_literal_begin",
+      "scanner": "PARAMETER_LITERAL_BEGIN"
+    },
+    {
+      "begin": "_name_begin",
+      "scanner": "NAME_BEGIN"
+    },
+    {
+      "begin": "_variable_name_begin",
+      "scanner": "VARIABLE_NAME_BEGIN"
+    },
+    {
+      "begin": "_escaped_character_begin",
+      "scanner": "ESCAPED_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_single_quote_content_begin",
+      "scanner": "SINGLE_QUOTE_CONTENT_BEGIN"
+    },
+    {
+      "begin": "_double_quote_text_begin",
+      "scanner": "DOUBLE_QUOTE_TEXT_BEGIN"
+    },
+    {
+      "begin": "_double_quote_escape_begin",
+      "scanner": "DOUBLE_QUOTE_ESCAPE_BEGIN"
+    },
+    {
+      "begin": "_dollar_single_quote_text_begin",
+      "scanner": "DOLLAR_SINGLE_QUOTE_TEXT_BEGIN"
+    },
+    {
+      "begin": "_double_quoted_parameter_text_begin",
+      "scanner": "DOUBLE_QUOTED_PARAMETER_TEXT_BEGIN"
+    },
+    {
+      "begin": "_double_quoted_parameter_escape_begin",
+      "scanner": "DOUBLE_QUOTED_PARAMETER_ESCAPE_BEGIN"
+    },
+    {
+      "begin": "_here_document_text_begin",
+      "scanner": "HERE_DOCUMENT_TEXT_BEGIN"
+    },
+    {
+      "begin": "_here_document_escape_begin",
+      "scanner": "HERE_DOCUMENT_ESCAPE_BEGIN"
+    },
+    {
+      "begin": "_here_document_end_text_begin",
+      "scanner": "HERE_DOCUMENT_END_TEXT_BEGIN"
+    },
+    {
+      "begin": "_unbraced_positional_parameter_begin",
+      "scanner": "UNBRACED_POSITIONAL_PARAMETER_BEGIN"
+    },
+    {
+      "begin": "_special_parameter_begin",
+      "scanner": "SPECIAL_PARAMETER_BEGIN"
+    },
+    {
+      "begin": "_special_parameter_hash_begin",
+      "scanner": "SPECIAL_PARAMETER_HASH_BEGIN"
+    },
+    {
+      "begin": "_parameter_value_operator_begin",
+      "scanner": "PARAMETER_VALUE_OPERATOR_BEGIN",
+      "whole": true
+    },
+    {
+      "begin": "_parameter_pattern_operator_begin",
+      "scanner": "PARAMETER_PATTERN_OPERATOR_BEGIN",
+      "whole": true
+    },
+    {
+      "begin": "_arithmetic_number_begin",
+      "scanner": "ARITHMETIC_NUMBER_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_variable_begin",
+      "scanner": "ARITHMETIC_VARIABLE_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_unary_operator_begin",
+      "scanner": "ARITHMETIC_UNARY_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_assignment_operator_begin",
+      "scanner": "ARITHMETIC_ASSIGNMENT_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_question_operator_begin",
+      "scanner": "ARITHMETIC_QUESTION_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_colon_operator_begin",
+      "scanner": "ARITHMETIC_COLON_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_logical_or_operator_begin",
+      "scanner": "ARITHMETIC_LOGICAL_OR_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_logical_and_operator_begin",
+      "scanner": "ARITHMETIC_LOGICAL_AND_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_bitwise_or_operator_begin",
+      "scanner": "ARITHMETIC_BITWISE_OR_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_bitwise_xor_operator_begin",
+      "scanner": "ARITHMETIC_BITWISE_XOR_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_bitwise_and_operator_begin",
+      "scanner": "ARITHMETIC_BITWISE_AND_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_equality_operator_begin",
+      "scanner": "ARITHMETIC_EQUALITY_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_relational_operator_begin",
+      "scanner": "ARITHMETIC_RELATIONAL_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_shift_operator_begin",
+      "scanner": "ARITHMETIC_SHIFT_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_additive_operator_begin",
+      "scanner": "ARITHMETIC_ADDITIVE_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_multiplicative_operator_begin",
+      "scanner": "ARITHMETIC_MULTIPLICATIVE_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_and_if_begin",
+      "scanner": "AND_IF_BEGIN"
+    },
+    {
+      "begin": "_or_if_begin",
+      "scanner": "OR_IF_BEGIN"
+    },
+    {
+      "begin": "_dsemi_begin",
+      "scanner": "DSEMI_BEGIN"
+    },
+    {
+      "begin": "_semi_and_begin",
+      "scanner": "SEMI_AND_BEGIN"
+    },
+    {
+      "begin": "_lessand_begin",
+      "scanner": "LESSAND_BEGIN"
+    },
+    {
+      "begin": "_greatand_begin",
+      "scanner": "GREATAND_BEGIN"
+    },
+    {
+      "begin": "_dgreat_begin",
+      "scanner": "DGREAT_BEGIN"
+    },
+    {
+      "begin": "_lessgreat_begin",
+      "scanner": "LESSGREAT_BEGIN"
+    },
+    {
+      "begin": "_clobber_begin",
+      "scanner": "CLOBBER_BEGIN"
+    },
+    {
+      "begin": "_dless_operator_begin",
+      "scanner": "DLESS_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_dlessdash_operator_begin",
+      "scanner": "DLESSDASH_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_pattern_star_begin",
+      "scanner": "PATTERN_STAR_BEGIN"
+    },
+    {
+      "begin": "_pattern_question_begin",
+      "scanner": "PATTERN_QUESTION_BEGIN"
+    },
+    {
+      "begin": "_pattern_negation_begin",
+      "scanner": "PATTERN_NEGATION_BEGIN"
+    },
+    {
+      "begin": "_pattern_class_content_begin",
+      "scanner": "PATTERN_CLASS_CONTENT_BEGIN"
+    },
+    {
+      "begin": "_parameter_pattern_class_content_begin",
+      "scanner": "PARAMETER_PATTERN_CLASS_CONTENT_BEGIN"
+    },
+    {
+      "begin": "_pattern_collating_character_begin",
+      "scanner": "PATTERN_COLLATING_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_parameter_pattern_collating_character_begin",
+      "scanner": "PARAMETER_PATTERN_COLLATING_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_pattern_equivalence_character_begin",
+      "scanner": "PATTERN_EQUIVALENCE_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_parameter_pattern_equivalence_character_begin",
+      "scanner": "PARAMETER_PATTERN_EQUIVALENCE_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_logical_blank_begin",
+      "scanner": "LOGICAL_BLANK_BEGIN"
+    },
+    {
+      "begin": "_pattern_initial_right_bracket_begin",
+      "scanner": "PATTERN_INITIAL_RIGHT_BRACKET_BEGIN"
+    },
+    {
+      "begin": "_here_document_end_line_end_begin",
+      "scanner": "HERE_DOCUMENT_END_LINE_END"
+    },
+    {
+      "begin": "_word_fallback_literal_begin",
+      "scanner": "WORD_FALLBACK_LITERAL_BEGIN"
+    },
+    {
+      "begin": "_assignment_fallback_literal_begin",
+      "scanner": "ASSIGNMENT_FALLBACK_LITERAL_BEGIN"
+    },
+    {
+      "begin": "_parameter_fallback_literal_begin",
+      "scanner": "PARAMETER_FALLBACK_LITERAL_BEGIN"
+    },
+    {
+      "begin": "_parameter_hyphen_begin",
+      "scanner": "PARAMETER_HYPHEN_BEGIN"
+    },
+    {
+      "begin": "_parameter_question_begin",
+      "scanner": "PARAMETER_QUESTION_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_blank_begin",
+      "scanner": "ARITHMETIC_BLANK_BEGIN"
+    },
+    {
+      "begin": "_parameter_length_operator_begin",
+      "scanner": "PARAMETER_LENGTH_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_source_fragment_begin",
+      "scanner": "ARITHMETIC_SOURCE_FRAGMENT_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_source_operator_begin",
+      "scanner": "ARITHMETIC_SOURCE_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_extglob_operator_begin",
+      "scanner": "EXTGLOB_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_extglob_text_begin",
+      "scanner": "EXTGLOB_TEXT_BEGIN"
+    },
+    {
+      "begin": "_brace_text_begin",
+      "scanner": "BRACE_TEXT_BEGIN"
+    },
+    {
+      "begin": "_parameter_indirection_begin",
+      "scanner": "PARAMETER_INDIRECTION_BEGIN"
+    },
+    {
+      "begin": "_parameter_names_begin",
+      "scanner": "PARAMETER_NAMES_BEGIN"
+    },
+    {
+      "begin": "_parameter_substring_begin",
+      "scanner": "PARAMETER_SUBSTRING_BEGIN"
+    },
+    {
+      "begin": "_substring_separator_begin",
+      "scanner": "SUBSTRING_SEPARATOR_BEGIN"
+    },
+    {
+      "begin": "_parameter_replace_begin",
+      "scanner": "PARAMETER_REPLACE_BEGIN"
+    },
+    {
+      "begin": "_replacement_separator_begin",
+      "scanner": "REPLACEMENT_SEPARATOR_BEGIN"
+    },
+    {
+      "begin": "_parameter_case_begin",
+      "scanner": "PARAMETER_CASE_BEGIN"
+    },
+    {
+      "begin": "_parameter_transform_begin",
+      "scanner": "PARAMETER_TRANSFORM_BEGIN"
+    },
+    {
+      "begin": "_parameter_transform_code_begin",
+      "scanner": "PARAMETER_TRANSFORM_CODE_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_power_operator_begin",
+      "scanner": "ARITHMETIC_POWER_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_comma_operator_begin",
+      "scanner": "ARITHMETIC_COMMA_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_arithmetic_update_operator_begin",
+      "scanner": "ARITHMETIC_UPDATE_OPERATOR_BEGIN"
+    },
+    {
+      "begin": "_assignment_argument_head_begin",
+      "scanner": "ASSIGNMENT_ARGUMENT_HEAD_BEGIN"
+    },
+    {
+      "begin": "_brace_endpoint_begin",
+      "scanner": "BRACE_ENDPOINT_BEGIN"
+    },
+    {
+      "begin": "_brace_increment_begin",
+      "scanner": "BRACE_INCREMENT_BEGIN"
+    },
+    {
+      "begin": "_brace_separator_begin",
+      "scanner": "BRACE_SEPARATOR_BEGIN"
+    },
+    {
+      "begin": "_select_keyword_begin",
+      "scanner": "SELECT_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_function_keyword_begin",
+      "scanner": "FUNCTION_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_time_keyword_begin",
+      "scanner": "TIME_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_empty_time_keyword_begin",
+      "scanner": "EMPTY_TIME_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_coproc_keyword_begin",
+      "scanner": "COPROC_KEYWORD",
+      "whole": true
+    },
+    {
+      "begin": "_dsemi_and_begin",
+      "scanner": "DSEMI_AND_BEGIN"
+    },
+    {
+      "begin": "_pipe_and_begin",
+      "scanner": "PIPE_AND_BEGIN"
+    },
+    {
+      "begin": "_andgreat_begin",
+      "scanner": "ANDGREAT_BEGIN"
+    },
+    {
+      "begin": "_anddgreat_begin",
+      "scanner": "ANDDGREAT_BEGIN"
+    },
+    {
+      "begin": "_here_string_begin",
+      "scanner": "HERE_STRING_BEGIN"
+    },
+    {
+      "begin": "_explicit_fname_begin",
+      "scanner": "EXPLICIT_FNAME_BEGIN"
+    },
+    {
+      "begin": "_time_option_begin",
+      "scanner": "TIME_OPTION_BEGIN"
+    },
+    {
+      "begin": "_for_arithmetic_open",
+      "scanner": "FOR_ARITHMETIC_OPEN"
+    },
+    {
+      "begin": "_assignment_append_begin",
+      "scanner": "ASSIGNMENT_APPEND_BEGIN"
+    },
+    {
+      "begin": "_declaration_name_begin",
+      "scanner": "DECLARATION_NAME_BEGIN"
+    },
+    {
+      "begin": "_conditional_open_begin",
+      "scanner": "CONDITIONAL_OPEN_BEGIN"
+    },
+    {
+      "begin": "_conditional_close_begin",
+      "scanner": "CONDITIONAL_CLOSE_BEGIN"
+    },
+    {
+      "begin": "_conditional_unary_begin",
+      "scanner": "CONDITIONAL_UNARY_BEGIN"
+    },
+    {
+      "begin": "_conditional_binary_begin",
+      "scanner": "CONDITIONAL_BINARY_BEGIN"
+    },
+    {
+      "begin": "_conditional_match_begin",
+      "scanner": "CONDITIONAL_MATCH_BEGIN"
+    },
+    {
+      "begin": "_conditional_regex_begin",
+      "scanner": "CONDITIONAL_REGEX_BEGIN"
+    },
+    {
+      "begin": "_conditional_not_begin",
+      "scanner": "CONDITIONAL_NOT_BEGIN"
+    },
+    {
+      "begin": "_time_end_begin",
+      "scanner": "TIME_END_BEGIN"
+    },
+    {
+      "begin": "_ere_character_begin",
+      "scanner": "ERE_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_ere_collating_character_begin",
+      "scanner": "ERE_COLLATING_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_ere_initial_close_begin",
+      "scanner": "ERE_INITIAL_CLOSE_BEGIN"
+    },
+    {
+      "begin": "_ere_compound_character_begin",
+      "scanner": "ERE_COMPOUND_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_ere_compound_multi_begin",
+      "scanner": "ERE_COMPOUND_MULTI_BEGIN"
+    },
+    {
+      "begin": "_ere_equivalence_character_begin",
+      "scanner": "ERE_EQUIVALENCE_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_ere_equivalence_multi_begin",
+      "scanner": "ERE_EQUIVALENCE_MULTI_BEGIN"
+    },
+    {
+      "begin": "_ere_meta_character_begin",
+      "scanner": "ERE_META_CHARACTER_BEGIN"
+    },
+    {
+      "begin": "_ere_class_name_begin",
+      "scanner": "ERE_CLASS_NAME_BEGIN"
+    },
+    {
+      "begin": "_ere_count_begin",
+      "scanner": "ERE_COUNT_BEGIN"
+    },
+    {
+      "begin": "_ere_fragment_begin",
+      "scanner": "ERE_FRAGMENT_BEGIN"
+    },
+    {
+      "begin": "_ere_modifier_begin",
+      "scanner": "ERE_MODIFIER_BEGIN"
+    },
+    {
+      "begin": "_ere_member_open_begin",
+      "scanner": "ERE_MEMBER_OPEN_BEGIN"
+    },
+    {
+      "begin": "_ere_member_close_begin",
+      "scanner": "ERE_MEMBER_CLOSE_BEGIN"
+    },
+    {
+      "begin": "_ere_initial_hyphen",
+      "scanner": "ERE_INITIAL_HYPHEN"
+    },
+    {
+      "begin": "_ere_ordinary_close",
+      "scanner": "ERE_ORDINARY_CLOSE"
+    },
+    {
+      "begin": "_ere_ordinary_brace",
+      "scanner": "ERE_ORDINARY_BRACE"
+    }
+  ],
+  "physical": [
+    {
+      "begin": "_left_brace",
+      "scanner": "LEFT_BRACE"
+    },
+    {
+      "begin": "_right_brace",
+      "scanner": "RIGHT_BRACE"
+    },
+    {
+      "begin": "_pattern_special_left_bracket",
+      "scanner": "PATTERN_SPECIAL_LEFT_BRACKET"
+    },
+    {
+      "begin": "_comment_line_end_begin",
+      "scanner": "COMMENT_LINE_END"
+    },
+    {
+      "begin": "_dollar_expansion_start",
+      "scanner": "DOLLAR_EXPANSION_START"
+    },
+    {
+      "begin": "_backquote_start",
+      "scanner": "BACKQUOTE_START"
+    },
+    {
+      "begin": "_backquote_end",
+      "scanner": "BACKQUOTE_END"
+    },
+    {
+      "begin": "_word_pattern_bracket_open",
+      "scanner": "WORD_PATTERN_BRACKET_OPEN"
+    },
+    {
+      "begin": "_parameter_pattern_bracket_open",
+      "scanner": "PARAMETER_PATTERN_BRACKET_OPEN"
+    },
+    {
+      "begin": "_double_quoted_backquote_start",
+      "scanner": "DOUBLE_QUOTED_BACKQUOTE_START"
+    },
+    {
+      "begin": "_pattern_character_class_end_colon",
+      "scanner": "PATTERN_CHARACTER_CLASS_END_COLON"
+    },
+    {
+      "begin": "_punct_left_parenthesis",
+      "scanner": "PUNCT_LEFT_PARENTHESIS"
+    },
+    {
+      "begin": "_punct_right_parenthesis",
+      "scanner": "PUNCT_RIGHT_PARENTHESIS"
+    },
+    {
+      "begin": "_punct_semicolon",
+      "scanner": "PUNCT_SEMICOLON"
+    },
+    {
+      "begin": "_punct_ampersand",
+      "scanner": "PUNCT_AMPERSAND"
+    },
+    {
+      "begin": "_punct_pipe",
+      "scanner": "PUNCT_PIPE"
+    },
+    {
+      "begin": "_punct_less",
+      "scanner": "PUNCT_LESS"
+    },
+    {
+      "begin": "_punct_greater",
+      "scanner": "PUNCT_GREATER"
+    },
+    {
+      "begin": "_punct_equals",
+      "scanner": "PUNCT_EQUALS"
+    },
+    {
+      "begin": "_punct_right_bracket",
+      "scanner": "PUNCT_RIGHT_BRACKET"
+    },
+    {
+      "begin": "_punct_colon",
+      "scanner": "PUNCT_COLON"
+    },
+    {
+      "begin": "_punct_dot",
+      "scanner": "PUNCT_DOT"
+    },
+    {
+      "begin": "_sq_open",
+      "scanner": "SQ_OPEN"
+    },
+    {
+      "begin": "_sq_close",
+      "scanner": "SQ_CLOSE"
+    },
+    {
+      "begin": "_dq_open",
+      "scanner": "DQ_OPEN"
+    },
+    {
+      "begin": "_dq_close",
+      "scanner": "DQ_CLOSE"
+    },
+    {
+      "begin": "_dollar_sq_dollar",
+      "scanner": "DOLLAR_SQ_DOLLAR"
+    },
+    {
+      "begin": "_dollar_sq_open",
+      "scanner": "DOLLAR_SQ_OPEN"
+    },
+    {
+      "begin": "_dollar_sq_close",
+      "scanner": "DOLLAR_SQ_CLOSE"
+    },
+    {
+      "begin": "_parameter_open",
+      "scanner": "PARAMETER_OPEN"
+    },
+    {
+      "begin": "_parameter_close",
+      "scanner": "PARAMETER_CLOSE"
+    },
+    {
+      "begin": "_command_open",
+      "scanner": "COMMAND_OPEN"
+    },
+    {
+      "begin": "_arithmetic_expansion_open",
+      "scanner": "ARITHMETIC_EXPANSION_OPEN"
+    },
+    {
+      "begin": "_numeric_parameter_digit",
+      "scanner": "NUMERIC_PARAMETER_DIGIT"
+    },
+    {
+      "begin": "_word_tilde_start",
+      "scanner": "WORD_TILDE_START"
+    },
+    {
+      "begin": "_assignment_tilde_start",
+      "scanner": "ASSIGNMENT_TILDE_START"
+    },
+    {
+      "begin": "_parameter_tilde_start",
+      "scanner": "PARAMETER_TILDE_START"
+    },
+    {
+      "begin": "_logical_newline_begin",
+      "scanner": "LOGICAL_NEWLINE_BEGIN"
+    },
+    {
+      "begin": "_dollar_dq_dollar",
+      "scanner": "DOLLAR_DQ_DOLLAR"
+    },
+    {
+      "begin": "_process_in_start",
+      "scanner": "PROCESS_IN_START"
+    },
+    {
+      "begin": "_process_out_start",
+      "scanner": "PROCESS_OUT_START"
+    },
+    {
+      "begin": "_extglob_open",
+      "scanner": "EXTGLOB_OPEN"
+    },
+    {
+      "begin": "_extglob_close",
+      "scanner": "EXTGLOB_CLOSE"
+    },
+    {
+      "begin": "_extglob_bar",
+      "scanner": "EXTGLOB_BAR"
+    },
+    {
+      "begin": "_current_shell_open",
+      "scanner": "CURRENT_SHELL_OPEN"
+    },
+    {
+      "begin": "_reply_open",
+      "scanner": "REPLY_OPEN"
+    },
+    {
+      "begin": "_substitution_brace_close",
+      "scanner": "SUBSTITUTION_BRACE_CLOSE"
+    },
+    {
+      "begin": "_subscript_open",
+      "scanner": "SUBSCRIPT_OPEN"
+    },
+    {
+      "begin": "_arithmetic_subscript_open",
+      "scanner": "ARITHMETIC_SUBSCRIPT_OPEN"
+    },
+    {
+      "begin": "_subscript_close",
+      "scanner": "SUBSCRIPT_CLOSE"
+    },
+    {
+      "begin": "_brace_open",
+      "scanner": "BRACE_OPEN"
+    },
+    {
+      "begin": "_brace_close",
+      "scanner": "BRACE_CLOSE"
+    },
+    {
+      "begin": "_brace_comma",
+      "scanner": "BRACE_COMMA"
+    },
+    {
+      "begin": "_brace_literal_open",
+      "scanner": "BRACE_LITERAL_OPEN"
+    },
+    {
+      "begin": "_arithmetic_command_open",
+      "scanner": "ARITHMETIC_COMMAND_OPEN"
+    },
+    {
+      "begin": "_array_assignment_open",
+      "scanner": "ARRAY_ASSIGNMENT_OPEN"
+    },
+    {
+      "begin": "_array_assignment_close",
+      "scanner": "ARRAY_ASSIGNMENT_CLOSE"
+    },
+    {
+      "begin": "_regex_open",
+      "scanner": "REGEX_OPEN"
+    },
+    {
+      "begin": "_regex_close",
+      "scanner": "REGEX_CLOSE"
+    },
+    {
+      "begin": "_for_semicolon",
+      "scanner": "FOR_SEMICOLON"
+    },
+    {
+      "begin": "_io_variable_open",
+      "scanner": "IO_VARIABLE_OPEN"
+    },
+    {
+      "begin": "_io_variable_close",
+      "scanner": "IO_VARIABLE_CLOSE"
+    },
+    {
+      "begin": "_ere_bar",
+      "scanner": "ERE_BAR"
+    },
+    {
+      "begin": "_ere_source_bar",
+      "scanner": "ERE_SOURCE_BAR"
+    },
+    {
+      "begin": "_ere_star",
+      "scanner": "ERE_STAR"
+    },
+    {
+      "begin": "_ere_plus",
+      "scanner": "ERE_PLUS"
+    },
+    {
+      "begin": "_ere_question",
+      "scanner": "ERE_QUESTION"
+    },
+    {
+      "begin": "_ere_bracket_open",
+      "scanner": "ERE_BRACKET_OPEN"
+    },
+    {
+      "begin": "_ere_bracket_close",
+      "scanner": "ERE_BRACKET_CLOSE"
+    },
+    {
+      "begin": "_ere_negation",
+      "scanner": "ERE_NEGATION"
+    },
+    {
+      "begin": "_ere_hyphen",
+      "scanner": "ERE_HYPHEN"
+    },
+    {
+      "begin": "_ere_literal_hyphen",
+      "scanner": "ERE_LITERAL_HYPHEN"
+    },
+    {
+      "begin": "_ere_interval_open",
+      "scanner": "ERE_INTERVAL_OPEN"
+    },
+    {
+      "begin": "_ere_interval_close",
+      "scanner": "ERE_INTERVAL_CLOSE"
+    },
+    {
+      "begin": "_ere_comma",
+      "scanner": "ERE_COMMA"
+    },
+    {
+      "begin": "_ere_class_open",
+      "scanner": "ERE_CLASS_OPEN"
+    },
+    {
+      "begin": "_ere_collating_open",
+      "scanner": "ERE_COLLATING_OPEN"
+    },
+    {
+      "begin": "_ere_equivalence_open",
+      "scanner": "ERE_EQUIVALENCE_OPEN"
+    },
+    {
+      "begin": "_ere_colon",
+      "scanner": "ERE_COLON"
+    },
+    {
+      "begin": "_ere_dot",
+      "scanner": "ERE_DOT"
+    },
+    {
+      "begin": "_ere_equal",
+      "scanner": "ERE_EQUAL"
+    },
+    {
+      "begin": "_ere_compound_close",
+      "scanner": "ERE_COMPOUND_CLOSE"
+    },
+    {
+      "begin": "_ere_range_end_hyphen",
+      "scanner": "ERE_RANGE_END_HYPHEN"
+    },
+    {
+      "begin": "_ere_wildcard_begin",
+      "scanner": "ERE_WILDCARD_BEGIN"
+    },
+    {
+      "begin": "_ere_left_anchor_begin",
+      "scanner": "ERE_LEFT_ANCHOR_BEGIN"
+    },
+    {
+      "begin": "_ere_right_anchor_begin",
+      "scanner": "ERE_RIGHT_ANCHOR_BEGIN"
+    }
+  ]
+}

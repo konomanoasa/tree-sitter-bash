@@ -1,0 +1,5193 @@
+================================================================================
+locale quotation and ANSI-C escapes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (locale_quoted
+                (double_quote_text)
+                (parameter_expansion
+                  (variable_name))))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)
+                (dollar_single_quote_escape)
+                (dollar_single_quote_escape)
+                (dollar_single_quote_text)
+                (dollar_single_quote_escape)
+                (dollar_single_quote_escape)
+                (dollar_single_quote_escape)
+                (dollar_single_quote_escape)))))))))
+
+================================================================================
+extquote inside quoted parameter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo "${x:-$'\u3042'}" "${x:-$"hello"}"
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (locale_quoted
+                      (double_quote_text))))))))))))
+
+================================================================================
+tilde prefixes and assignment arguments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ~+ ~- ~2 ~+2 ~-2 a=~:~/bin a=one:~user/bin
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (literal)
+              (tilde_expansion)
+              (literal)
+              (tilde_expansion)
+              (literal))
+            (word
+              (literal)
+              (literal)
+              (tilde_expansion
+                (tilde_user
+                  (literal)))
+              (literal))))))))
+
+================================================================================
+brace alternatives and sequences
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo pre{a,b}post {1..9..2} {z..a..-2} {,x,} {a,{b,c}}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal)
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal)))
+              (literal))
+            (word
+              (brace_expansion
+                (brace_sequence
+                  (brace_endpoint)
+                  (brace_endpoint)
+                  (brace_increment))))
+            (word
+              (brace_expansion
+                (brace_sequence
+                  (brace_endpoint)
+                  (brace_endpoint)
+                  (brace_increment))))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (brace_expansion
+                    (brace_alternative
+                      (literal))
+                    (brace_alternative
+                      (literal))))))))))))
+
+================================================================================
+invalid brace candidates
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo {x} {1..x} {1..9..x} {{a,b}} {a,{x}}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal)
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal)))
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal)
+                  (literal)
+                  (literal))))))))))
+
+================================================================================
+quoted braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo "{a,b}" \{a,b} {a\,b} a\@\(x\)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (double_quote_text)))
+            (word
+              (escaped_character)
+              (literal))
+            (word
+              (literal)
+              (escaped_character)
+              (literal))
+            (word
+              (literal)
+              (escaped_character)
+              (escaped_character)
+              (literal)
+              (escaped_character))))))))
+
+================================================================================
+indirection and enumeration
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${!ref} ${!prefix*} ${!prefix@} ${!arr[@]} ${!arr[*]} ${!ref@Q}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (variable_name)))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (variable_name)
+                (parameter_names_operator)))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (variable_name)
+                (parameter_names_operator)))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (subscript_all_elements_candidate))))))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (subscript_all_elements_candidate))))))
+            (word
+              (parameter_expansion
+                (parameter_indirection_operator)
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))))))))
+
+
+================================================================================
+parameter arrays and length
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${arr[x+y]} ${arr[$x]} ${arr["a ] b"]} ${arr[b[2]]} ${#arr[@]}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_binary_expression
+                        (arithmetic_candidate_variable)
+                        (arithmetic_candidate_operator)
+                        (arithmetic_candidate_variable)))))))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (parameter_expansion
+                        (variable_name)))))))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (double_quoted
+                          (double_quote_text))))))))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_array_reference
+                        (arithmetic_candidate_variable)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_number)))))))))
+            (word
+              (parameter_expansion
+                (parameter_length_operator)
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (subscript_all_elements_candidate))))))))))))
+
+
+================================================================================
+parameter value operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x:-a} ${x:=a} ${x:+a} ${x:?a} ${x-a} ${x+a} ${x=a} ${x?a}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))))))))
+
+================================================================================
+substring operands
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x:1:2} ${x: -2} ${x:(a?b:c):d} ${x:a?b:c:d} ${x:${n}:$((m+1))}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_number))
+                  (substring_source
+                    (arithmetic_number)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_unary_expression
+                      (arithmetic_operator)
+                      (arithmetic_number))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (parenthesized_arithmetic
+                      (arithmetic_conditional_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_variable))))
+                  (substring_source
+                    (arithmetic_variable)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_conditional_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_variable)))
+                  (substring_source
+                    (arithmetic_variable)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (parameter_expansion
+                      (variable_name)))
+                  (substring_source
+                    (arithmetic_expansion
+                      (arithmetic_binary_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_number)))))))))))))
+
+================================================================================
+parameter replacement
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x/a/b} ${x//a/b} ${x/#a/b} ${x/%a/b} ${x/a} ${x/a/} ${x//\//x} ${x/[a/]/b}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (escaped_character))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))))))))
+
+================================================================================
+quoted replacement
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo "${x//a/'b c'}" "${x/a/$'\n'}" ${x/a/$(echo hi)}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_replacement
+                    (parameter_replacement_operator)
+                    (parameter_pattern
+                      (literal))
+                    (parameter_word
+                      (single_quoted
+                        (single_quote_content)))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_replacement
+                    (parameter_replacement_operator)
+                    (parameter_pattern
+                      (literal))
+                    (parameter_word
+                      (dollar_single_quoted
+                        (dollar_single_quote_escape)))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (command_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (word
+                                    (literal)))))))))))))))))))
+
+================================================================================
+case conversion and transformations
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x^} ${x^^[ab]} ${x,?} ${x,,} ${x@U} ${x@u} ${x@L} ${x@Q} ${x@E} ${x@P} ${x@A} ${x@K} ${x@a} ${x@k}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_case_conversion
+                  (parameter_case_operator))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_case_conversion
+                  (parameter_case_operator)
+                  (parameter_pattern
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)
+                        (pattern_bracket_character_source)))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_case_conversion
+                  (parameter_case_operator)
+                  (parameter_pattern
+                    (pattern_question_source)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_case_conversion
+                  (parameter_case_operator))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_transformation
+                  (parameter_transformation_code))))))))))
+
+================================================================================
+extglob kinds and nesting
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))))
+            (word
+              (extglob_pattern
+                (extglob_operator)))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))))))))
+
+================================================================================
+extglob source delimiters
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source))))
+                (extglob_alternative
+                  (double_quoted
+                    (double_quote_text)))
+                (extglob_alternative
+                  (escaped_character))
+                (extglob_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (literal))))))))))
+                (extglob_alternative
+                  (parameter_expansion
+                    (variable_name)))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal)
+                  (extglob_group
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))))))))))
+
+================================================================================
+extglob in parameter patterns
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_pattern_operator)
+                (parameter_pattern
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_pattern_operator)
+                  (parameter_pattern
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal)))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))
+                  (parameter_word
+                    (literal)))))))))))
+
+================================================================================
+process substitution in words and redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <(echo hi) pre<(echo hi)post > >(cat)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))))))))))
+            (word
+              (literal)
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal)))))))))
+              (literal))
+            (io_redirect
+              (io_file
+                (word
+                  (process_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))))))))))))))))))
+
+================================================================================
+nested process substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $(cat <(echo hi)) $((1+$(cat <(echo 2))))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (process_substitution
+                                (command_substitution_body
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (word
+                                              (literal))))))))))))))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (process_substitution
+                                    (command_substitution_body
+                                      (list
+                                        (and_or
+                                          (pipeline
+                                            (command
+                                              (simple_command
+                                                (word
+                                                  (literal))
+                                                (word
+                                                  (literal))))))))))))))))))))))))))
+
+================================================================================
+current shell substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (current_shell_substitution
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))
+                          (word
+                            (literal))))))
+                  (separator
+                    (separator_op))))
+              (literal))
+            (word
+              (reply_substitution
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (assignment_word
+                            (variable_name)
+                            (assignment_value
+                              (literal)))))))
+                  (separator
+                    (separator_op)))))
+            (word
+              (double_quoted
+                (current_shell_substitution
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))))))
+                    (separator
+                      (separator_op))))))))))))
+
+================================================================================
+nested current shell substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; }))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (current_shell_substitution
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (brace_group
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal))))))
+                            (separator
+                              (separator_op)))))))
+                  (separator
+                    (separator_op)))))
+            (word
+              (current_shell_substitution
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))
+                          (word
+                            (double_quoted
+                              (double_quote_text)))
+                          (word
+                            (current_shell_substitution
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))))))
+                                (separator
+                                  (separator_op)))))))))
+                  (separator
+                    (separator_op)))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (current_shell_substitution
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (word
+                                (literal))))))
+                      (separator
+                        (separator_op)))))))))))))
+
+================================================================================
+here document inside current shell substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${ cat <<EOF
+x
+EOF
+}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (current_shell_substitution
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))
+                          (io_redirect
+                            (io_here
+                              (dless)
+                              (here_end
+                                (word
+                                  (literal)))))))))
+                  (separator
+                    (here_document_sequence
+                      (here_document_line_end)
+                      (here_document
+                        (here_document_body
+                          (here_document_text))
+                        (here_document_end
+                          (here_document_end_text))))))))))))))
+
+================================================================================
+here document inside process substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <(cat <<EOF
+x
+EOF
+)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (io_redirect
+                              (io_here
+                                (dless)
+                                (here_end
+                                  (word
+                                    (literal))))))))))
+                  (here_document_sequence
+                    (here_document_line_end)
+                    (here_document
+                      (here_document_body
+                        (here_document_text))
+                      (here_document_end
+                        (here_document_end_text)))))))))))))
+
+================================================================================
+expansions in here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<EOF
+${x//a/b} ${ printf hi; } ${| REPLY=x; } $((2**3))
+EOF
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (literal))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (parameter_expansion
+          (variable_name)
+          (parameter_replacement
+            (parameter_replacement_operator)
+            (parameter_pattern
+              (literal))
+            (parameter_word
+              (literal))))
+        (here_document_text)
+        (current_shell_substitution
+          (list
+            (and_or
+              (pipeline
+                (command
+                  (simple_command
+                    (word
+                      (literal))
+                    (word
+                      (literal))))))
+            (separator
+              (separator_op))))
+        (here_document_text)
+        (reply_substitution
+          (list
+            (and_or
+              (pipeline
+                (command
+                  (simple_command
+                    (assignment_word
+                      (variable_name)
+                      (assignment_value
+                        (literal)))))))
+            (separator
+              (separator_op))))
+        (here_document_text)
+        (arithmetic_expansion
+          (arithmetic_binary_expression
+            (arithmetic_number)
+            (arithmetic_operator)
+            (arithmetic_number))))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+arithmetic operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((a=2**3**2,b++,--c,++d+e--)) $((-2**2))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_sequence_expression
+                  (arithmetic_sequence_expression
+                    (arithmetic_sequence_expression
+                      (arithmetic_assignment_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_binary_expression
+                          (arithmetic_number)
+                          (arithmetic_operator)
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))))
+                      (arithmetic_operator)
+                      (arithmetic_update_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)))
+                    (arithmetic_operator)
+                    (arithmetic_update_expression
+                      (arithmetic_operator)
+                      (arithmetic_variable)))
+                  (arithmetic_operator)
+                  (arithmetic_binary_expression
+                    (arithmetic_update_expression
+                      (arithmetic_operator)
+                      (arithmetic_variable))
+                    (arithmetic_operator)
+                    (arithmetic_update_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_unary_expression
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+================================================================================
+arithmetic bases
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((2#101+16#ff+36#Z+64#_+64#@+0xFF+077)) $((2#2)) $((65#1))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_binary_expression
+                    (arithmetic_binary_expression
+                      (arithmetic_binary_expression
+                        (arithmetic_binary_expression
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))
+                          (arithmetic_operator)
+                          (arithmetic_number))
+                        (arithmetic_operator)
+                        (arithmetic_number))
+                      (arithmetic_operator)
+                      (arithmetic_number))
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_source_fragment))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_source_fragment))))))))))
+
+================================================================================
+arithmetic array sources
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((arr[x+y]+=1)) $((++arr[$x])) $((arr[b[2]]++))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_assignment_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_candidate_variable)
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_variable)))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_update_expression
+                  (arithmetic_operator)
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (parameter_expansion
+                          (variable_name))))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_update_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_array_reference
+                          (arithmetic_candidate_variable)
+                          (array_subscript
+                            (subscript_source
+                              (arithmetic_candidate_number)))))))
+                  (arithmetic_operator))))))))))
+
+
+================================================================================
+arithmetic operator continuations
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((2*\
+*3)) $((a+\
++))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator
+                    (line_continuation))
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_update_expression
+                  (arithmetic_variable)
+                  (arithmetic_operator
+                    (line_continuation)))))))))))
+
+================================================================================
+boundary continuations
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo @\
+(a|b) <\
+(echo hi) $\
+"x" {1.\
+.3} ${x/\
+/a/b}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (line_continuation)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (process_substitution
+                (line_continuation)
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))))))))))
+            (word
+              (locale_quoted
+                (line_continuation)
+                (double_quote_text)))
+            (word
+              (brace_expansion
+                (brace_sequence
+                  (brace_endpoint)
+                  (line_continuation)
+                  (brace_endpoint))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator
+                    (line_continuation))
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))))))))
+
+================================================================================
+backquote nesting
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo `printf "%s" @(a|b) ${x//a/b}`
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (double_quoted
+                                (double_quote_text)))
+                            (word
+                              (extglob_pattern
+                                (extglob_operator)
+                                (extglob_alternative
+                                  (literal))
+                                (extglob_alternative
+                                  (literal))))
+                            (word
+                              (parameter_expansion
+                                (variable_name)
+                                (parameter_replacement
+                                  (parameter_replacement_operator)
+                                  (parameter_pattern
+                                    (literal))
+                                  (parameter_word
+                                    (literal)))))))))))))))))))
+
+================================================================================
+nested braces in arithmetic substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((1+${ { printf 2; }; }))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (current_shell_substitution
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (brace_group
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))))))
+                                (separator
+                                  (separator_op)))))))
+                      (separator
+                        (separator_op)))))))))))))
+
+================================================================================
+substitution inside brace alternatives
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo {$(echo "{a,b}"),x}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (double_quoted
+                                    (double_quote_text)))))))))))
+                (brace_alternative
+                  (literal))))))))))
+
+================================================================================
+here document inside brace alternatives
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo {$(cat <<EOF
+x
+EOF
+),z}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (io_redirect
+                                  (io_here
+                                    (dless)
+                                    (here_end
+                                      (word
+                                        (literal))))))))))
+                      (here_document_sequence
+                        (here_document_line_end)
+                        (here_document
+                          (here_document_body
+                            (here_document_text))
+                          (here_document_end
+                            (here_document_end_text)))))))
+                (brace_alternative
+                  (literal))))))))))
+
+================================================================================
+extglob inside arithmetic substitution
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((1+$(echo @(a|b))))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (extglob_pattern
+                                    (extglob_operator)
+                                    (extglob_alternative
+                                      (literal))
+                                    (extglob_alternative
+                                      (literal))))))))))))))))))))
+
+================================================================================
+nested arithmetic subscript substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((a[${x}]+b[$(echo 1)]))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (parameter_expansion
+                          (variable_name)))))
+                  (arithmetic_operator)
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (command_substitution
+                          (command_substitution_body
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (literal)))))))))))))))))))))
+
+================================================================================
+here document delimiter extglob
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<@(a|b)
+x
+@(a|b)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+here document ANSI-C Unicode delimiter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<$'\u0045OF'
+x
+EOF
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+here document ANSI-C hex width
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<$'\x454OF'
+x
+E4OF
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+quoted parameter process source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo "${x:-<(echo hi)}"
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (double_quote_text)))))))))))
+
+================================================================================
+quoted parameter extglob value
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo "${x:-@(a|b)}"
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (double_quote_text)))))))))))
+
+================================================================================
+parameter process replacement
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${x/a/<(echo hi)}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (process_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (word
+                                    (literal)))))))))))))))))))
+
+================================================================================
+case pattern extglob
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+case x in @(a|b)|!(c)) echo yes;; esac
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (case_clause
+            (case_keyword)
+            (word
+              (literal))
+            (in_keyword)
+            (case_item
+              (pattern_list
+                (word
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))
+                (word
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal)))))
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal))
+                        (word
+                          (literal)))))))
+              (dsemi))
+            (esac_keyword)))))))
+
+================================================================================
+arithmetic nested assignment
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo $((a ? b=1 : c=2)) $((a=1,b=2,c))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_conditional_expression
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_assignment_expression
+                    (arithmetic_variable)
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_assignment_expression
+                    (arithmetic_variable)
+                    (arithmetic_operator)
+                    (arithmetic_number)))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_sequence_expression
+                  (arithmetic_sequence_expression
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number))
+                    (arithmetic_operator)
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number)))
+                  (arithmetic_operator)
+                  (arithmetic_variable))))))))))
+
+================================================================================
+array spaces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${a[ one two ]} $((a[ one two ]+1))
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (arithmetic_candidate_variable)
+                        (arithmetic_candidate_variable)))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (arithmetic_candidate_variable)
+                          (arithmetic_candidate_variable)))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+
+================================================================================
+bracket negation
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo [^a] [!a]
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_negation_source)
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_negation_source)
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))))))))
+
+================================================================================
+empty current shell substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${ } ${| } ${
+}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (current_shell_substitution))
+            (word
+              (reply_substitution))
+            (word
+              (current_shell_substitution))))))))
+
+================================================================================
+special exclamation parameter operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+echo ${!:-none} ${!-none} ${!+yes}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (special_parameter)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (special_parameter)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (special_parameter)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))))))))
+
+================================================================================
+extglob in brace alternative
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+echo {@(a|b),x}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))
+                (brace_alternative
+                  (literal))))))))))
+
+================================================================================
+ANSI-C unknown escape delimiter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<$'\q\x'
+x
+\q\x
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+ANSI-C NUL truncates only the quoted segment
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+cat <<a$'\0ignored'b
+x
+ab
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (literal)
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text))
+                    (literal))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+================================================================================
+case words preserve brace literals and assignment-shaped tildes
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+case a=~+ in {a,b}|@(x|y)|a=~+) echo {c,d};; esac
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (case_clause
+            (case_keyword)
+            (word
+              (literal)
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (in_keyword)
+            (case_item
+              (pattern_list
+                (word
+                  (literal))
+                (word
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))
+                (word
+                  (literal)
+                  (tilde_expansion
+                    (tilde_user
+                      (literal)))))
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal))
+                        (word
+                          (brace_expansion
+                            (brace_alternative
+                              (literal))
+                            (brace_alternative
+                              (literal)))))))))
+              (dsemi))
+            (esac_keyword)))))))
+
+==================
+Bash dollar quotes in subscripts and substring sources
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_source_expression
+                    (locale_quoted
+                      (double_quote_text)))))
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (locale_quoted
+                            (double_quote_text)))))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (dollar_single_quoted
+                        (dollar_single_quote_text))))
+                  (substring_source
+                    (arithmetic_source_expression
+                      (locale_quoted
+                        (double_quote_text)))))))))))))
+
+
+==================
+assignment subscript parentheses precede function names
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (parenthesized_arithmetic_candidate
+                    (arithmetic_candidate_binary_expression
+                      (arithmetic_candidate_variable)
+                      (arithmetic_candidate_operator)
+                      (arithmetic_candidate_number)))))
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (parenthesized_arithmetic_candidate
+                    (arithmetic_candidate_binary_expression
+                      (arithmetic_candidate_variable)
+                      (arithmetic_candidate_operator)
+                      (arithmetic_candidate_number)))))
+              (assignment_append)
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (function_definition
+            (function_name)
+            (function_body
+              (brace_group
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))))))
+                  (separator
+                    (separator_op)))))))))))
+
+
+==================
+declaration subscripts retain ordinary word boundaries
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+declare a[x y]=z b["x y"]=v; declare a[x; echo next
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (declaration_name)
+            (word
+              (literal))
+            (word
+              (literal))
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_source_expression
+                    (double_quoted
+                      (double_quote_text)))))
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (declaration_name)
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))))))))
+
+
+==================
+replacement separators precede bracket and extglob patterns
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo ${x//[a/]/X} ${x//[a\/]/X} ${x/@(a/b)/X}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)
+                        (escaped_character))))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))))))))
+
+==================
+parameter extglobs retain bracket members and partial brackets
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)
+                        (pattern_bracket_source
+                          (pattern_bracket_members_source
+                            (pattern_bracket_character_source)))
+                        (literal))))
+                  (parameter_word
+                    (literal)))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)
+                        (literal))))
+                  (parameter_word
+                    (literal)))))))))))
+
+==================
+unclosed parameter extglobs stay within their source words
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_pattern_operator)
+                (parameter_pattern
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (literal))
+                  (parameter_word
+                    (literal)))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))))))))
+
+==================
+subscript parentheses are type neutral source text
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[(]=x; a[)]+=y; declare -A a=([)(]=z [(key)]=v); a[(b[)c])]=w
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_source_expression
+                    (subscript_text))))
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_source_expression
+                    (subscript_text))))
+              (assignment_append)
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (declaration_name)
+            (word
+              (literal))
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (array_element_assignment
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (subscript_text)
+                        (subscript_text))))
+                  (assignment_value
+                    (literal)))
+                (array_element_assignment
+                  (array_subscript
+                    (subscript_source
+                      (parenthesized_arithmetic_candidate
+                        (arithmetic_candidate_variable))))
+                  (assignment_value
+                    (literal)))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (parenthesized_arithmetic_candidate
+                    (arithmetic_candidate_array_reference
+                      (arithmetic_candidate_variable)
+                      (array_subscript
+                        (subscript_source
+                          (arithmetic_candidate_source_expression
+                            (subscript_text)
+                            (arithmetic_candidate_variable))))))))
+              (assignment_value
+                (literal)))))))))
+
+
+==================
+subscript quotations expansions and nested brackets keep source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[(日\
+本[)]"("${p}$(printf ")"))]=x
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_source_expression
+                    (parenthesized_arithmetic_candidate_source
+                      (subscript_text)
+                      (line_continuation)
+                      (subscript_text)
+                      (array_subscript
+                        (subscript_source
+                          (arithmetic_candidate_source_expression
+                            (subscript_text))))
+                      (double_quoted
+                        (double_quote_text))
+                      (parameter_expansion
+                        (variable_name))
+                      (command_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (double_quoted
+                                        (double_quote_text))))))))))))))
+              (assignment_value
+                (literal)))))))))
+
+
+==================
+parameter array keys retain unmatched parentheses
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo ${a[(]} "${a[)]}" ${a[(key)]} after
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (subscript_text)))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text))))))))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (parenthesized_arithmetic_candidate
+                        (arithmetic_candidate_variable)))))))
+            (word
+              (literal))))))))
+
+
+==================
+subscript parentheses survive nested coprocess assignments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[$(coproc worker b[ ) ]=x c=(1))]=y; echo $(a[(]=x)
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (coproc
+                                (coproc_keyword)
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (assignment_word
+                                    (variable_name)
+                                    (array_subscript
+                                      (subscript_source
+                                        (arithmetic_candidate_source_expression
+                                          (subscript_text))))
+                                    (assignment_value
+                                      (literal)))
+                                  (assignment_word
+                                    (variable_name)
+                                    (array_assignment
+                                      (word
+                                        (literal))))))))))))))
+              (assignment_value
+                (literal)))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (assignment_word
+                              (variable_name)
+                              (array_subscript
+                                (subscript_source
+                                  (arithmetic_candidate_source_expression
+                                    (subscript_text))))
+                              (assignment_value
+                                (literal)))))))))))))))))
+
+
+==================
+arithmetic delimiters precede crossing subscript spellings
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a[(]+1))) $((a[)(]+1)); ((a[(]+1)); echo $((a[$((1+2))]+1))
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_variable)
+                  (arithmetic_source_fragment)
+                  (parenthesized_arithmetic_source
+                    (arithmetic_source_fragment)
+                    (arithmetic_operator)
+                    (arithmetic_number)))))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (subshell
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)
+                                        (pattern_bracket_source
+                                          (pattern_bracket_members_source
+                                            (pattern_bracket_character_source)
+                                            (pattern_bracket_character_source)))
+                                        (literal)))))))))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (subshell
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (subshell
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal)
+                                  (pattern_bracket_source
+                                    (pattern_bracket_members_source
+                                      (pattern_bracket_character_source)))
+                                  (literal))))))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_expansion
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+
+================================================================================
+substring source with unevaluated arithmetic spelling
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: ${x:1?2} ${x:(1} ${x:1)} ${x:0:1:2}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_operator)
+                      (arithmetic_number))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_source_fragment)
+                      (arithmetic_number))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_source_fragment))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_number))
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_operator)
+                      (arithmetic_number))))))))))))
+
+================================================================================
+substring separators across quotes nested expansions and source parentheses
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: "${x:1?${n:-2}:$(printf 3):a["1:2"]}" ${x:(${y:1?2:3:4}):`printf 2`} ${x:a[1:2]}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_substring
+                    (parameter_substring_operator)
+                    (substring_source
+                      (arithmetic_conditional_expression
+                        (arithmetic_number)
+                        (arithmetic_operator)
+                        (parameter_expansion
+                          (variable_name)
+                          (parameter_value_operator)
+                          (parameter_word
+                            (double_quote_text)))
+                        (arithmetic_operator)
+                        (command_substitution
+                          (command_substitution_body
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (literal)))))))))))
+                    (substring_source
+                      (arithmetic_array_reference
+                        (arithmetic_variable)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_source_expression
+                              (double_quoted
+                                (double_quote_text)))))))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (parenthesized_arithmetic
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_substring
+                          (parameter_substring_operator)
+                          (substring_source
+                            (arithmetic_conditional_expression
+                              (arithmetic_number)
+                              (arithmetic_operator)
+                              (arithmetic_number)
+                              (arithmetic_operator)
+                              (arithmetic_number)))
+                          (substring_source
+                            (arithmetic_number))))))
+                  (substring_source
+                    (backquote_substitution
+                      (backquote_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (word
+                                    (literal)))))))))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_variable)
+                      (arithmetic_source_fragment)
+                      (arithmetic_number)))
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_source_fragment))))))))))))
+
+
+================================================================================
+nested parameter operators restore their enclosing word boundaries
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: ${x:-${y:0:1}:suffix} ${x:-${y/a/b}/suffix} ${x/${y:-a\/b}/"${z:-c}d"}
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (parameter_expansion
+                    (variable_name)
+                    (parameter_substring
+                      (parameter_substring_operator)
+                      (substring_source
+                        (arithmetic_number))
+                      (substring_source
+                        (arithmetic_number))))
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_value_operator)
+                (parameter_word
+                  (parameter_expansion
+                    (variable_name)
+                    (parameter_replacement
+                      (parameter_replacement_operator)
+                      (parameter_pattern
+                        (literal))
+                      (parameter_word
+                        (literal))))
+                  (literal))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_replacement
+                  (parameter_replacement_operator)
+                  (parameter_pattern
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal)
+                        (escaped_character)
+                        (literal))))
+                  (parameter_word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (double_quote_text)))
+                      (double_quote_text))))))))))))
+
+==================
+array words retain leading lexical brackets
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+a=([a b] [(] [)] [key]=value)
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source))))
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source))))
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source))))
+                (array_element_assignment
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_variable)))
+                  (assignment_value
+                    (literal)))))))))))
+
+
+==================
+array words apply lexical brackets only at an unquoted start
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+a=([x][a b] \[a b] a[x y])
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)))
+                  (literal))
+                (word
+                  (literal))
+                (word
+                  (escaped_character)
+                  (literal))
+                (word
+                  (literal))
+                (word
+                  (literal))
+                (word
+                  (literal))))))))))
+
+==================
+array word boundaries retain nested substitutions and continuations
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+a=(["x y"$p$(b=([x y]); printf z)日本\
+ ]suffix)
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (double_quoted
+                        (double_quote_text))
+                      (parameter_expansion
+                        (variable_name))
+                      (command_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (assignment_word
+                                      (variable_name)
+                                      (array_assignment
+                                        (word
+                                          (pattern_bracket_source
+                                            (pattern_bracket_members_source
+                                              (pattern_bracket_character_source)
+                                              (pattern_bracket_character_source)
+                                              (pattern_bracket_character_source))))))))))
+                            (separator_op)
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal)))))))))
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source)
+                      (line_continuation)
+                      (pattern_bracket_character_source)))
+                  (literal))))))))))
+
+==================
+assignment and redirection order preserves scalar declaration fields
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+>out x=y a=(one) declare b=(two); x=() >out c=z declare a=$v b+=~/p
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (io_redirect
+              (io_file
+                (word
+                  (literal))))
+            (assignment_word
+              (variable_name)
+              (assignment_value
+                (literal)))
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (literal))))
+            (declaration_name)
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (literal))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment))
+            (io_redirect
+              (io_file
+                (word
+                  (literal))))
+            (assignment_word
+              (variable_name)
+              (assignment_value
+                (literal)))
+            (declaration_name)
+            (assignment_word
+              (variable_name)
+              (assignment_value
+                (parameter_expansion
+                  (variable_name))))
+            (assignment_word
+              (variable_name)
+              (assignment_append)
+              (assignment_value
+                (tilde_expansion)
+                (literal)))))))))
+
+==================
+arithmetic source retains ANSI-C and locale quotes around delimiters
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $(( $'a\'b' + $"1" + $ ))
+for (($'a;b';$"c)d";$'e')); do :; done
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (dollar_single_quoted
+                    (dollar_single_quote_text)
+                    (dollar_single_quote_escape)
+                    (dollar_single_quote_text))
+                  (arithmetic_operator)
+                  (locale_quoted
+                    (double_quote_text))
+                  (arithmetic_operator)
+                  (arithmetic_source_fragment))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_for_clause
+            (for_keyword)
+            initializer: (arithmetic_source_expression
+              (dollar_single_quoted
+                (dollar_single_quote_text)))
+            condition: (arithmetic_source_expression
+              (locale_quoted
+                (double_quote_text)))
+            update: (arithmetic_source_expression
+              (dollar_single_quoted
+                (dollar_single_quote_text)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))))
+
+==================
+brace alternatives retain both process substitution directions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,<(:),>(:)}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (process_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))))))
+                alternative: (brace_alternative
+                  (process_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))))))))))))))
+
+==================
+brace separators take priority over bracket and extglob source
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: {[a,b]} {@(a,b)}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal))))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal)
+                  (literal))
+                (brace_alternative
+                  (literal))))))))))
+
+==================
+braces retain nested pattern fields and class payloads
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: [{a,b}-z] @({a,b}) [[:pre{a,b}:]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_range_source
+                    (brace_expansion
+                      (brace_alternative
+                        (literal))
+                      (brace_alternative
+                        (literal)))
+                    (pattern_bracket_range_operator_source)
+                    (pattern_bracket_character_source)))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (brace_expansion
+                    (brace_alternative
+                      (literal))
+                    (brace_alternative
+                      (literal))))))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_character_class_source
+                    (pattern_character_class_content_source)
+                    (brace_expansion
+                      (brace_alternative
+                        (literal))
+                      (brace_alternative
+                        (literal)))))))))))))
+
+==================
+brace crossings preserve source through lexical extglob ends
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: @({a,b),c} {@(a,b},c) @(({a,b),c})
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal)
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal))))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal)
+                  (literal))
+                (brace_alternative
+                  (literal)))
+              (literal))
+            (word
+              (literal)
+              (literal)
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (literal)))
+              (literal))))))))
+
+==================
+brace word extents keep layout and nested substitutions
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+a=([{日,本 c}]); : {a,@($(printf x,y)|c)}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (brace_expansion
+                        (brace_alternative
+                          (literal))
+                        (brace_alternative
+                          (literal))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (command_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal))))))))))
+                    (extglob_alternative
+                      (literal))))))))))))
+
+================================================================================
+substring arithmetic hierarchy and incomplete source lexemes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: "${s: (n > 0 ? 1 : 0):2}" ${s:0x$y:2+3*4} ${s:(x y)+08: a["1:2"] }
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_substring
+                    (parameter_substring_operator)
+                    (substring_source
+                      (parenthesized_arithmetic
+                        (arithmetic_conditional_expression
+                          (arithmetic_binary_expression
+                            (arithmetic_variable)
+                            (arithmetic_operator)
+                            (arithmetic_number))
+                          (arithmetic_operator)
+                          (arithmetic_number)
+                          (arithmetic_operator)
+                          (arithmetic_number))))
+                    (substring_source
+                      (arithmetic_number))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (arithmetic_source_fragment)
+                      (parameter_expansion
+                        (variable_name))))
+                  (substring_source
+                    (arithmetic_binary_expression
+                      (arithmetic_number)
+                      (arithmetic_operator)
+                      (arithmetic_binary_expression
+                        (arithmetic_number)
+                        (arithmetic_operator)
+                        (arithmetic_number)))))))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_substring
+                  (parameter_substring_operator)
+                  (substring_source
+                    (arithmetic_source_expression
+                      (parenthesized_arithmetic_source
+                        (arithmetic_variable)
+                        (arithmetic_variable))
+                      (arithmetic_operator)
+                      (arithmetic_source_fragment)))
+                  (substring_source
+                    (arithmetic_array_reference
+                      (arithmetic_variable)
+                      (array_subscript
+                        (subscript_source
+                          (arithmetic_candidate_source_expression
+                            (double_quoted
+                              (double_quote_text))))))))))))))))
+
+
+==================
+here strings in substitutions retain enclosing arithmetic and braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: $(( $(cat <<<1) + 2 )) {a,$(cat <<<x)}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_binary_expression
+                  left: (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                redirect: (io_redirect
+                                  body: (io_file
+                                    operator: (here_string_operator)
+                                    filename: (word
+                                      (literal)))))))))))
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_number))))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                redirect: (io_redirect
+                                  body: (io_file
+                                    operator: (here_string_operator)
+                                    filename: (word
+                                      (literal))))))))))))))))))))
+
+==================
+arithmetic shifts in substitutions do not start here documents
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,$( ((1 << 2))
+: )}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (arithmetic_command
+                                expression: (arithmetic_binary_expression
+                                  left: (arithmetic_number)
+                                  operator: (arithmetic_operator)
+                                  right: (arithmetic_number))))))
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))))))))))))))
+
+==================
+Bash command headers and array words preserve enclosing brace expansions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,$(time -p -- case x in x) :;; esac)}
+: {a,$(function f { case x in x) :;; esac; })}
+: {a,$(coproc worker case x in x) :;; esac)}
+: {a,$(a=(case))}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            timing: (timing
+                              (time_keyword)
+                              option: (time_option)
+                              option: (time_option))
+                            command: (command
+                              body: (case_clause
+                                (case_keyword)
+                                word: (word
+                                  (literal))
+                                in: (in_keyword)
+                                item: (case_item
+                                  patterns: (pattern_list
+                                    word: (word
+                                      (literal)))
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal)))))))
+                                  terminator: (dsemi))
+                                (esac_keyword)))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (function_definition
+                                (function_keyword)
+                                name: (function_name)
+                                body: (function_body
+                                  body: (brace_group
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          command: (command
+                                            body: (case_clause
+                                              (case_keyword)
+                                              word: (word
+                                                (literal))
+                                              in: (in_keyword)
+                                              item: (case_item
+                                                patterns: (pattern_list
+                                                  word: (word
+                                                    (literal)))
+                                                body: (list
+                                                  and_or: (and_or
+                                                    pipeline: (pipeline
+                                                      command: (command
+                                                        body: (simple_command
+                                                          name: (word
+                                                            (literal)))))))
+                                                terminator: (dsemi))
+                                              (esac_keyword)))))
+                                      terminator: (separator
+                                        operator: (separator_op)))))))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (coproc
+                                (coproc_keyword)
+                                name: (word
+                                  (literal))
+                                body: (case_clause
+                                  (case_keyword)
+                                  word: (word
+                                    (literal))
+                                  in: (in_keyword)
+                                  item: (case_item
+                                    patterns: (pattern_list
+                                      word: (word
+                                        (literal)))
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal)))))))
+                                    terminator: (dsemi))
+                                  (esac_keyword))))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                assignment: (assignment_word
+                                  name: (variable_name)
+                                  value: (array_assignment
+                                    element: (word
+                                      (literal))))))))))))))))))))
+
+==================
+Word groups and combined redirections preserve enclosing brace expansions
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: {a,$(: @(#|a))}
+: {a,$(case x in @(a|#)) :;; esac)}
+: {a,$(<(printf x) case)}
+: {a,$(: &>>out case)}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                argument: (word
+                                  (extglob_pattern
+                                    operator: (extglob_operator)
+                                    alternative: (extglob_alternative
+                                      (literal))
+                                    alternative: (extglob_alternative
+                                      (literal))))))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (case_clause
+                                (case_keyword)
+                                word: (word
+                                  (literal))
+                                in: (in_keyword)
+                                item: (case_item
+                                  patterns: (pattern_list
+                                    word: (word
+                                      (extglob_pattern
+                                        operator: (extglob_operator)
+                                        alternative: (extglob_alternative
+                                          (literal))
+                                        alternative: (extglob_alternative
+                                          (literal)))))
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal)))))))
+                                  terminator: (dsemi))
+                                (esac_keyword)))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (process_substitution
+                                    body: (command_substitution_body
+                                      (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (literal))))))))))
+                                argument: (word
+                                  (literal))))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (command_substitution
+                    body: (command_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                redirect: (io_redirect
+                                  body: (io_file
+                                    operator: (anddgreat)
+                                    filename: (word
+                                      (literal))))
+                                argument: (word
+                                  (literal))))))))))))))))))
+
+==================
+Simple command prefixes and array substitutions preserve enclosing braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,$(a=(<(case x in x) :;; esac)))}
+: {a,$(a=1 case)}
+: {a,$(coproc worker >out case)}
+: {a,$(time a[)]=1 :)}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (assignment_word
+                                  (variable_name)
+                                  (array_assignment
+                                    (word
+                                      (process_substitution
+                                        (command_substitution_body
+                                          (list
+                                            (and_or
+                                              (pipeline
+                                                (command
+                                                  (case_clause
+                                                    (case_keyword)
+                                                    (word
+                                                      (literal))
+                                                    (in_keyword)
+                                                    (case_item
+                                                      (pattern_list
+                                                        (word
+                                                          (literal)))
+                                                      (list
+                                                        (and_or
+                                                          (pipeline
+                                                            (command
+                                                              (simple_command
+                                                                (word
+                                                                  (literal)))))))
+                                                      (dsemi))
+                                                    (esac_keyword)))))))))))))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (assignment_word
+                                  (variable_name)
+                                  (assignment_value
+                                    (literal)))
+                                (word
+                                  (literal))))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (coproc
+                                (coproc_keyword)
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (io_redirect
+                                    (io_file
+                                      (word
+                                        (literal))))
+                                  (word
+                                    (literal)))))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (timing
+                              (time_keyword))
+                            (command
+                              (simple_command
+                                (assignment_word
+                                  (variable_name)
+                                  (array_subscript
+                                    (subscript_source
+                                      (arithmetic_candidate_source_expression
+                                        (subscript_text))))
+                                  (assignment_value
+                                    (literal)))
+                                (word
+                                  (literal))))))))))))))))))
+
+
+==================
+Braced substitutions balance groups after command prefixes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,${ time { :; }; }}
+: {a,${| coproc worker { :; }; }}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (current_shell_substitution
+                    body: (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          timing: (timing
+                            (time_keyword))
+                          command: (command
+                            body: (brace_group
+                              body: (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))))))
+                                terminator: (separator
+                                  operator: (separator_op)))))))
+                      terminator: (separator
+                        operator: (separator_op)))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (reply_substitution
+                    body: (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (coproc
+                              (coproc_keyword)
+                              name: (word
+                                (literal))
+                              body: (brace_group
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))))))
+                                  terminator: (separator
+                                    operator: (separator_op))))))))
+                      terminator: (separator
+                        operator: (separator_op)))))))))))))
+
+==================
+Conditional words and regex groups preserve enclosing braced substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,${ [[ x == } ]]; }}
+: {a,${ [[ x =~ (]]|}) ]]; }}
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (current_shell_substitution
+                    body: (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (conditional_command
+                              condition: (conditional_binary_expression
+                                left: (word
+                                  (literal))
+                                operator: (conditional_match_operator)
+                                right: (conditional_pattern
+                                  (literal)))))))
+                      terminator: (separator
+                        operator: (separator_op)))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (current_shell_substitution
+                    body: (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (conditional_command
+                              condition: (conditional_binary_expression
+                                left: (word
+                                  (literal))
+                                operator: (conditional_regex_operator)
+                                right: (regex_operand
+                                  expression: (extended_reg_exp
+                                    (ere_branch
+                                      (ere_expression
+                                        expression: (extended_reg_exp
+                                          (ere_branch
+                                            (ere_expression
+                                              (one_char_or_coll_elem_ere
+                                                (ordinary_character)))
+                                            (ere_expression
+                                              (one_char_or_coll_elem_ere
+                                                (ordinary_character))))
+                                          (ere_branch
+                                            (ere_expression
+                                              (one_char_or_coll_elem_ere
+                                                (ordinary_character))))))))))))))
+                      terminator: (separator
+                        operator: (separator_op)))))))))))))
+
+==================
+Parameter headers and pattern quoting preserve enclosing braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,"${x[0]#'"'}"}
+: {a,"${!x/y/'"'}"}
+: {a,"${x[}]#'"'}"}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (double_quoted
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_number))))
+                      (parameter_pattern_operator)
+                      (parameter_pattern
+                        (single_quoted
+                          (single_quote_content))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (double_quoted
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_word
+                          (single_quoted
+                            (single_quote_content)))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (double_quoted
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_source_expression
+                              (subscript_text)))))
+                      (parameter_pattern_operator)
+                      (parameter_pattern
+                        (single_quoted
+                          (single_quote_content))))))))))))))
+
+
+==================
+Array words and conditional here documents protect embedded closing delimiters
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: {a,$(a=(x # ) }
+y [)] [)]=z))}
+: {a,${ cat <<E && [[
+]] }
+E
+x == x ]]; }}
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (assignment_word
+                                  (variable_name)
+                                  (array_assignment
+                                    (word
+                                      (literal))
+                                    (comment
+                                      (comment_text))
+                                    (word
+                                      (literal))
+                                    (word
+                                      (pattern_bracket_source
+                                        (pattern_bracket_members_source
+                                          (pattern_bracket_character_source))))
+                                    (array_element_assignment
+                                      (array_subscript
+                                        (subscript_source
+                                          (arithmetic_candidate_source_expression
+                                            (subscript_text))))
+                                      (assignment_value
+                                        (literal)))))))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (current_shell_substitution
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (io_redirect
+                                (io_here
+                                  (dless)
+                                  (here_end
+                                    (word
+                                      (literal))))))))
+                        (and_if)
+                        (pipeline
+                          (command
+                            (conditional_command
+                              (here_document_sequence
+                                (here_document_line_end)
+                                (here_document
+                                  (here_document_body
+                                    (here_document_text))
+                                  (here_document_end
+                                    (here_document_end_text))))
+                              (conditional_binary_expression
+                                (word
+                                  (literal))
+                                (conditional_match_operator)
+                                (conditional_pattern
+                                  (literal)))))))
+                      (separator
+                        (separator_op)))))))))))))
+
+
+================================================================================
+Braced command lookahead distinguishes quoted commands and literal closing braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: {a,${ : }; }}
+: {a,"${| : '"'; }"}
+
+--------------------------------------------------------------------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (current_shell_substitution
+                    body: (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              argument: (word
+                                (literal))))))
+                      terminator: (separator
+                        operator: (separator_op)))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (double_quoted
+                    (reply_substitution
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                argument: (word
+                                  (single_quoted
+                                    (single_quote_content)))))))
+                        terminator: (separator
+                          operator: (separator_op))))))))))))))
+
+================================================================================
+quoted parameter single-quote boundaries
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: "${x:-'"'}" "${x:-'a}b'}" "${x:-'${y}'}"
+: {a,"${x:-'"'}"}
+
+--------------------------------------------------------------------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (single_quoted
+                      (single_quote_content))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (single_quoted
+                      (single_quote_content))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (single_quoted
+                      (single_quote_content))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (double_quoted
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (single_quoted
+                          (single_quote_content))))))))))))))
+
+================================================================================
+Array subscript arithmetic candidates preserve precedence and source fallback
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+a[i=1,j?2:3]=value
+: "${a[++i**2]}" "${a[i+++1]}" "${a[[x]+1]}" "${a[)(x+)]}"
+: "${a[$((x+1))+$(printf 2)]}" "${a[b[)]+1]}"
+: "${a[(]}" "${a[)]}" "${a[08]}" "${a[@]}" "${a[*]}"
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_subscript
+                (subscript_source
+                  (arithmetic_candidate_sequence_expression
+                    (arithmetic_candidate_assignment_expression
+                      (arithmetic_candidate_variable)
+                      (arithmetic_candidate_operator)
+                      (arithmetic_candidate_number))
+                    (arithmetic_candidate_operator)
+                    (arithmetic_candidate_conditional_expression
+                      (arithmetic_candidate_variable)
+                      (arithmetic_candidate_operator)
+                      (arithmetic_candidate_number)
+                      (arithmetic_candidate_operator)
+                      (arithmetic_candidate_number)))))
+              (assignment_value
+                (literal)))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_candidate_update_expression
+                            (arithmetic_candidate_operator)
+                            (arithmetic_candidate_variable))
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_number))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_candidate_update_expression
+                            (arithmetic_candidate_variable)
+                            (arithmetic_candidate_operator))
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_number))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (array_subscript
+                            (subscript_source
+                              (arithmetic_candidate_variable)))
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_number))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text)
+                          (parenthesized_arithmetic_candidate_source
+                            (arithmetic_candidate_variable)
+                            (arithmetic_candidate_operator)))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_expansion
+                            (arithmetic_binary_expression
+                              (arithmetic_variable)
+                              (arithmetic_operator)
+                              (arithmetic_number)))
+                          (arithmetic_candidate_operator)
+                          (command_substitution
+                            (command_substitution_body
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))))))))))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_candidate_array_reference
+                            (arithmetic_candidate_variable)
+                            (array_subscript
+                              (subscript_source
+                                (arithmetic_candidate_source_expression
+                                  (subscript_text)))))
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_number))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (subscript_all_elements_candidate)))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (array_reference
+                    (variable_name)
+                    (array_subscript
+                      (subscript_source
+                        (subscript_all_elements_candidate)))))))))))))

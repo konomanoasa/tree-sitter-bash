@@ -1,0 +1,89 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "bash",
+      "title": "Bash",
+      "scope": "source.bash",
+      "path": ".",
+      "file-types": ["bash"],
+      "injection-regex": "^bash$",
+      "highlights": "queries/highlights.scm",
+      "external-files": [
+        "common/arithmetic.h",
+        "common/input.h",
+        "common/source.h",
+        "common/scanner.h",
+        "common/lexical-tokens.json",
+        "src/lexical-tokens.h"
+      ]
+    },
+    {
+      "name": "bash_extglob",
+      "title": "Bash (extglob)",
+      "scope": "source.bash_extglob",
+      "path": "bash_extglob",
+      "file-types": ["bash_extglob"],
+      "injection-regex": "^bash_extglob$",
+      "highlights": "queries/highlights.scm",
+      "external-files": [
+        "common/arithmetic.h",
+        "common/input.h",
+        "common/source.h",
+        "common/scanner.h",
+        "common/lexical-tokens.json",
+        "bash_extglob/src/lexical-tokens.h"
+      ]
+    },
+    {
+      "name": "bash_noextquote",
+      "title": "Bash (no extquote)",
+      "scope": "source.bash_noextquote",
+      "path": "bash_noextquote",
+      "file-types": ["bash_noextquote"],
+      "injection-regex": "^bash_noextquote$",
+      "highlights": "queries/highlights.scm",
+      "external-files": [
+        "common/arithmetic.h",
+        "common/input.h",
+        "common/source.h",
+        "common/scanner.h",
+        "common/lexical-tokens.json",
+        "bash_noextquote/src/lexical-tokens.h"
+      ]
+    },
+    {
+      "name": "bash_extglob_noextquote",
+      "title": "Bash (extglob, no extquote)",
+      "scope": "source.bash_extglob_noextquote",
+      "path": "bash_extglob_noextquote",
+      "file-types": ["bash_extglob_noextquote"],
+      "injection-regex": "^bash_extglob_noextquote$",
+      "highlights": "queries/highlights.scm",
+      "external-files": [
+        "common/arithmetic.h",
+        "common/input.h",
+        "common/source.h",
+        "common/scanner.h",
+        "common/lexical-tokens.json",
+        "bash_extglob_noextquote/src/lexical-tokens.h"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammars for Bash.",
+    "links": {
+      "repository": "https://github.com/konomanoasa/tree-sitter-bash"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": true,
+    "swift": false
+  }
+}

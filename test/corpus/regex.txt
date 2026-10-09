@@ -1,0 +1,664 @@
+================================================================================
+ERE alternation and concatenation own static repetition
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ ab|c+ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character))))
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character))
+                      (ere_dupl_symbol))))))))))))
+
+================================================================================
+ERE anchors groups intervals and modifiers
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ ^(ab)+[0-9]{2,4}?.$ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression)
+                    (ere_expression
+                      (extended_reg_exp
+                        (ere_branch
+                          (ere_expression
+                            (one_char_or_coll_elem_ere
+                              (ordinary_character)))
+                          (ere_expression
+                            (one_char_or_coll_elem_ere
+                              (ordinary_character)))))
+                      (ere_dupl_symbol))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))
+                                    (end_range
+                                      (collating_element_single)))))))))
+                      (ere_dupl_symbol
+                        (duplication_count)
+                        (duplication_count)
+                        (repetition_modifier)))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere))
+                    (ere_expression)))))))))))
+
+================================================================================
+ERE bracket hierarchy and collating content
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ [^]a-][[:digit:][.ch.][=a=]][a--b][()] ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (nonmatching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (character_class
+                                      (class_name))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_symbol
+                                        (collating_element_multi)))))
+                                (expression_term
+                                  (single_expression
+                                    (equivalence_class
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))))))))))))))))))
+
+================================================================================
+ERE opaque source retains unbound duplication
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ "ab"+${p}+\.+ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (double_quoted
+                    (double_quote_text))
+                  (ere_dupl_symbol)
+                  (parameter_expansion
+                    (variable_name))
+                  (ere_dupl_symbol)
+                  (escaped_character)
+                  (ere_dupl_symbol))))))))))
+
+================================================================================
+ERE static hierarchy surrounds source payloads
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ (a|${p})+[a-z${p}]{1${n},4}$ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (extended_reg_exp
+                        (ere_branch
+                          (ere_expression
+                            (one_char_or_coll_elem_ere
+                              (ordinary_character))))
+                        (regex_source_expression
+                          (parameter_expansion
+                            (variable_name))))
+                      (ere_dupl_symbol))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (regex_source_expression
+                                    (parameter_expansion
+                                      (variable_name)))))))))
+                      (ere_dupl_symbol
+                        (regex_source_expression
+                          (duplication_count)
+                          (parameter_expansion
+                            (variable_name)))
+                        (duplication_count)))
+                    (ere_expression)))))))))))
+
+================================================================================
+ERE runtime-invalid spellings remain shell operands
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ [a-z ]]; [[ x =~ a{2 ]]; [[ x =~ a| ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (regex_source_fragment))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (regex_source_expression
+                      (regex_source_fragment))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (regex_source_expression)))))))))))
+
+================================================================================
+ERE grouping differs from Bash parenthesis boundaries
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ ([a)]b ]]; [[ x =~ [a(]b) ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (extended_reg_exp
+                    (ere_branch
+                      (ere_expression
+                        (one_char_or_coll_elem_ere
+                          (bracket_expression
+                            (matching_list
+                              (bracket_list
+                                (follow_list
+                                  (expression_term
+                                    (single_expression
+                                      (end_range
+                                        (collating_element_single))))
+                                  (expression_term
+                                    (single_expression
+                                      (end_range
+                                        (collating_element_single))))))))))
+                      (ere_expression
+                        (one_char_or_coll_elem_ere
+                          (ordinary_character))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))))))))))))
+
+================================================================================
+ERE compound payloads keep quote and expansion ownership
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ [[.a${p}c.]][[:al"ph"a:]][[=a${p}c=]] ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_symbol
+                                        (regex_source_expression
+                                          (collating_element_single)
+                                          (parameter_expansion
+                                            (variable_name))
+                                          (collating_element_single))))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (character_class
+                                      (regex_source_expression
+                                        (class_name)
+                                        (double_quoted
+                                          (double_quote_text))
+                                        (class_name)))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (equivalence_class
+                                      (regex_source_expression
+                                        (collating_element_single)
+                                        (parameter_expansion
+                                          (variable_name))
+                                        (collating_element_single)))))))))))))))))))))
+
+================================================================================
+ERE continuations retain original source within class and count
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ [[:di\
+git:]]{1\
+2,3}?\
+$ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (character_class
+                                      (class_name
+                                        (line_continuation))))))))))
+                      (ere_dupl_symbol
+                        (duplication_count
+                          (line_continuation))
+                        (duplication_count)
+                        (repetition_modifier)))
+                    (line_continuation)
+                    (ere_expression)))))))))))
+
+================================================================================
+ERE substitutions retain nested shell commands
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ ^$(printf a)${ printf b; }<(printf c)$ ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression)
+                    (regex_source_expression
+                      (command_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal)))))))))
+                      (current_shell_substitution
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (word
+                                    (literal))))))
+                          (separator
+                            (separator_op))))
+                      (process_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal))))))))))
+                    (ere_expression)))))))))))
+
+================================================================================
+ERE static duplication and source operators stay distinct
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ *a++b?? ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (regex_source_expression
+                      (ere_dupl_symbol))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character))
+                      (ere_dupl_symbol)
+                      (ere_dupl_symbol))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character))
+                      (ere_dupl_symbol
+                        (repetition_modifier)))))))))))))
+
+================================================================================
+ERE ordinary brace and bracket members keep literal roles
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x =~ a}[][.-][[.-.]]] ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_symbol
+                                        (collating_element_multi)))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (ordinary_character)))))))))))))

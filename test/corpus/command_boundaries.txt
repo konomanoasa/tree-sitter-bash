@@ -1,0 +1,789 @@
+==================
+Reserved punctuation separates groups and extglob
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+[[ ((x)) ]]
+! ( : )
+!(x|y)
+[[ !(x|y) && ! (x) ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_group
+              (conditional_group
+                (word
+                  (literal))))))))
+    (and_or
+      (pipeline
+        (bang)
+        (command
+          (subshell
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal)))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))))))
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_and_expression
+              (word
+                (extglob_pattern
+                  (extglob_operator)
+                  (extglob_alternative
+                    (literal))
+                  (extglob_alternative
+                    (literal))))
+              (and_if)
+              (conditional_negation
+                (conditional_not)
+                (conditional_group
+                  (word
+                    (literal)))))))))))
+
+==================
+Empty negation ends at command separators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+!; ! &
+if !; then :; fi
+echo $(!
+)
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (bang)))
+    (separator_op)
+    (and_or
+      (pipeline
+        (bang)))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (if_clause
+            (if_keyword)
+            (list
+              (and_or
+                (pipeline
+                  (bang)))
+              (separator
+                (separator_op)))
+            (then_keyword)
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal))))))
+              (separator
+                (separator_op)))
+            (fi_keyword)))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (bang)))))))))))))
+
+==================
+Declaration assignments stop after redirects and leading process substitutions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+>out declare a=(one) pre<(echo x) b=(two) >log c=value
+declare a=(one) <(echo x) b=value
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (io_redirect
+              (io_file
+                (word
+                  (literal))))
+            (declaration_name)
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (literal))))
+            (word
+              (literal)
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))))))))))
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (literal))))
+            (io_redirect
+              (io_file
+                (word
+                  (literal))))
+            (word
+              (literal)
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (declaration_name)
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (literal))))
+            (word
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))))))))))
+            (word
+              (literal)
+              (literal))))))))
+
+==================
+ERE ranges retain dynamic endpoints as source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x =~ [a-${p}b-c][a-"z"b-c][a-\zb-c] ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (regex_source_expression
+                                    (regex_source_fragment)))
+                                (expression_term
+                                  (regex_source_expression
+                                    (parameter_expansion
+                                      (variable_name))))
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))
+                                    (end_range
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (regex_source_expression
+                                    (regex_source_fragment)))
+                                (expression_term
+                                  (regex_source_expression
+                                    (double_quoted
+                                      (double_quote_text))))
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))
+                                    (end_range
+                                      (collating_element_single))))))))))
+                    (ere_expression
+                      (one_char_or_coll_elem_ere
+                        (bracket_expression
+                          (matching_list
+                            (bracket_list
+                              (follow_list
+                                (expression_term
+                                  (single_expression
+                                    (end_range
+                                      (collating_element_single))))
+                                (expression_term
+                                  (regex_source_expression
+                                    (regex_source_fragment)))
+                                (expression_term
+                                  (regex_source_expression
+                                    (escaped_character)))
+                                (expression_term
+                                  (range_expression
+                                    (start_range
+                                      (end_range
+                                        (collating_element_single)))
+                                    (end_range
+                                      (collating_element_single))))))))))))))))))))
+
+==================
+command-name brackets retain blanks and raw operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[ ] one; a[(x)] two; a[;|
+)] three; a[(] four
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))))
+
+==================
+command-name brackets stop before ordinary suffixes and arguments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source)))
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (double_quoted
+                (double_quote_text))
+              (literal))
+            (word
+              (literal))
+            (word
+              (literal))))))))
+
+==================
+command-name brackets retain quoted expanded and continued source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+a["x y"$p$(printf x)日本\
+ ]suffix tail
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (double_quoted
+                    (double_quote_text))
+                  (parameter_expansion
+                    (variable_name))
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (literal)))))))))
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source)
+                  (line_continuation)
+                  (pattern_bracket_character_source)))
+              (literal))
+            (word
+              (literal))))))))
+
+==================
+command-name brackets nest through assignments redirects and extglobs
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+a[$(x=y >out a[)] ) ] next; a[ ]@(x|y) arg
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (assignment_word
+                                  (variable_name)
+                                  (assignment_value
+                                    (literal)))
+                                (io_redirect
+                                  (io_file
+                                    (word
+                                      (literal))))
+                                (word
+                                  (literal)
+                                  (pattern_bracket_source
+                                    (pattern_bracket_members_source
+                                      (pattern_bracket_character_source)))))))))))
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source)))
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (literal))))))))
+
+==================
+arithmetic for mixes complete groups with crossing parentheses
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+for ((((x y)(z w);0;))); do :; done
+for ((((x y);)(z w)(;))); do :; done
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (arithmetic_for_clause
+            (for_keyword)
+            (arithmetic_source_expression
+              (arithmetic_source_fragment)
+              (parenthesized_arithmetic_source
+                (arithmetic_variable)
+                (arithmetic_variable))
+              (parenthesized_arithmetic_source
+                (arithmetic_variable)
+                (arithmetic_variable)))
+            (arithmetic_number)
+            (arithmetic_source_expression
+              (arithmetic_source_fragment))
+            (do_group
+              (do_keyword)
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal))))))
+                (separator
+                  (separator_op)))
+              (done_keyword))))))
+    (and_or
+      (pipeline
+        (command
+          (arithmetic_for_clause
+            (for_keyword)
+            (arithmetic_source_expression
+              (arithmetic_source_fragment)
+              (parenthesized_arithmetic_source
+                (arithmetic_variable)
+                (arithmetic_variable)))
+            (arithmetic_source_expression
+              (arithmetic_source_fragment)
+              (parenthesized_arithmetic_source
+                (arithmetic_variable)
+                (arithmetic_variable))
+              (arithmetic_source_fragment))
+            (arithmetic_source_expression
+              (arithmetic_source_fragment))
+            (do_group
+              (do_keyword)
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal))))))
+                (separator
+                  (separator_op)))
+              (done_keyword))))))))
+
+================================================================================
+conditional words retain adjacent operators and closing spellings
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ a[k]=~ && -n $x]] && $x]] == "x"=~ ]]
+[[ "x"-eq ]]; [[ x =~ "]]" ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_and_expression
+              (conditional_and_expression
+                (word
+                  (literal)
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)))
+                  (literal))
+                (and_if)
+                (conditional_unary_expression
+                  (conditional_unary_operator)
+                  (word
+                    (parameter_expansion
+                      (variable_name))
+                    (literal))))
+              (and_if)
+              (conditional_binary_expression
+                (word
+                  (parameter_expansion
+                    (variable_name))
+                  (literal))
+                (conditional_match_operator)
+                (conditional_pattern
+                  (double_quoted
+                    (double_quote_text))
+                  (literal))))))))
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (word
+              (double_quoted
+                (double_quote_text))
+              (literal))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (double_quoted
+                    (double_quote_text)))))))))))
+
+================================================================================
+conditional punctuation still separates words without blanks
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ x<y && ("x">"y") || x==y ]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_or_expression
+              (conditional_and_expression
+                (conditional_binary_expression
+                  (word
+                    (literal))
+                  (conditional_binary_operator)
+                  (word
+                    (literal)))
+                (and_if)
+                (conditional_group
+                  (conditional_binary_expression
+                    (word
+                      (double_quoted
+                        (double_quote_text)))
+                    (conditional_binary_operator)
+                    (word
+                      (double_quoted
+                        (double_quote_text))))))
+              (or_if)
+              (word
+                (literal)
+                (literal)))))))))
+
+================================================================================
+time after pipes is a command or function name
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+time -p : | time : |& time() { :; }
+: | "!" : | !(x|y) | !<(:)
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword)
+          (time_option))
+        (command
+          (simple_command
+            (word
+              (literal))))
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))))
+        (pipe_and)
+        (command
+          (function_definition
+            (function_name)
+            (function_body
+              (brace_group
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))))))
+                  (separator
+                    (separator_op)))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))
+        (command
+          (simple_command
+            (word
+              (double_quoted
+                (double_quote_text)))
+            (word
+              (literal))))
+        (command
+          (simple_command
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))))
+        (command
+          (simple_command
+            (word
+              (literal)
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))))))))))))))))

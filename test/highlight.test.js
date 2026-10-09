@@ -1,0 +1,1102 @@
+import assert from "node:assert/strict";
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, before, test } from "node:test";
+import {
+  createTreeSitter,
+  grammars,
+  packageName,
+  root,
+} from "../scripts/tree-sitter.js";
+
+function decodeEntities(text) {
+  return text
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&amp;", "&");
+}
+
+function renderedCaptures(html, source) {
+  const start = html.indexOf("<pre><code>");
+  const end = html.indexOf("</code></pre>");
+  assert.ok(start >= 0 && end >= start, html);
+  const content = html.slice(start + "<pre><code>".length, end);
+  const stack = [];
+  const captures = [];
+  let text = "";
+  for (const part of content.matchAll(
+    /<span class='([^']*)'>|<[/]span>|([^<]+)/g,
+  )) {
+    if (part[1] !== undefined) stack.push(part[1].replaceAll(" ", "."));
+    else if (part[0] === "</span>") assert.notEqual(stack.pop(), undefined);
+    else {
+      const decoded = decodeEntities(part[2]);
+      text += decoded;
+      captures.push(
+        ...Array(Buffer.byteLength(decoded)).fill(stack.at(-1) ?? ""),
+      );
+    }
+  }
+  assert.equal(stack.length, 0, "unclosed highlight span");
+  assert.equal(
+    text.replace(/\n$/, ""),
+    source.replace(/\n$/, ""),
+    "rendered source differs from the input",
+  );
+  return captures;
+}
+
+function createHighlighter({ directory, root, run, captureNames }) {
+  const parserDirectory = join(directory, "parsers");
+  mkdirSync(parserDirectory);
+  // CLI discovery requires a tree-sitter-* directory.
+  symlinkSync(root, join(parserDirectory, "tree-sitter-test"), "junction");
+  const configPath = join(directory, "highlight.json");
+  const capturePath = join(directory, "captures.txt");
+  writeFileSync(
+    configPath,
+    JSON.stringify({
+      "parser-directories": [parserDirectory],
+      theme: Object.fromEntries(
+        captureNames.map((name, index) => [name, index + 17]),
+      ),
+    }),
+  );
+  writeFileSync(capturePath, `${captureNames.join("\n")}\n`);
+
+  return (scope, source, valid = true) => {
+    const path = join(directory, "highlight.txt");
+    writeFileSync(path, source);
+    if (valid) {
+      const parsed = run(["parse", "--cst", "--scope", scope, path]);
+      assert.doesNotMatch(parsed, /^[0-9: \t-]+•/m, parsed);
+    }
+    const captures = renderedCaptures(
+      run([
+        "highlight",
+        "--check",
+        "--captures-path",
+        capturePath,
+        "--config-path",
+        configPath,
+        "--html",
+        "--layout",
+        "fragment",
+        "--style",
+        "classes",
+        "--scope",
+        scope,
+        path,
+      ]),
+      source,
+    );
+    for (const capture of captures) {
+      assert.ok(
+        capture === "" || captureNames.includes(capture),
+        `unexpected final capture: ${capture}`,
+      );
+    }
+    return captures;
+  };
+}
+
+function assertCaptures(source, actual, ranges) {
+  const bytes = Buffer.from(source);
+  const expected = Array(bytes.length).fill("");
+  let previousEnd = 0;
+  for (const [start, end, capture] of ranges) {
+    assert.ok(
+      Number.isSafeInteger(start) && start >= previousEnd,
+      "expected ranges must be ordered and disjoint",
+    );
+    assert.ok(
+      Number.isSafeInteger(end) && end > start && end <= bytes.length,
+      "expected range exceeds source bytes",
+    );
+    expected.fill(capture, start, end);
+    previousEnd = end;
+  }
+  // HTML emits line breaks outside spans.
+  for (const [index, byte] of bytes.entries()) {
+    if (byte !== 10)
+      assert.equal(
+        actual[index],
+        expected[index],
+        `byte ${index} in ${JSON.stringify(source)}`,
+      );
+  }
+}
+
+const captureNames = [
+  "character",
+  "character.special",
+  "comment",
+  "function",
+  "function.call",
+  "keyword",
+  "keyword.modifier",
+  "label",
+  "number",
+  "operator",
+  "punctuation.bracket",
+  "punctuation.delimiter",
+  "punctuation.special",
+  "string",
+  "string.escape",
+  "string.regexp",
+  "string.special.path",
+  "variable",
+  "variable.builtin",
+  "variable.parameter",
+];
+let highlight;
+
+let directory;
+let runner;
+before(() => {
+  directory = mkdtempSync(join(tmpdir(), `${packageName}-highlight-`));
+  runner = createTreeSitter();
+  highlight = createHighlighter({
+    directory,
+    root,
+    run: assertCommand,
+    captureNames,
+  });
+});
+after(() => {
+  try {
+    runner?.close();
+  } finally {
+    if (directory) rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+function assertCommand(arguments_) {
+  const result = runner.run(arguments_, {
+    timeout: 60_000,
+  });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.doesNotMatch(result.stderr, /Non-standard highlight captures/);
+  return result.stdout;
+}
+
+const cases = [
+  {
+    name: "ERE repetition and bracket punctuation have lexical captures",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["^", "operator"],
+      ["(", "punctuation.bracket"],
+      ["a", "string.regexp"],
+      ["|", "operator"],
+      ["b", "string.regexp"],
+      [")", "punctuation.bracket"],
+      ["+", "operator"],
+      ["[", "punctuation.bracket"],
+      ["^", "operator"],
+      ["a", "character.special"],
+      ["-", "operator"],
+      ["z", "character.special"],
+      ["]", "punctuation.bracket"],
+      ["{", "punctuation.bracket"],
+      ["2", "number"],
+      [",", "punctuation.delimiter"],
+      ["4", "number"],
+      ["}", "punctuation.bracket"],
+      ["?", "operator"],
+      [".", "character.special"],
+      ["$", "operator"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "ERE class and collating content follow their own leaf roles",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["[[", "punctuation.bracket"],
+      [":", "punctuation.delimiter"],
+      ["alpha", "character.special"],
+      [":", "punctuation.delimiter"],
+      ["][", "punctuation.bracket"],
+      [".", "punctuation.delimiter"],
+      ["ch", "character.special"],
+      [".", "punctuation.delimiter"],
+      ["][", "punctuation.bracket"],
+      ["=", "punctuation.delimiter"],
+      ["a", "character.special"],
+      ["=", "punctuation.delimiter"],
+      ["]]", "punctuation.bracket"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "ERE quote and expansion retain Bash captures beside unbound repetition",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ['"', "punctuation.delimiter"],
+      ["ab", "string"],
+      ['"', "punctuation.delimiter"],
+      ["+", "operator"],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["p", "variable"],
+      ["}", "punctuation.bracket"],
+      ["+", "operator"],
+      ["\\.", "string.escape"],
+      ["+", "operator"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "ERE unclassified bracket fragment stays uncaptured",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["[a-z", ""],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "ERE bracket parentheses are content leaves",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["[", "punctuation.bracket"],
+      ["()", "character.special"],
+      ["]", "punctuation.bracket"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "ERE continued class name keeps one lexical classification",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["[[", "punctuation.bracket"],
+      [":", "punctuation.delimiter"],
+      ["di", "character.special"],
+      ["\\", "punctuation.special"],
+      ["\n", ""],
+      ["git", "character.special"],
+      [":", "punctuation.delimiter"],
+      ["]]", "punctuation.bracket"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "command roles and pattern overrides preserve whitespace",
+    extglob: true,
+    parts: [
+      ["x", "variable"],
+      ["=", "operator"],
+      ['"', "punctuation.delimiter"],
+      ["$", "variable"],
+      ["1", "variable.parameter"],
+      ['"', "punctuation.delimiter"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["echo", "function.call"],
+      [" ", ""],
+      ["~", "string.special.path"],
+      [" ", ""],
+      ["@", "operator"],
+      ["(", "punctuation.bracket"],
+      ["a", "string.regexp"],
+      ["|", "operator"],
+      ["b", "string.regexp"],
+      [")", "punctuation.bracket"],
+      [" ", ""],
+      ["[[", "punctuation.bracket"],
+      [":", "punctuation.delimiter"],
+      ["alpha", "character.special"],
+      [":", "punctuation.delimiter"],
+      ["]][[", "punctuation.bracket"],
+      ["=", "punctuation.delimiter"],
+      ["a", "character.special"],
+      ["=", "punctuation.delimiter"],
+      ["]]", "punctuation.bracket"],
+      [" ", ""],
+      ["# comment", "comment"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "command-name brackets retain pattern and quote captures",
+    parts: [
+      ["a", "function.call"],
+      ["[", "punctuation.bracket"],
+      [" (x);|", "character"],
+      ['"', "punctuation.delimiter"],
+      ["y z", "string"],
+      ['"', "punctuation.delimiter"],
+      ["$p", "variable"],
+      ["]", "punctuation.bracket"],
+      [" ", ""],
+      ["tail", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "collating markers and process substitution retain their distinct punctuation",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["[[", "punctuation.bracket"],
+      [".", "punctuation.delimiter"],
+      ["a", "character.special"],
+      [".", "punctuation.delimiter"],
+      ["]]", "punctuation.bracket"],
+      [" ", ""],
+      ["<", "operator"],
+      ["(", "punctuation.bracket"],
+      ["cat", "function.call"],
+      [")", "punctuation.bracket"],
+      [" ", ""],
+      [">", "operator"],
+      ["out", "string"],
+      [" ", ""],
+      ["&", "operator"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "continued lexemes retain their classification under continuation overrides",
+    parts: [
+      ["ec", "function.call"],
+      ["\\", "punctuation.special"],
+      ["\nho", "function.call"],
+      [" ", ""],
+      ["ab", "string"],
+      ["\\", "punctuation.special"],
+      ["\ncd", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "incomplete quotation retains source classifications without coloring missing delimiters",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ['"', ""],
+      ["日本語", "string"],
+    ],
+  },
+  {
+    name: "continued reserved words and assignment names retain lexical captures",
+    parts: [
+      ["i", "keyword"],
+      ["\\", "punctuation.special"],
+      ["\nf", "keyword"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["th", "keyword"],
+      ["\\", "punctuation.special"],
+      ["\nen", "keyword"],
+      [" ", ""],
+      ["x", "variable"],
+      ["\\", "punctuation.special"],
+      ["\ny", "variable"],
+      ["=", "operator"],
+      ["1", "string"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["f", "keyword"],
+      ["\\", "punctuation.special"],
+      ["\ni", "keyword"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "continued arithmetic numbers and variables retain their complete classification",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "punctuation.special"],
+      ["((", "punctuation.bracket"],
+      ["0", "number"],
+      ["\\", "punctuation.special"],
+      ["\nx10", "number"],
+      [" ", ""],
+      ["+", "operator"],
+      [" ", ""],
+      ["val", "variable"],
+      ["\\", "punctuation.special"],
+      ["\nue", "variable"],
+      ["))", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "continued descriptor digits and redirection operators override only the slash",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["1", "number"],
+      ["\\", "punctuation.special"],
+      ["\n2", "number"],
+      [">", "operator"],
+      ["\\", "punctuation.special"],
+      ["\n>", "operator"],
+      ["out", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "continued parameter names and operators preserve nested quote captures",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["va", "variable"],
+      ["\\", "punctuation.special"],
+      ["\nr", "variable"],
+      [":", "operator"],
+      ["\\", "punctuation.special"],
+      ["\n-", "operator"],
+      ["'", "punctuation.delimiter"],
+      ["x", "string"],
+      ["'", "punctuation.delimiter"],
+      ["}", "punctuation.bracket"],
+      [" ", ""],
+      ['"', "punctuation.delimiter"],
+      ["$", "variable"],
+      ["@", "variable.builtin"],
+      ['"', "punctuation.delimiter"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "function and declaration command names use their CST roles",
+    parts: [
+      ["function", "keyword"],
+      [" ", ""],
+      ["f", "function"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["}", "punctuation.bracket"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["declare", "function.call"],
+      [" ", ""],
+      ["x", "variable"],
+      ["=", "operator"],
+      ["1", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "coprocess names and timing options retain distinct classifications",
+    parts: [
+      ["coproc", "keyword"],
+      [" ", ""],
+      ["worker", "label"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["}", "punctuation.bracket"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["time", "keyword"],
+      [" ", ""],
+      ["-p", "keyword.modifier"],
+      [" ", ""],
+      [":", "function.call"],
+      [" ", ""],
+      ["|&", "operator"],
+      [" ", ""],
+      [":", "function.call"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "coprocess name words retain quotes and expansion captures",
+    parts: [
+      ["coproc", "keyword"],
+      [" ", ""],
+      ["wo", "label"],
+      ['"', "punctuation.delimiter"],
+      ["$", "variable"],
+      ["name", "variable"],
+      ['"', "punctuation.delimiter"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "coprocess lexical declaration arguments retain argument captures",
+    parts: [
+      ["coproc", "keyword"],
+      [" ", ""],
+      ["worker", "function.call"],
+      [" ", ""],
+      ["declare", "string"],
+      [" ", ""],
+      ["a", "variable"],
+      ["=", "operator"],
+      ["(", "punctuation.bracket"],
+      ["1", "string"],
+      [")", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "assignment values and case selectors do not activate source pattern markers",
+    parts: [
+      ["a", "variable"],
+      ["=", "operator"],
+      ["*", "string"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["echo", "function.call"],
+      [" ", ""],
+      ["*", "character.special"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["case", "keyword"],
+      [" ", ""],
+      ["*", "string"],
+      [" ", ""],
+      ["in", "keyword"],
+      [" ", ""],
+      ["a", "string.regexp"],
+      ["*", "character.special"],
+      [")", "punctuation.bracket"],
+      [" ", ""],
+      [":", "function.call"],
+      [";;", "operator"],
+      [" ", ""],
+      ["esac", "keyword"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "select word patterns retain loop variables and bracket classifications",
+    parts: [
+      ["select", "keyword"],
+      [" ", ""],
+      ["item", "variable"],
+      [" ", ""],
+      ["in", "keyword"],
+      [" ", ""],
+      ["[", "punctuation.bracket"],
+      ["a", "character"],
+      ["-", "operator"],
+      ["z", "character"],
+      ["]", "punctuation.bracket"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["do", "keyword"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["done", "keyword"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "array elements and brace alternatives keep source values separate from subscript meaning",
+    parts: [
+      ["a", "variable"],
+      ["=", "operator"],
+      ["(", "punctuation.bracket"],
+      ["*", "character.special"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["x", "string"],
+      [",", "punctuation.delimiter"],
+      ["y", "string"],
+      ["}", "punctuation.bracket"],
+      [" ", ""],
+      ["[", "punctuation.bracket"],
+      ["key", ""],
+      ["]", "punctuation.bracket"],
+      ["=", "operator"],
+      ["*", "string"],
+      [")", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "brace punctuation surrounds process substitution alternatives",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["a", "string"],
+      [",", "punctuation.delimiter"],
+      ["<", "operator"],
+      ["(", "punctuation.bracket"],
+      [":", "function.call"],
+      [")}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "brace punctuation survives nested and crossing glob source",
+    extglob: true,
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["[{", "punctuation.bracket"],
+      ["a", "string"],
+      [",", "punctuation.delimiter"],
+      ["b", "string"],
+      ["}]", "punctuation.bracket"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["@(a", "string"],
+      [",", "punctuation.delimiter"],
+      ["b)", "string"],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "brace sequence endpoints remain text while the step is numeric",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["1", "string"],
+      ["..", "punctuation.delimiter"],
+      ["9", "string"],
+      ["..", "punctuation.delimiter"],
+      ["2", "number"],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "conditional pattern and regex operands retain different source classifications",
+    parts: [
+      ["[[", "punctuation.bracket"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["==", "operator"],
+      [" ", ""],
+      ["a", "string.regexp"],
+      ["*", "character.special"],
+      [" ", ""],
+      ["&&", "operator"],
+      [" ", ""],
+      ["$x", "variable"],
+      [" ", ""],
+      ["=~", "operator"],
+      [" ", ""],
+      ["^", "operator"],
+      ["(", "punctuation.bracket"],
+      ["a", "string.regexp"],
+      ["|", "operator"],
+      ["b", "string.regexp"],
+      [")", "punctuation.bracket"],
+      ["$", "operator"],
+      [" ", ""],
+      ["]]", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "parameter replacement patterns and transformation codes have source-based roles",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["x", "variable"],
+      ["//", "operator"],
+      ["a", "string.regexp"],
+      ["*", "character.special"],
+      ["/", "punctuation.delimiter"],
+      ["b", "string"],
+      ["}", "punctuation.bracket"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["x", "variable"],
+      ["@", "operator"],
+      ["Q", "character.special"],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "replacement slashes end incomplete bracket and extglob patterns",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["x", "variable"],
+      ["//", "operator"],
+      ["[a", "string.regexp"],
+      ["/", "punctuation.delimiter"],
+      ["]/X", "string"],
+      ["}", "punctuation.bracket"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["x", "variable"],
+      ["/", "operator"],
+      ["@(a", "string.regexp"],
+      ["/", "punctuation.delimiter"],
+      ["b)/X", "string"],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "subscript candidates stay neutral while explicit arithmetic and command substitutions keep captures",
+    parts: [
+      [":", "function.call"],
+      [" ", ""],
+      ['"', "punctuation.delimiter"],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["a", "variable"],
+      ["[", "punctuation.bracket"],
+      ["(x+1)+b[i+1]+", ""],
+      ["$", "punctuation.special"],
+      ["((", "punctuation.bracket"],
+      ["2", "number"],
+      ["+", "operator"],
+      ["3", "number"],
+      ["))", "punctuation.bracket"],
+      ["+", ""],
+      ["$", "punctuation.special"],
+      ["(", "punctuation.bracket"],
+      [":", "function.call"],
+      [")]}", "punctuation.bracket"],
+      ['"', "punctuation.delimiter"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["a", "variable"],
+      ["[", "punctuation.bracket"],
+      ["@", ""],
+      ["]}", "punctuation.bracket"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["a", "variable"],
+      ["[", "punctuation.bracket"],
+      ["*", ""],
+      ["]}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "substring numbers are classified while arithmetic fragments and subscripts stay uncaptured",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "punctuation.special"],
+      ["((", "punctuation.bracket"],
+      ["0x", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["y", "variable"],
+      ["}", "punctuation.bracket"],
+      ["))", "punctuation.bracket"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["a", "variable"],
+      ["[", "punctuation.bracket"],
+      [")(key)", ""],
+      ["]}", "punctuation.bracket"],
+      [" ", ""],
+      ["$", "variable"],
+      ["{", "punctuation.bracket"],
+      ["x", "variable"],
+      [":", "operator"],
+      ["1", "number"],
+      [":", "punctuation.delimiter"],
+      ["2", "number"],
+      ["}", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "arithmetic for separators own crossing subscript and parenthesis fragments",
+    parts: [
+      ["for", "keyword"],
+      [" ", ""],
+      ["((", "punctuation.bracket"],
+      ["a", "variable"],
+      ["[(", ""],
+      ["x", "variable"],
+      [";", "punctuation.delimiter"],
+      ["1", "number"],
+      [";", "punctuation.delimiter"],
+      ["y", "variable"],
+      [")]", ""],
+      ["))", "punctuation.bracket"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["do", "keyword"],
+      [" ", ""],
+      [":", "function.call"],
+      [";", "punctuation.delimiter"],
+      [" ", ""],
+      ["done", "keyword"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "arithmetic ANSI-C and locale quotes retain their lexical captures",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "punctuation.special"],
+      ["((", "punctuation.bracket"],
+      [" ", ""],
+      ["$'", "punctuation.delimiter"],
+      ["a", "string"],
+      ["\\'", "string.escape"],
+      ["日", "string"],
+      ["'", "punctuation.delimiter"],
+      [" ", ""],
+      ["+", "operator"],
+      [" ", ""],
+      ['$"', "punctuation.delimiter"],
+      ["$x", "variable"],
+      ['"', "punctuation.delimiter"],
+      [" ", ""],
+      ["+", "operator"],
+      [" $ ", ""],
+      ["))", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "locale and ANSI-C quoting retain delimiters escapes and expansions",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$'", "punctuation.delimiter"],
+      ["a", "string"],
+      ["\\n", "string.escape"],
+      ["'", "punctuation.delimiter"],
+      [" ", ""],
+      ['$"', "punctuation.delimiter"],
+      ["日本語 ", "string"],
+      ["$x", "variable"],
+      ['"', "punctuation.delimiter"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "continued quoted content retains string classification around the continuation",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ['"', "punctuation.delimiter"],
+      ["ab", "string"],
+      ["\\", "punctuation.special"],
+      ["\ncd", "string"],
+      ['"', "punctuation.delimiter"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "here document ends retain labels around a continuation while body expansions remain variables",
+    parts: [
+      ["cat", "function.call"],
+      [" ", ""],
+      ["<<", "operator"],
+      ["EOF", "label"],
+      ["\n", ""],
+      ["$x", "variable"],
+      ["\n", ""],
+      ["E", "label"],
+      ["\\", "punctuation.special"],
+      ["\nOF", "label"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "quoted here document delimiter spelling is a label and its body is literal",
+    parts: [
+      ["cat", "function.call"],
+      [" ", ""],
+      ["<<", "operator"],
+      ["'", "punctuation.delimiter"],
+      [`\${x}`, "label"],
+      ["'", "punctuation.delimiter"],
+      ["\n", ""],
+      ["$x", "string"],
+      ["\n", ""],
+      [`\${x}`, "label"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "variable descriptors append redirections and here strings retain operator roles",
+    parts: [
+      [":", "function.call"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["fd", "variable"],
+      ["}", "punctuation.bracket"],
+      [">", "operator"],
+      ["out", "string"],
+      [" ", ""],
+      ["&>>", "operator"],
+      ["log", "string"],
+      [" ", ""],
+      ["<<<", "operator"],
+      ["word", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "variable descriptor continuations preserve delimiter and name captures",
+    parts: [
+      [":", "function.call"],
+      [" ", ""],
+      ["{", "punctuation.bracket"],
+      ["\\", "punctuation.special"],
+      ["\n", ""],
+      ["f", "variable"],
+      ["\\", "punctuation.special"],
+      ["\n", ""],
+      ["d", "variable"],
+      ["\\", "punctuation.special"],
+      ["\n", ""],
+      ["}", "punctuation.bracket"],
+      ["\\", "punctuation.special"],
+      ["\n", ""],
+      [">", "operator"],
+      ["out", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "quoted and separated descriptor spellings retain word captures",
+    parts: [
+      [":", "function.call"],
+      [" ", ""],
+      ["{fd}", "string"],
+      [" ", ""],
+      [">", "operator"],
+      ["out", "string"],
+      [" ", ""],
+      ["'", "punctuation.delimiter"],
+      ["{fd}", "string"],
+      ["'", "punctuation.delimiter"],
+      [">", "operator"],
+      ["out", "string"],
+      [" ", ""],
+      ["{1fd}", "string"],
+      [">", "operator"],
+      ["out", "string"],
+      ["\n", ""],
+    ],
+  },
+  {
+    name: "locale quotes inside delimiter brackets label only their content",
+    parts: [
+      ["cat", "function.call"],
+      [" ", ""],
+      ["<<", "operator"],
+      ["[", "label"],
+      ['$"', "punctuation.delimiter"],
+      ["x", "label"],
+      ['"', "punctuation.delimiter"],
+      ["]", "label"],
+      ["\n", ""],
+      ["body", "string"],
+      ["\n", ""],
+      ["[x]", "label"],
+      ["\n", ""],
+    ],
+  },
+];
+
+for (const grammar of grammars) {
+  for (const { name, parts, extglob = false } of cases) {
+    if (extglob && !grammar.name.includes("extglob")) continue;
+    test(`${grammar.name}: ${name}`, () => {
+      const source = parts.map(([text]) => text).join("");
+      const ranges = [];
+      let offset = 0;
+      for (const [text, capture] of parts) {
+        const end = offset + Buffer.byteLength(text);
+        if (capture !== "") ranges.push([offset, end, capture]);
+        offset = end;
+      }
+      assertCaptures(
+        source,
+        highlight(grammar.scope, source, !name.startsWith("incomplete")),
+        ranges,
+      );
+    });
+  }
+}
