@@ -280,12 +280,14 @@ echo ${!ref} ${!prefix*} ${!prefix@} ${!arr[@]} ${!arr[*]} ${!ref@Q}
             (word
               (parameter_expansion
                 (parameter_indirection_operator)
-                (variable_name)
+                (parameter_name_prefix
+                  (literal))
                 (parameter_names_operator)))
             (word
               (parameter_expansion
                 (parameter_indirection_operator)
-                (variable_name)
+                (parameter_name_prefix
+                  (literal))
                 (parameter_names_operator)))
             (word
               (parameter_expansion
@@ -4697,7 +4699,7 @@ Parameter headers and pattern quoting preserve enclosing braces
 ==================
 : {a,"${x[0]#'"'}"}
 : {a,"${!x/y/'"'}"}
-: {a,"${x[}]#'"'}"}
+: {a,"${x[\}]#'"'}"}
 
 ---
 
@@ -4765,7 +4767,7 @@ Parameter headers and pattern quoting preserve enclosing braces
                         (array_subscript
                           (subscript_source
                             (arithmetic_candidate_source_expression
-                              (subscript_text)))))
+                              (escaped_character)))))
                       (parameter_pattern_operator)
                       (parameter_pattern
                         (single_quoted
@@ -5191,3 +5193,38 @@ a[i=1,j?2:3]=value
                     (array_subscript
                       (subscript_source
                         (subscript_all_elements_candidate)))))))))))))
+
+================================================================================
+ANSI-C control escapes close at the first unescaped quote
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+: $'\c' $'\c\'' $'\c\\' $'\cA' $'\c\x'
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)))
+            (word
+              (dollar_single_quoted
+                (dollar_single_quote_escape)))))))))

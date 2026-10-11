@@ -1007,6 +1007,42 @@ echo ok # trailing
     (comment_text)))
 
 ==================
+comments starting with a function-like word are not function names
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+#x() { :; }
+: $(#(
+:)
+
+---
+
+(program
+  leading: (comment
+    (comment_text))
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (comment
+                    (comment_text))
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))))))))))))))))
+
+==================
 unicode words retain input source
 :language(bash)
 :language(bash_extglob)
@@ -1032,3 +1068,24 @@ echo 日本語 "é$x"
                 (double_quote_text)
                 (parameter_expansion
                   parameter: (variable_name))))))))))
+
+==================
+trailing backslash at end of input is a literal
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo a\
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))))))

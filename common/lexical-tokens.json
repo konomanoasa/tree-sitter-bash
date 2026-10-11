@@ -139,6 +139,11 @@
       "scanner": "DOLLAR_SINGLE_QUOTE_ESCAPE"
     },
     {
+      "begin": "_plain_word_begin",
+      "scanner": "PLAIN_WORD_BEGIN",
+      "whole": true
+    },
+    {
       "begin": "_literal_begin",
       "scanner": "LITERAL_BEGIN"
     },
@@ -431,6 +436,14 @@
     {
       "begin": "_parameter_names_begin",
       "scanner": "PARAMETER_NAMES_BEGIN"
+    },
+    {
+      "begin": "_parameter_names_indirection_begin",
+      "scanner": "PARAMETER_NAMES_INDIRECTION_BEGIN"
+    },
+    {
+      "begin": "_parameter_names_text_begin",
+      "scanner": "PARAMETER_NAMES_TEXT_BEGIN"
     },
     {
       "begin": "_parameter_substring_begin",

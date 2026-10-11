@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createTreeSitter, grammars, root } from "../../scripts/tree-sitter.js";
+import { sourceNodes } from "./cst.js";
+
+const parseTimeoutMs = 30_000;
 
 export function createParser(
   grammar = grammars.find(({ name }) => name === "bash_extglob") ?? grammars[0],
@@ -41,7 +44,7 @@ export function createParser(
           "--",
           file,
         ],
-        { timeout: 30_000 },
+        { timeout: parseTimeoutMs },
       );
       assert.ifError(result.error);
       assert.ok(result.status === 0 || result.status === 1, result.stderr);
@@ -68,28 +71,38 @@ export function applyEdit(source, { byte, deleteBytes, insert }) {
 export function parseNodes(parser, source) {
   const result = parser.parse(source, { arguments: ["-c"] });
   assert.equal(result.status, 0, result.output);
-  const bytes = Buffer.from(source);
-  const starts = [0];
-  for (let index = 0; index < bytes.length; index++) {
-    if (bytes[index] === 10) starts.push(index + 1);
+  return sourceNodes(result.tree, source).map(
+    ({ type, field, start, end, text }) => ({ type, field, start, end, text }),
+  );
+}
+
+export function assertEditRoundTrip(parser, { seed, remove, insert, valid }) {
+  const index = seed.indexOf(remove);
+  assert.ok(index >= 0);
+  const edit = {
+    byte: Buffer.byteLength(seed.slice(0, index)),
+    deleteBytes: Buffer.byteLength(remove),
+    insert,
+  };
+  const undo = {
+    byte: edit.byte,
+    deleteBytes: Buffer.byteLength(insert),
+    insert: remove,
+  };
+  const changed = applyEdit(seed, edit);
+  assert.equal(applyEdit(changed, undo), seed);
+  const options = { arguments: ["-c"] };
+  const original = parser.parse(seed, options);
+  assert.equal(original.status, 0, original.output);
+  const fresh = parser.parse(changed, options);
+  assert.equal(fresh.status, valid ? 0 : 1, fresh.output);
+  assert.equal(parser.parse(changed, options).tree, fresh.tree);
+  const incremental = parser.parse(seed, { ...options, edits: [edit] });
+  if (valid) {
+    assert.equal(incremental.status, 0, incremental.output);
+    assert.equal(incremental.tree, fresh.tree);
   }
-  return result.tree.split("\n").flatMap((line) => {
-    const match = line.match(/^([0-9]+):([0-9]+) +- +([0-9]+):([0-9]+) +(.*)$/);
-    if (match === null) return [];
-    const description = match[5].replace(/^•/, "");
-    const field = description.match(/^([a-z_]+): (.*)$/);
-    const type = (field?.[2] ?? description).split(" ")[0];
-    const start = starts[Number(match[1])] + Number(match[2]);
-    const end = starts[Number(match[3])] + Number(match[4]);
-    assert.ok(start <= end && end <= bytes.length, line);
-    return [
-      {
-        type,
-        field: field?.[1],
-        start,
-        end,
-        text: bytes.subarray(start, end).toString(),
-      },
-    ];
-  });
+  const repaired = parser.parse(seed, { ...options, edits: [edit, undo] });
+  assert.equal(repaired.status, 0, repaired.output);
+  assert.equal(repaired.tree, original.tree);
 }

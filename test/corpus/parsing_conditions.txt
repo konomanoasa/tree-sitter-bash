@@ -217,3 +217,62 @@ body
                           (here_document_text))
                         end: (here_document_end
                           (here_document_end_text))))))))))))))
+
+================================================================================
+Dollar-prefixed extglobs retain literal prefixes and pattern operators
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+================================================================================
+: $@(a) $?(b)
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word (literal))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative (literal))))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative (literal))))))))))
+
+================================================================================
+NUL removal joins a keyword and an escaped character at their original ranges
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+i f :; then : \ x; fi
+
+--------------------------------------------------------------------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (if_clause
+            (if_keyword)
+            (list
+              (and_or (pipeline (command (simple_command (word (literal))))))
+              (separator (separator_op)))
+            (then_keyword)
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word (literal))
+                      (word (escaped_character))))))
+              (separator (separator_op)))
+            (fi_keyword)))))))

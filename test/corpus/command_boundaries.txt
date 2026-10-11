@@ -475,7 +475,7 @@ command-name brackets nest through assignments redirects and extglobs
 :language(bash_extglob)
 :language(bash_extglob_noextquote)
 ==================
-a[$(x=y >out a[)] ) ] next; a[ ]@(x|y) arg
+a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg
 
 ---
 
@@ -496,14 +496,14 @@ a[$(x=y >out a[)] ) ] next; a[ ]@(x|y) arg
                           (pipeline
                             (command
                               (simple_command
-                                (assignment_word
-                                  (variable_name)
-                                  (assignment_value
-                                    (literal)))
                                 (io_redirect
                                   (io_file
                                     (word
                                       (literal))))
+                                (assignment_word
+                                  (variable_name)
+                                  (assignment_value
+                                    (literal)))
                                 (word
                                   (literal)
                                   (pattern_bracket_source

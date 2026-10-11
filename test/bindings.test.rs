@@ -164,6 +164,7 @@ fn parses_fixed_conditions_for_every_language() {
     let language = language.into();
     let mut parser = Parser::new();
     parser.set_language(&language).unwrap();
+    assert_eq!(language.name(), Some(name));
     Query::new(&language, grammar::HIGHLIGHTS_QUERY).unwrap();
     assert_eq!(node_types, grammar::NODE_TYPES, "{name}: shared CST schema");
     for (source, valid) in [
@@ -518,7 +519,7 @@ fn repair_every_byte_restores_complete_cst_and_ranges() {
     "echo ${x/@(a[)]b)/X} ${x/@(a[)/X} ${x#@(a}\n",
     "a[ ] one; a[(x)] two; a[x][ ] three; a[] next\n",
     "a[\"x y\"$p$(printf x)日本\\\n ]suffix tail\n",
-    "a[$(x=y >out a[)] ) ] next; a[ ]@(x|y) arg\n",
+    "a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg\n",
     "if [[ $x == @(a|b) ]]; then ((a+=1)); fi\n",
     "cat <<EOF\n${x//a/b}\nEOF\nprintf done\n",
     "for ((i=0;i<2;i++)); do echo <(printf 日本語); done\n",

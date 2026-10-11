@@ -34,6 +34,8 @@ struct SourceCharacter {
   int32_t value;
   struct SourceOrigin origin;
   size_t boundary_stage;
+  /* Pending units track whether intervening physical source was only NUL. */
+  bool physical_tail;
 };
 
 struct SourceStage {
@@ -123,7 +125,6 @@ static inline void source_snapshot_clear(struct SourceSnapshot *snapshot) {
 
 static inline void source_cursor_clear(struct SourceCursor *cursor) {
   ts_free(cursor->initial);
-  ts_free(cursor->stages);
   ts_free(cursor->raw);
   ts_free(cursor->logical);
   ts_free(cursor->removals);
@@ -139,32 +140,27 @@ static inline bool source_cursor_init(
 ) {
   memset(cursor, 0, sizeof(*cursor));
   if (
-    count >
-    (SOURCE_STATE_CAPACITY - 2) /
-    2 ||
-    count >
-    SIZE_MAX /
-    sizeof(*stages) ||
+    count > (SOURCE_STATE_CAPACITY - 2) / 2 ||
+    count > SIZE_MAX / (2 * sizeof(*stages)) ||
     (count > 0 && stages == NULL)
   ) {
     return false;
   }
   for (size_t index = 0; index < count; index += 1) {
     if (
-      stages[index].kind <
-      SOURCE_REMOVE_CONTINUATIONS ||
+      stages[index].kind < SOURCE_REMOVE_CONTINUATIONS ||
       stages[index].kind > SOURCE_STRIP_LEADING_TABS
     ) {
       return false;
     }
   }
   if (count > 0) {
-    cursor->initial = ts_malloc(count * sizeof(*stages));
-    cursor->stages = ts_malloc(count * sizeof(*stages));
-    if (cursor->initial == NULL || cursor->stages == NULL) {
+    cursor->initial = ts_malloc(2 * count * sizeof(*stages));
+    if (cursor->initial == NULL) {
       source_cursor_clear(cursor);
       return false;
     }
+    cursor->stages = cursor->initial + count;
     memcpy(cursor->initial, stages, count * sizeof(*stages));
     memcpy(cursor->stages, stages, count * sizeof(*stages));
   }
@@ -259,11 +255,8 @@ static inline bool source_feed_stage(
       source_append_logical(cursor, character);
   }
   struct SourceStage *stage = &cursor->stages[index];
-  if (stage->disabled) {
-    return source_feed_stage(cursor, index + 1, character);
-  }
   if (stage->kind == SOURCE_STRIP_LEADING_TABS) {
-    if (stage->at_line_start && character.value == '\t') {
+    if (!stage->disabled && stage->at_line_start && character.value == '\t') {
       return source_append_removal(
         cursor,
         SOURCE_REMOVED_TAB,
@@ -275,33 +268,26 @@ static inline bool source_feed_stage(
     stage->at_line_start = character.value == '\n';
     return source_feed_stage(cursor, index + 1, character);
   }
+  if (stage->disabled) {
+    return source_feed_stage(cursor, index + 1, character);
+  }
   if (stage->has_pending) {
     struct SourceCharacter pending = stage->pending;
     stage->has_pending = false;
     if (stage->kind == SOURCE_REMOVE_CONTINUATIONS && character.value == '\n') {
-      int64_t slash = pending.origin.character <
-          INT64_MAX &&
-          pending.origin.character +
-          1 == character.origin.character
-        ? pending.origin.character
-        : INT64_MIN;
       return source_append_removal(
         cursor,
         SOURCE_REMOVED_CONTINUATION,
         character.origin,
-        slash,
+        pending.physical_tail ? pending.origin.character : INT64_MIN,
         index
       );
     }
     if (
-      stage->kind ==
-      SOURCE_BACKQUOTE_DECODE &&
-      (character.value ==
-        '\\' ||
-        character.value ==
-        '$' ||
-        character.value ==
-        96 ||
+      stage->kind == SOURCE_BACKQUOTE_DECODE &&
+      (character.value == '\\' ||
+        character.value == '$' ||
+        character.value == 96 ||
         (stage->quoted && character.value == '"'))
     ) {
       character.origin.start = pending.origin.start;
@@ -325,8 +311,7 @@ static inline bool source_feed(struct SourceCursor *cursor, int32_t value) {
   if (
     cursor->failed ||
     cursor->ended ||
-    cursor->raw_count ==
-    SIZE_MAX ||
+    cursor->raw_count == SIZE_MAX ||
     cursor->raw_count >= INT64_MAX
   ) {
     return false;
@@ -344,14 +329,22 @@ static inline bool source_feed(struct SourceCursor *cursor, int32_t value) {
   cursor->raw = grown;
   int64_t position = (int64_t)cursor->raw_count;
   cursor->raw[cursor->raw_count++] = value;
+  if (value == 0) return true;
   struct SourceCharacter character = {
     .value = value,
     .origin = {position, position + 1, position},
     .boundary_stage = SIZE_MAX,
+    .physical_tail = true,
   };
   if (!source_feed_stage(cursor, 0, character)) {
     cursor->failed = true;
     return false;
+  }
+  for (size_t index = 0; index < cursor->stage_count; index += 1) {
+    struct SourceStage *stage = &cursor->stages[index];
+    if (stage->has_pending && stage->pending.origin.character != position) {
+      stage->pending.physical_tail = false;
+    }
   }
   return true;
 }
@@ -375,8 +368,7 @@ static inline enum SourceResult
 source_next(struct SourceCursor *cursor, struct SourceCharacter *character) {
   while (
     !cursor->failed &&
-    cursor->logical_position ==
-    cursor->logical_count &&
+    cursor->logical_position == cursor->logical_count &&
     !cursor->ended
   ) {
     int32_t value;
@@ -409,6 +401,7 @@ static inline bool source_checkpoint(
   struct SourceSnapshot *snapshot
 ) {
   struct SourceSnapshot next = {
+    .stages = cursor->stage_count > 0 ? snapshot->stages : NULL,
     .stage_count = cursor->stage_count,
     .raw_position = (int64_t)cursor->raw_count,
     .logical_count = cursor->logical_count,
@@ -418,18 +411,22 @@ static inline bool source_checkpoint(
   if (cursor->failed) {
     return false;
   }
-  if (next.stage_count > 0) {
+  if (next.stage_count > snapshot->stage_count) {
     next.stages = ts_malloc(next.stage_count * sizeof(*next.stages));
     if (next.stages == NULL) {
       return false;
     }
+  }
+  if (next.stage_count > 0) {
     memcpy(
       next.stages,
       cursor->stages,
       next.stage_count * sizeof(*next.stages)
     );
   }
-  source_snapshot_clear(snapshot);
+  if (next.stages != snapshot->stages) {
+    ts_free(snapshot->stages);
+  }
   *snapshot = next;
   return true;
 }
@@ -473,8 +470,7 @@ static inline bool source_cursor_resume(
   void *payload
 ) {
   if (
-    snapshot->raw_position <
-    0 ||
+    snapshot->raw_position < 0 ||
     !source_cursor_init(
       cursor,
       snapshot->stages,
@@ -554,8 +550,7 @@ static inline bool source_snapshot_serialize(
     capacity = SOURCE_STATE_CAPACITY;
   }
   if (
-    snapshot->raw_position <
-    0 ||
+    snapshot->raw_position < 0 ||
     !source_write_unsigned(data, capacity, &position, snapshot->stage_count) ||
     !source_write_unsigned(data, capacity, &position, snapshot->ended ? 1 : 0)
   ) {
@@ -566,12 +561,11 @@ static inline bool source_snapshot_serialize(
     uint8_t flags = (stage->disabled ? 1 : 0) |
       (stage->quoted ? 2 : 0) |
       (stage->at_line_start ? 4 : 0) |
-      (stage->has_pending ? 8 : 0);
+      (stage->has_pending ? 8 : 0) |
+      (stage->has_pending && stage->pending.physical_tail ? 16 : 0);
     if (
-      stage->kind <
-      SOURCE_REMOVE_CONTINUATIONS ||
-      stage->kind >
-      SOURCE_STRIP_LEADING_TABS ||
+      stage->kind < SOURCE_REMOVE_CONTINUATIONS ||
+      stage->kind > SOURCE_STRIP_LEADING_TABS ||
       !source_write_unsigned(data, capacity, &position, stage->kind) ||
       !source_write_unsigned(data, capacity, &position, flags)
     ) {
@@ -582,21 +576,13 @@ static inline bool source_snapshot_serialize(
       if (
         snapshot->ended ||
         stage->disabled ||
-        stage->kind ==
-        SOURCE_STRIP_LEADING_TABS ||
-        stage->pending.value !=
-        '\\' ||
-        stage->pending.boundary_stage !=
-        SIZE_MAX ||
-        origin->start >
-        origin->character ||
-        origin->character >=
-        origin->end ||
-        origin->end >
-        snapshot->raw_position ||
-        origin->start <
-        snapshot->raw_position -
-        INT64_MAX
+        stage->kind == SOURCE_STRIP_LEADING_TABS ||
+        stage->pending.value != '\\' ||
+        stage->pending.boundary_stage != SIZE_MAX ||
+        origin->start > origin->character ||
+        origin->character >= origin->end ||
+        origin->end > snapshot->raw_position ||
+        origin->start < snapshot->raw_position - INT64_MAX
       ) {
         return false;
       }
@@ -628,16 +614,11 @@ static inline bool source_snapshot_deserialize(
   uint64_t count;
   uint64_t ended;
   if (
-    length >
-    SOURCE_STATE_CAPACITY ||
+    length > SOURCE_STATE_CAPACITY ||
     !source_read_unsigned(data, length, &position, &count) ||
     !source_read_unsigned(data, length, &position, &ended) ||
-    count >
-    (length - position) /
-    2 ||
-    count >
-    SIZE_MAX /
-    sizeof(*next.stages) ||
+    count > (length - position) / 2 ||
+    count > SIZE_MAX / sizeof(*next.stages) ||
     ended > 1
   ) {
     return false;
@@ -657,9 +638,9 @@ static inline bool source_snapshot_deserialize(
     if (
       !source_read_unsigned(data, length, &position, &kind) ||
       !source_read_unsigned(data, length, &position, &flags) ||
-      kind >
-      SOURCE_STRIP_LEADING_TABS ||
-      flags > 15
+      kind > SOURCE_STRIP_LEADING_TABS ||
+      flags > 31 ||
+      ((flags & 16) != 0 && (flags & 8) == 0)
     ) {
       valid = false;
       break;
@@ -689,13 +670,12 @@ static inline bool source_snapshot_deserialize(
       }
       stage->pending.value = '\\';
       stage->pending.boundary_stage = SIZE_MAX;
+      stage->pending.physical_tail = (flags & 16) != 0;
       if (
         next.ended ||
         stage->disabled ||
-        stage->kind ==
-        SOURCE_STRIP_LEADING_TABS ||
-        stage->pending.origin.start >
-        stage->pending.origin.character ||
+        stage->kind == SOURCE_STRIP_LEADING_TABS ||
+        stage->pending.origin.start > stage->pending.origin.character ||
         stage->pending.origin.character >= stage->pending.origin.end
       ) {
         valid = false;

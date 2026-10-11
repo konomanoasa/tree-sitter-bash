@@ -15,9 +15,15 @@ import { pathToFileURL } from "node:url";
 import {
   copyFiles,
   createTreeSitter,
+  generateParsers,
   packageName,
   root,
 } from "../scripts/tree-sitter.js";
+
+const generatedCheckTimeoutMs = 60_000;
+const cliTestTimeoutMs = 60_000;
+const packageCommandTimeoutMs = 120_000;
+const packageOutputLimitBytes = 64 * 1024 * 1024;
 
 const configuration = JSON.parse(
   readFileSync(join(root, "tree-sitter.json"), "utf8"),
@@ -29,7 +35,7 @@ const grammars = configuration.grammars.map((grammar) => ({
 
 const language = packageName.slice("tree-sitter-".length).replaceAll("-", "_");
 
-test(`${language}: generated checks reject stale and missing files without rewriting them`, () => {
+test(`${language}: generated checks reject stale, missing, and unshareable parsers`, () => {
   const cache = join(root, "node_modules", ".cache");
   mkdirSync(cache, { recursive: true });
   const directory = mkdtempSync(join(cache, `${packageName}-generated-check-`));
@@ -56,7 +62,7 @@ test(`${language}: generated checks reject stale and missing files without rewri
         {
           cwd: directory,
           encoding: "utf8",
-          timeout: 60_000,
+          timeout: generatedCheckTimeoutMs,
           killSignal: "SIGKILL",
         },
       );
@@ -88,6 +94,23 @@ test(`${language}: generated checks reject stale and missing files without rewri
       assert.ok(stale.stderr.includes(path), stale.stderr);
       assert.equal(existsSync(join(directory, path)), false);
     }
+
+    writeFileSync(
+      join(directory, "bash_extglob", "grammar.js"),
+      `export default grammar({
+  name: "bash_extglob",
+  rules: { program: () => "unshared" },
+});
+`,
+    );
+    const unshared = check();
+    assert.equal(unshared.status, 1, unshared.stdout + unshared.stderr);
+    assert.ok(
+      unshared.stderr.includes(
+        "bash_extglob: generated parser differs from bash; cannot share its tables.",
+      ),
+      unshared.stdout + unshared.stderr,
+    );
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -163,7 +186,7 @@ syncBuiltinESMExports();
         ["--import", pathToFileURL(preload).href, script, "fuzz-all"],
         {
           encoding: "utf8",
-          timeout: 60_000,
+          timeout: cliTestTimeoutMs,
           killSignal: "SIGKILL",
         },
       );
@@ -208,8 +231,8 @@ function run(command, arguments_, cwd = root) {
   const result = spawnSync(command, arguments_, {
     cwd,
     encoding: "utf8",
-    timeout: 120000,
-    maxBuffer: 64 * 1024 * 1024,
+    timeout: packageCommandTimeoutMs,
+    maxBuffer: packageOutputLimitBytes,
     killSignal: "SIGKILL",
   });
   assert.ifError(result.error);
@@ -217,7 +240,7 @@ function run(command, arguments_, cwd = root) {
   return result.stdout;
 }
 
-test("npm archives contain reproducible grammars for every language", () => {
+test("npm archives reproduce shared parsers and build every language", () => {
   const cache = join(root, "node_modules", ".cache");
   mkdirSync(cache, { recursive: true });
   const directory = mkdtempSync(join(cache, `${packageName}-distribution-`));
@@ -241,29 +264,27 @@ test("npm archives contain reproducible grammars for every language", () => {
     mkdirSync(npmRoot);
     run("tar", ["-xf", archive.filename, "-C", "npm"], directory);
     const npmSource = join(npmRoot, "package");
+    const generated = join(directory, "generated");
+    assert.equal(generateParsers(generated, npmSource), 0);
     for (const { name, path } of grammars) {
-      const output = join(directory, "generated", name);
-      mkdirSync(output, { recursive: true });
+      for (const file of ["parser.c", "grammar.json", "node-types.json"]) {
+        assert.deepEqual(
+          readFileSync(join(generated, path, "src", file)),
+          readFileSync(join(npmSource, path, "src", file)),
+          `${name}: ${file}`,
+        );
+      }
       const result = runner.run(
         [
-          "generate",
-          join(npmSource, path, "grammar.js"),
-          "--abi",
-          "latest",
+          "build",
+          join(npmSource, path),
           "--output",
-          output,
+          join(directory, `${name}.so`),
         ],
         { cwd: npmSource },
       );
       assert.ifError(result.error);
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      for (const file of ["parser.c", "grammar.json", "node-types.json"]) {
-        assert.deepEqual(
-          readFileSync(join(output, file)),
-          readFileSync(join(npmSource, path, "src", file)),
-          `${name}: ${file}`,
-        );
-      }
     }
   } finally {
     runner.close();

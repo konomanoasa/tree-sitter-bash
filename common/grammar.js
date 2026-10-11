@@ -819,9 +819,21 @@ const bracedParameterExpansion = ($, word) =>
           $.parameter_replacement,
           $.parameter_case_conversion,
           $.parameter_transformation,
-          field("operator", $.parameter_names_operator),
         ),
       ),
+      physical($, $._parameter_close, "}"),
+    ),
+    seq(
+      $._braced_parameter_start,
+      field(
+        "operator",
+        alias(
+          $._parameter_names_indirection_operator,
+          $.parameter_indirection_operator,
+        ),
+      ),
+      field("prefix", $.parameter_name_prefix),
+      field("operator", $.parameter_names_operator),
       physical($, $._parameter_close, "}"),
     ),
     seq(
@@ -869,6 +881,42 @@ const conditionalThenBranch = ($, header, tail) =>
     compoundListField($, "consequence"),
     optional($._closing_layout),
     tail,
+  );
+
+// Bash reads the token after a bare operand on the same line only.
+const conditionalOperand = ($, name, boundary = []) =>
+  choice(
+    seq(
+      field(name, $._conditional_bare_expression),
+      ...boundary,
+      optional($._horizontal_layout),
+    ),
+    seq(
+      field(name, $._conditional_complete_expression),
+      ...boundary,
+      optional($._linebreak_layout),
+    ),
+  );
+
+const conditionalJunction = ($, precedence, boundary, operator, right) =>
+  prec.left(
+    precedence,
+    seq(
+      conditionalOperand($, "left", [boundary]),
+      field("operator", operator),
+      optional($._linebreak_layout),
+      field("right", right),
+    ),
+  );
+
+const conditionalNegation = ($, operand) =>
+  prec(
+    3,
+    seq(
+      field("operator", $.conditional_not),
+      optional($._linebreak_layout),
+      field("operand", operand),
+    ),
   );
 
 // Layout before fi lets elif reduce its empty alternative before else.
@@ -1127,6 +1175,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._pattern_character_class_end_colon,
         $.line_continuation,
         $._removed_newline,
+        $._plain_word_begin,
         $._literal_begin,
         $._assignment_literal_begin,
         $._parameter_literal_begin,
@@ -1222,7 +1271,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._word_bracket_fallback_end,
         $._assignment_bracket_fallback_end,
         $._parameter_bracket_fallback_end,
-        $._here_document_line_layout_begin,
+        $._here_document_sequence_begin,
         $._parameter_hyphen_begin,
         $._parameter_question_begin,
         $._arithmetic_blank_begin,
@@ -1254,6 +1303,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._brace_text_begin,
         $._parameter_indirection_begin,
         $._parameter_names_begin,
+        $._parameter_names_indirection_begin,
+        $._parameter_names_text_begin,
         $._parameter_substring_begin,
         $._substring_expression_start,
         $._substring_source_start,
@@ -1394,7 +1445,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
       [$._term],
       [$._compound_list],
       [$.list],
-      [$._conditional_expression, $.conditional_binary_expression],
+      [$._conditional_bare_expression, $.conditional_binary_expression],
       [$._sequential_newline_separator, $._linebreak],
       [$._complete_command],
     ],
@@ -1818,25 +1869,29 @@ export default function defineGrammar(name, { extglob, extquote }) {
       select_clause: ($) => seq($._select_keyword_source, $._word_loop_clause),
 
       _word_loop_clause: ($) =>
+        choice(
+          seq($._word_loop_do_header, field("body", $.do_group)),
+          seq(
+            $._word_loop_separated_header,
+            field("body", choice($.do_group, $.brace_group)),
+          ),
+        ),
+
+      _word_loop_do_header: ($) =>
+        seq($._word_separator, field("name", $.name), $._horizontal_layout),
+
+      _word_loop_separated_header: ($) =>
         seq(
           $._word_separator,
           field("name", $.name),
-          choice(
-            seq($._horizontal_layout, field("body", $.do_group)),
+          optional(
             seq(
-              optional(
-                seq(
-                  $._linebreak_layout,
-                  field("in", $._in),
-                  optional(
-                    seq($._horizontal_layout, field("words", $._wordlist)),
-                  ),
-                ),
-              ),
-              separatedForHeader($),
-              field("body", choice($.do_group, $.brace_group)),
+              $._linebreak_layout,
+              field("in", $._in),
+              optional(seq($._horizontal_layout, field("words", $._wordlist))),
             ),
           ),
+          separatedForHeader($),
         ),
 
       _in: ($) => $._in_keyword_source,
@@ -1893,13 +1948,14 @@ export default function defineGrammar(name, { extglob, extquote }) {
           field("word", alias($._case_word, $.word)),
         ),
 
-      case_clause: ($) =>
+      case_clause: ($) => seq($._case_header, caseClauseItems($)),
+
+      _case_header: ($) =>
         seq(
           $._case_selector_header,
           $._linebreak_layout,
           field("in", $._in),
           optional($._linebreak_layout),
-          caseClauseItems($),
         ),
 
       _case_list_ns: ($) =>
@@ -2000,7 +2056,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
       _scalar_named_command: ($) =>
         choice(
-          seq($._command_name, optional($._cmd_suffix)),
+          seq(field("name", $.word), optional($._cmd_suffix)),
           seq(
             field("name", $.declaration_name),
             optional($._scalar_declaration_suffix),
@@ -2141,7 +2197,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
       here_document_sequence: ($) =>
         seq(
-          optional(seq($._here_document_line_layout_begin, $._closing_layout)),
+          $._here_document_sequence_begin,
+          optional($._closing_layout),
           optional(boundaryLineComment($, field("comment", $.comment))),
           field("line_end", $.here_document_line_end),
           repeat1(field("document", $.here_document)),
@@ -2160,11 +2217,11 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
 
       here_document: ($) =>
-        choice(
-          seq($._here_document_prefix, field("end", $.here_document_end)),
-          seq(
-            $._quoted_here_document_prefix,
+        seq(
+          choice($._here_document_prefix, $._quoted_here_document_prefix),
+          choice(
             field("end", $.here_document_end),
+            $._here_document_end_commit,
           ),
         ),
 
@@ -2293,12 +2350,15 @@ export default function defineGrammar(name, { extglob, extquote }) {
       word: ($) => $._source_word,
 
       _source_word: ($) =>
-        braceWord(
-          $,
-          $._pattern_word_part,
-          $._assignment_word_part,
-          $.tilde_expansion,
-          $._word_start,
+        choice(
+          $._plain_word,
+          braceWord(
+            $,
+            $._pattern_word_part,
+            $._assignment_word_part,
+            $.tilde_expansion,
+            $._word_start,
+          ),
         ),
       _coproc_name_word: ($) =>
         seq(
@@ -2310,12 +2370,15 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._brace_word_end,
         ),
       _command_word: ($) =>
-        braceWord(
-          $,
-          $._pattern_word_part,
-          $._assignment_word_part,
-          $.tilde_expansion,
-          $._command_word_start,
+        choice(
+          $._plain_word,
+          braceWord(
+            $,
+            $._pattern_word_part,
+            $._assignment_word_part,
+            $.tilde_expansion,
+            $._command_word_start,
+          ),
         ),
       _case_word: ($) =>
         sourceWord(
@@ -2367,6 +2430,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _word_structured_part: ($) => choice(...structuredSourceParts($)),
 
+      _plain_word: ($) =>
+        wholeSource($, $._plain_word_begin, $._plain_word_lexeme, $.literal),
+      _plain_word_lexeme: ($) => lexical($, $._plain_word_begin),
       literal: ($) => lexical($, $._literal_begin),
 
       ...physicalRules(),
@@ -2793,6 +2859,21 @@ export default function defineGrammar(name, { extglob, extquote }) {
       parameter_indirection_operator: ($) =>
         lexical($, $._parameter_indirection_begin),
       parameter_names_operator: ($) => lexical($, $._parameter_names_begin),
+      _parameter_names_indirection_operator: ($) =>
+        lexical($, $._parameter_names_indirection_begin),
+      parameter_name_prefix: ($) =>
+        repeat1(
+          choice(
+            alias($._parameter_names_text, $.literal),
+            $.escaped_character,
+            $.single_quoted,
+            $.double_quoted,
+            $.dollar_single_quoted,
+            $.locale_quoted,
+            ...quotedExpansionParts($),
+          ),
+        ),
+      _parameter_names_text: ($) => lexical($, $._parameter_names_text_begin),
       parameter_substring: ($) =>
         seq(
           field("operator", $.parameter_substring_operator),
@@ -2937,17 +3018,25 @@ export default function defineGrammar(name, { extglob, extquote }) {
         seq(
           alias($._conditional_open, "[["),
           optional($._linebreak_layout),
-          field("condition", $._conditional_expression),
-          optional($._linebreak_layout),
+          conditionalOperand($, "condition"),
           alias($._conditional_close, "]]"),
         ),
       _conditional_open: ($) => lexical($, $._conditional_open_begin),
       _conditional_close: ($) => lexical($, $._conditional_close_begin),
       _conditional_word: ($) =>
         seq($._conditional_word_start, $._case_word, $._conditional_word_end),
-      _conditional_expression: ($) =>
+      _conditional_bare_expression: ($) =>
         choice(
           alias($._conditional_word, $.word),
+          alias($._conditional_bare_negation, $.conditional_negation),
+          alias(
+            $._conditional_bare_and_expression,
+            $.conditional_and_expression,
+          ),
+          alias($._conditional_bare_or_expression, $.conditional_or_expression),
+        ),
+      _conditional_complete_expression: ($) =>
+        choice(
           $.conditional_unary_expression,
           $.conditional_binary_expression,
           $.conditional_negation,
@@ -2958,28 +3047,28 @@ export default function defineGrammar(name, { extglob, extquote }) {
       conditional_unary_expression: ($) =>
         seq(
           field("operator", $.conditional_unary_operator),
-          $._linebreak_layout,
+          $._horizontal_layout,
           field("operand", alias($._conditional_word, $.word)),
         ),
       conditional_unary_operator: ($) => lexical($, $._conditional_unary_begin),
       conditional_binary_expression: ($) =>
         seq(
           field("left", alias($._conditional_word, $.word)),
-          optional($._linebreak_layout),
+          optional($._horizontal_layout),
           choice(
             seq(
               field("operator", $.conditional_binary_operator),
-              optional($._linebreak_layout),
+              optional($._horizontal_layout),
               field("right", alias($._conditional_word, $.word)),
             ),
             seq(
               field("operator", $.conditional_match_operator),
-              optional($._linebreak_layout),
+              optional($._horizontal_layout),
               field("right", $.conditional_pattern),
             ),
             seq(
               field("operator", $.conditional_regex_operator),
-              optional($._linebreak_layout),
+              optional($._horizontal_layout),
               field("right", $.regex_operand),
             ),
           ),
@@ -2995,46 +3084,48 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._conditional_word_end,
         ),
       conditional_negation: ($) =>
-        prec(
-          3,
-          seq(
-            field("operator", $.conditional_not),
-            optional($._linebreak_layout),
-            field("operand", $._conditional_expression),
-          ),
-        ),
+        conditionalNegation($, $._conditional_complete_expression),
+      _conditional_bare_negation: ($) =>
+        conditionalNegation($, $._conditional_bare_expression),
       conditional_not: ($) => lexical($, $._conditional_not_begin),
       conditional_group: ($) =>
         seq(
           physical($, $._punct_left_parenthesis, "("),
           optional($._linebreak_layout),
-          field("expression", $._conditional_expression),
-          optional($._linebreak_layout),
+          conditionalOperand($, "expression"),
           physical($, $._punct_right_parenthesis, ")"),
         ),
       conditional_and_expression: ($) =>
-        prec.left(
+        conditionalJunction(
+          $,
           2,
-          seq(
-            field("left", $._conditional_expression),
-            $._conditional_and_boundary,
-            optional($._linebreak_layout),
-            field("operator", $._and_if),
-            optional($._linebreak_layout),
-            field("right", $._conditional_expression),
-          ),
+          $._conditional_and_boundary,
+          $._and_if,
+          $._conditional_complete_expression,
+        ),
+      _conditional_bare_and_expression: ($) =>
+        conditionalJunction(
+          $,
+          2,
+          $._conditional_and_boundary,
+          $._and_if,
+          $._conditional_bare_expression,
         ),
       conditional_or_expression: ($) =>
-        prec.left(
+        conditionalJunction(
+          $,
           1,
-          seq(
-            field("left", $._conditional_expression),
-            $._conditional_or_boundary,
-            optional($._linebreak_layout),
-            field("operator", $._or_if),
-            optional($._linebreak_layout),
-            field("right", $._conditional_expression),
-          ),
+          $._conditional_or_boundary,
+          $._or_if,
+          $._conditional_complete_expression,
+        ),
+      _conditional_bare_or_expression: ($) =>
+        conditionalJunction(
+          $,
+          1,
+          $._conditional_or_boundary,
+          $._or_if,
+          $._conditional_bare_expression,
         ),
       regex_operand: ($) =>
         seq(
@@ -3354,7 +3445,12 @@ export default function defineGrammar(name, { extglob, extquote }) {
           physical($, $._punct_right_parenthesis, ")"),
           $._arithmetic_expansion_end,
           optional($._horizontal_layout),
-          optional(choice(physical($, $._punct_semicolon, ";"), $._linebreak)),
+          optional(
+            choice(
+              seq(physical($, $._punct_semicolon, ";"), optional($._linebreak)),
+              $._linebreak,
+            ),
+          ),
           optional($._horizontal_layout),
           field("body", choice($.do_group, $.brace_group)),
         ),

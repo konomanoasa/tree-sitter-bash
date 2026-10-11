@@ -23,3 +23,50 @@ If:
 CompileFlags:
   Add:
     - -Wno-unused-function
+
+---
+If:
+  PathMatch:
+    - src/.*
+    - bash_extglob/src/.*
+    - bash_noextquote/src/.*
+    - bash_extglob_noextquote/src/.*
+CompileFlags:
+  Add:
+    - -I.
+
+---
+If:
+  PathMatch:
+    - common/.*\.h
+    - test/[^/]*\.c
+CompileFlags:
+  Add:
+    - -I../src
+
+---
+If:
+  PathMatch: common/scanner\.h
+CompileFlags:
+  Add:
+    - -DBASH_EXTGLOB=0
+    - -DBASH_EXTQUOTE=1
+
+---
+If:
+  PathMatch: test/scanner\.test\.c
+CompileFlags:
+  Add:
+    - -DSCANNER_TEST_ENTRY="../src/scanner.c"
+
+---
+# Clangd checks included helpers before their callers and can hit its error limit.
+If:
+  PathMatch:
+    - src/scanner\.c
+    - bash_extglob/src/scanner\.c
+    - bash_noextquote/src/scanner\.c
+    - bash_extglob_noextquote/src/scanner\.c
+CompileFlags:
+  Add:
+    - -Wno-unused-function

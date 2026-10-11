@@ -1,4 +1,75 @@
 ==================
+an empty quoted delimiter does not invent a terminator at EOF
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<''
+  a
+  b
+  ''
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (single_quoted))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text)
+        (quoted_here_document_text)
+        (quoted_here_document_text)))))
+
+==================
+an unquoted body keeps expansions and apparent commands through EOF
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<E
+$x
+echo AFTER
+
+---
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name))
+        (here_document_text)))))
+
+==================
 unquoted body preserves expansions and literal double quotes
 :language(bash)
 :language(bash_extglob)

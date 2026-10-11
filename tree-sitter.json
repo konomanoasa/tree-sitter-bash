@@ -32,7 +32,9 @@
         "common/source.h",
         "common/scanner.h",
         "common/lexical-tokens.json",
-        "bash_extglob/src/lexical-tokens.h"
+        "bash_extglob/src/lexical-tokens.h",
+        "src/parser.c",
+        "src/tree_sitter/parser.h"
       ]
     },
     {
@@ -49,7 +51,9 @@
         "common/source.h",
         "common/scanner.h",
         "common/lexical-tokens.json",
-        "bash_noextquote/src/lexical-tokens.h"
+        "bash_noextquote/src/lexical-tokens.h",
+        "src/parser.c",
+        "src/tree_sitter/parser.h"
       ]
     },
     {
@@ -66,7 +70,9 @@
         "common/source.h",
         "common/scanner.h",
         "common/lexical-tokens.json",
-        "bash_extglob_noextquote/src/lexical-tokens.h"
+        "bash_extglob_noextquote/src/lexical-tokens.h",
+        "src/parser.c",
+        "src/tree_sitter/parser.h"
       ]
     }
   ],

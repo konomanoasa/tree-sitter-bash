@@ -5,12 +5,16 @@
 #include "tree_sitter/parser.h"
 
 #define SOURCE_BACKQUOTE_BOUNDARY INT32_C(0x110000)
+/* Tree-sitter reserves -1 for undecodable bytes. */
+#define LOOKAHEAD_END INT32_MIN
 
 struct NativeInput {
   TSLexer *lexer;
   int32_t *characters;
   size_t count;
   size_t capacity;
+  enum SourceResult (*boundary)(void *, size_t);
+  void *boundary_payload;
   bool failed;
 };
 
@@ -24,6 +28,7 @@ struct LogicalLexer {
   enum SourceResult result;
   size_t consumed;
   size_t mark;
+  bool bounded;
 };
 
 struct LogicalPosition {
@@ -66,7 +71,7 @@ static inline int32_t logical_peek(struct LogicalLexer *input) {
   struct LogicalPosition position = logical_position(input);
   input->lexer.advance(&input->lexer, false);
   int32_t value =
-    input->result == SOURCE_CHARACTER ? input->lexer.lookahead : 0;
+    input->result == SOURCE_CHARACTER ? input->lexer.lookahead : LOOKAHEAD_END;
   logical_restore_position(input, &position);
   return value;
 }
@@ -76,6 +81,14 @@ static enum SourceResult logical_read(void *payload, int32_t *value) {
   struct NativeInput *native = input->native;
   if (native->failed) {
     return SOURCE_FAILURE;
+  }
+  if (input->bounded && native->boundary != NULL) {
+    enum SourceResult result =
+      native->boundary(native->boundary_payload, input->read_position);
+    if (result != SOURCE_CHARACTER) {
+      native->failed = result == SOURCE_FAILURE;
+      return result;
+    }
   }
   if (input->read_position > native->count) {
     return SOURCE_FAILURE;
@@ -115,10 +128,8 @@ static void logical_load(struct LogicalLexer *input) {
 
 static bool logical_backquote_end(const struct LogicalLexer *input) {
   if (
-    input ==
-    NULL ||
-    input->result !=
-    SOURCE_CHARACTER ||
+    input == NULL ||
+    input->result != SOURCE_CHARACTER ||
     input->character.boundary_stage == SIZE_MAX
   ) {
     return false;
@@ -157,7 +168,8 @@ static inline bool logical_init_at(
   struct LogicalLexer *input,
   struct NativeInput *native,
   const struct SourceSnapshot *snapshot,
-  size_t base
+  size_t base,
+  bool bounded
 ) {
   *input = (struct LogicalLexer){
     .lexer = *native->lexer,
@@ -166,6 +178,7 @@ static inline bool logical_init_at(
     .base = base,
     .consumed = base,
     .mark = base,
+    .bounded = bounded,
   };
   input->lexer.advance = logical_advance;
   input->lexer.mark_end = logical_mark_end;
@@ -185,7 +198,7 @@ static inline bool logical_init(
   struct NativeInput *native,
   const struct SourceSnapshot *snapshot
 ) {
-  return logical_init_at(input, native, snapshot, 0);
+  return logical_init_at(input, native, snapshot, 0, true);
 }
 
 static inline bool logical_fork(
@@ -201,19 +214,11 @@ static inline bool logical_fork(
   }
   *fork = (struct LogicalLexer){0};
   if (
-    raw_cut <
-    parent->base ||
-    raw_cut >
-    parent->native->count ||
-    inherited_stage_count >
-    parent->cursor.stage_count ||
-    suffix_count >
-    (SOURCE_STATE_CAPACITY - 2) /
-    2 ||
-    inherited_stage_count >
-    (SOURCE_STATE_CAPACITY - 2) /
-    2 -
-    suffix_count ||
+    raw_cut < parent->base ||
+    raw_cut > parent->native->count ||
+    inherited_stage_count > parent->cursor.stage_count ||
+    suffix_count > (SOURCE_STATE_CAPACITY - 2) / 2 ||
+    inherited_stage_count > (SOURCE_STATE_CAPACITY - 2) / 2 - suffix_count ||
     (suffix_count > 0 && suffix == NULL)
   ) {
     return false;
@@ -251,7 +256,8 @@ static inline bool logical_fork(
   ts_free(snapshot.stages);
   snapshot.stages = stages;
   snapshot.stage_count = count;
-  bool result = logical_init_at(fork, parent->native, &snapshot, raw_cut);
+  bool result =
+    logical_init_at(fork, parent->native, &snapshot, raw_cut, parent->bounded);
   source_snapshot_clear(&snapshot);
   return result;
 }

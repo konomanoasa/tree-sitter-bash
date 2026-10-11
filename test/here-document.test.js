@@ -1,0 +1,1280 @@
+import assert from "node:assert/strict";
+import { after, before, describe, test } from "node:test";
+import { grammars } from "../scripts/tree-sitter.js";
+import {
+  applyEdit,
+  assertEditRoundTrip,
+  createParser,
+  parseNodes,
+} from "./support/parser.js";
+
+const delimiterCases = [
+  {
+    name: "delimiter-quoted-value",
+    word: `"\${x:-$'ab'}"`,
+    disabled: `\${x:-$'ab'}`,
+    enabled: `\${x:-ab}`,
+  },
+  {
+    name: "delimiter-unquoted-value",
+    word: `\${x:-$'ab'}`,
+    disabled: `\${x:-'ab'}`,
+    enabled: `\${x:-'ab'}`,
+  },
+  {
+    name: "delimiter-quoted-pattern",
+    word: `"\${x#$'ab'}"`,
+    disabled: `\${x#'ab'}`,
+    enabled: `\${x#'ab'}`,
+  },
+  {
+    name: "delimiter-quoted-subscript",
+    word: `"\${a[$'ab']}"`,
+    disabled: `\${a[$'ab']}`,
+    enabled: `\${a[ab]}`,
+  },
+  {
+    name: "delimiter-quoted-substring",
+    word: `"\${x:$'0'}"`,
+    disabled: `\${x:$'0'}`,
+    enabled: `\${x:0}`,
+  },
+  {
+    name: "delimiter-nested-pattern",
+    word: `"\${x:-\${y#$'ab'}}"`,
+    disabled: `\${x:-\${y#'ab'}}`,
+    enabled: `\${x:-\${y#'ab'}}`,
+  },
+  {
+    name: "delimiter-nested-value",
+    word: `"\${x#\${y:-$'ab'}}"`,
+    disabled: `\${x#\${y:-$'ab'}}`,
+    enabled: `\${x#\${y:-ab}}`,
+  },
+  {
+    name: "delimiter-replacement",
+    word: `"\${x/a/$'ab'}"`,
+    disabled: `\${x/a/'ab'}`,
+    enabled: `\${x/a/'ab'}`,
+  },
+  {
+    name: "delimiter-locale-value",
+    word: `"\${x:-$"ab"}"`,
+    disabled: `\${x:-$ab}`,
+    enabled: `\${x:-ab}`,
+  },
+  {
+    name: "delimiter-locale-subscript",
+    word: `"\${a[$"ab"]}"`,
+    disabled: `\${a[$ab]}`,
+    enabled: `\${a[ab]}`,
+  },
+  {
+    name: "delimiter-ansi-inner-quote",
+    word: `"\${x:-$'a\\"b'}"`,
+    disabled: `\${x:-$'a"b'}`,
+    enabled: `\${x:-ab}`,
+  },
+  {
+    name: "delimiter-ansi-inner-escape",
+    word: `"\${x:-$'a\\tb'}"`,
+    disabled: `\${x:-$'a\\tb'}`,
+    enabled: `\${x:-a\tb}`,
+  },
+  {
+    name: "delimiter-ansi-backslash",
+    word: `"\${x:-$'a\\\\b'}"`,
+    disabled: `\${x:-$'a\\b'}`,
+    enabled: `\${x:-a\\b}`,
+  },
+  {
+    name: "delimiter-ansi-brace",
+    word: `"\${x:-$'a}b'}"`,
+    disabled: `\${x:-$'a}b'}`,
+    enabled: `\${x:-a}b}`,
+  },
+  {
+    name: "delimiter-ordinary-ansi",
+    word: "$'ab'",
+    disabled: "ab",
+    enabled: "ab",
+  },
+  {
+    name: "delimiter-ordinary-locale",
+    word: '$"ab"',
+    disabled: "ab",
+    enabled: "ab",
+  },
+  {
+    name: "delimiter-nested-command",
+    word: `"$(printf \${x:-$'ab'})"`,
+    disabled: `$(printf \${x:-$'ab'})`,
+    enabled: `$(printf \${x:-ab})`,
+  },
+  {
+    name: "delimiter-combined-conditions",
+    word: `@("\${x:-$'ab'}"|c)`,
+    disabled: `@("\${x:-$'ab'}"|c)`,
+    enabled: `@("\${x:-ab}"|c)`,
+    extglob: true,
+  },
+];
+
+for (const grammar of grammars) {
+  describe(grammar.name, () => {
+    let parser;
+    before(() => {
+      parser = createParser(grammar);
+    });
+    after(() => {
+      parser?.close();
+    });
+    const extglob = grammar.name.includes("extglob");
+    const nodes = (source) => parseNodes(parser, source);
+    if (grammar.name === "bash_extglob") {
+      test("here document Unicode delimiters use UTF-8 independently of locale", () => {
+        const source = ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n";
+        const originalLocale = process.env.LC_ALL;
+        try {
+          for (const locale of ["C", "en_US.UTF-8"]) {
+            process.env.LC_ALL = locale;
+            const actual = nodes(source);
+            assert.deepEqual(
+              actual
+                .filter(({ type }) =>
+                  [
+                    "dollar_single_quote_escape",
+                    "quoted_here_document_body",
+                    "here_document_end_text",
+                  ].includes(type),
+                )
+                .map(({ type, text }) => [type, text]),
+              [
+                ["dollar_single_quote_escape", "\\u00e9"],
+                ["dollar_single_quote_escape", "\\U0001f600"],
+                ["quoted_here_document_body", "body\n"],
+                ["here_document_end_text", "é😀"],
+              ],
+              locale,
+            );
+          }
+        } finally {
+          if (originalLocale === undefined) delete process.env.LC_ALL;
+          else process.env.LC_ALL = originalLocale;
+        }
+      });
+
+      test("a joined here document delimiter retains its original spelling", () => {
+        const actual = nodes("cat <<EOF\nbody\nE\\\nOF\n");
+        assert.equal(
+          actual.find(({ type }) => type === "here_document_end_text")?.text,
+          "E\\\nOF",
+        );
+        assert.equal(
+          actual.find(({ type }) => type === "here_document_body")?.text,
+          "body\n",
+        );
+      });
+
+      test("nested here document queues preserve body and delimiter source order", () => {
+        const actual = nodes(
+          ": <<OUT \"$(cat <<ONE <<'TWO'\n$first\nONE\n$second\nTWO\n)\" <<LAST\n$outer\nOUT\n$last\nLAST\n",
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) =>
+              ["here_document_body", "quoted_here_document_body"].includes(
+                type,
+              ),
+            )
+            .map(({ type, field, text }) => [type, field, text]),
+          [
+            ["here_document_body", "body", "$first\n"],
+            ["quoted_here_document_body", "body", "$second\n"],
+            ["here_document_body", "body", "$outer\n"],
+            ["here_document_body", "body", "$last\n"],
+          ],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ["ONE", "TWO", "OUT", "LAST"],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "parameter_expansion")
+            .map(({ text }) => text),
+          ["$first", "$outer", "$last"],
+        );
+      });
+
+      test("nested here document ends retain continued and Unicode source ranges", () => {
+        const source = "cat <<OUT\n$(cat <<IN\n日$x\nI\\\nN\n)\nOUT\n";
+        const actual = nodes(source);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ["I\\\nN", "OUT"],
+        );
+        const start = Buffer.from(source).indexOf("日$x\n");
+        assert.ok(
+          actual.some(
+            ({ type, field, text, start: begin, end }) =>
+              type === "here_document_body" &&
+              field === "body" &&
+              text === "日$x\n" &&
+              begin === start &&
+              end === start + 6,
+          ),
+        );
+        const slash = Buffer.from(source).indexOf("\\");
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "line_continuation")
+            .map(({ start, end, text }) => [start, end, text]),
+          [[slash, slash + 1, "\\"]],
+        );
+      });
+
+      test("delimiter quoting changes only body expansion recognition", () => {
+        const unquoted = nodes("cat <<EOF\n$x\nEOF\n");
+        const quoted = nodes("cat <<'EOF'\n$x\nEOF\n");
+        assert.equal(
+          unquoted.find(({ type }) => type === "parameter_expansion")?.text,
+          "$x",
+        );
+        assert.equal(
+          quoted.filter(({ type }) => type === "parameter_expansion").length,
+          0,
+        );
+        assert.equal(
+          quoted.find(({ type }) => type === "quoted_here_document_text")?.text,
+          "$x",
+        );
+      });
+
+      test("here strings inside substitutions preserve surrounding arithmetic and braces", () => {
+        const source = ": $(( $(cat <<<1) + 2 )) {a,$(cat <<\\\n<x)}\n";
+        const actual = nodes(source);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "arithmetic_binary_expression")
+            .map(({ text }) => text),
+          ["$(cat <<<1) + 2"],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "brace_expansion")
+            .map(({ text }) => text),
+          ["{a,$(cat <<\\\n<x)}"],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_string_operator")
+            .map(({ text }) => text),
+          ["<<<", "<<\\\n<"],
+        );
+        assert.ok(!actual.some(({ type }) => type === "here_document"));
+      });
+
+      test("arithmetic shifts and subshell here documents retain distinct lookahead contexts", () => {
+        const actual = nodes(
+          ": {a,$( ((1 << 2))\n: )} {a,$( ((cat <<E\nx\nE\n); :) )}\n",
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "brace_expansion")
+            .map(({ text }) => text),
+          ["{a,$( ((1 << 2))\n: )}", "{a,$( ((cat <<E\nx\nE\n); :) )}"],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "arithmetic_operator")
+            .map(({ text }) => text),
+          ["<<"],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ["E"],
+        );
+      });
+
+      test("conditional newlines drain pending here documents before closing substitutions", () => {
+        const word = `{a,\${ cat <<E && [[\n]] }\nE\nx == x ]]; }}`;
+        const actual = nodes(`: ${word}\n`);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "brace_expansion")
+            .map(({ text }) => text),
+          [word],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_text")
+            .map(({ text }) => text),
+          ["]] }"],
+        );
+      });
+
+      for (const { name, word, delimiter, quoted } of [
+        {
+          name: "quoted array parameter pattern",
+          word: `"\${x[0]#'"'}"`,
+          delimiter: `\${x[0]#'}"`,
+          quoted: true,
+        },
+        {
+          name: "here string within a command substitution",
+          word: "$(cat <<< x)",
+          delimiter: "$(cat <<< x)",
+          quoted: false,
+        },
+        {
+          name: "current shell prefix normalizes horizontal blanks",
+          word: `\${  \tprintf "x"; }`,
+          delimiter: `\${ printf "x"; }`,
+          quoted: false,
+        },
+        {
+          name: "current shell prefix normalizes its newline",
+          word: `\${\n  :; }`,
+          delimiter: `\${ :; }`,
+          quoted: false,
+        },
+        {
+          name: "reply prefix removes leading command layout",
+          word: `\${| \t\n :; }`,
+          delimiter: `\${|:; }`,
+          quoted: false,
+        },
+        {
+          name: "reply prefix normalization precedes quote removal",
+          word: `""\${| \tprintf "x"; }`,
+          delimiter: `\${|printf x; }`,
+          quoted: true,
+        },
+        {
+          name: "double quoted brace prefix preserves nested ANSI-C quotes",
+          word: `"\${\tprintf $'x'; }"`,
+          delimiter: `\${ printf 'x'; }`,
+          quoted: true,
+        },
+        {
+          name: "single quoted brace source retains its blanks",
+          word: `'\${|\t :; }'`,
+          delimiter: `\${|\t :; }`,
+          quoted: true,
+        },
+        {
+          name: "ANSI-C quoted brace source retains decoded blanks",
+          word: `$'\${|\\t :; }'`,
+          delimiter: `\${|\t :; }`,
+          quoted: true,
+        },
+        {
+          name: "continued reply prefix preserves the source word",
+          word: `\${|\\\n \tprintf x; }`,
+          delimiter: `\${|printf x; }`,
+          quoted: false,
+        },
+        {
+          name: "input process substitution word",
+          word: 'pre<(printf "a b")post',
+          delimiter: 'pre<(printf "a b")post',
+          quoted: false,
+        },
+        {
+          name: "output process substitution word",
+          word: ">(:)",
+          delimiter: ">(:)",
+          quoted: false,
+        },
+        {
+          name: "extglob internal quotes and escapes",
+          word: '@("a b"|c\\ d)',
+          delimiter: '@("a b"|c\\ d)',
+          quoted: false,
+        },
+        {
+          name: "outer quote removes extglob quotes and escapes",
+          word: '""@("a b"|c\\ d)',
+          delimiter: "@(a b|c d)",
+          quoted: true,
+        },
+        {
+          name: "trailing quote applies to earlier command substitution",
+          word: '$(printf "a b")""',
+          delimiter: "$(printf a b)",
+          quoted: true,
+        },
+        {
+          name: "outer quote applies to parameter source",
+          word: `""\${v:-"a b"}`,
+          delimiter: `\${v:-a b}`,
+          quoted: true,
+        },
+        {
+          name: "outer quote applies to backquote source",
+          word: '""`printf "a b"`',
+          delimiter: "`printf a b`",
+          quoted: true,
+        },
+        {
+          name: "ANSI-C quote inside process substitution",
+          word: "<(printf $'a\\tb')",
+          delimiter: "<(printf 'a\tb')",
+          quoted: false,
+        },
+        {
+          name: "ANSI-C apostrophe retains canonical quoting",
+          word: "@($'a\\'b'|c)",
+          delimiter: "@('a'\\''b'|c)",
+          quoted: false,
+        },
+        {
+          name: "ANSI-C NUL ends its quoted value",
+          word: "@($'a\\0b'|c)",
+          delimiter: "@('a'|c)",
+          quoted: false,
+        },
+        {
+          name: "locale prefix inside command substitution",
+          word: '$(printf $"a b")',
+          delimiter: '$(printf "a b")',
+          quoted: false,
+        },
+        {
+          name: "ANSI-C decoding precedes quoted parameter quote removal",
+          word: `"\${v:-$'a\\"b'}"`,
+          delimiter: `\${v:-ab}`,
+          quoted: true,
+        },
+        {
+          name: "ANSI-C quote inside a double quoted command substitution",
+          word: "\"$(printf $'a\\tb')\"",
+          delimiter: "$(printf 'a\tb')",
+          quoted: true,
+        },
+        {
+          name: "backquote preserves nested ANSI-C spelling",
+          word: "`printf $'a\\tb'`",
+          delimiter: "`printf $'a\\tb'`",
+          quoted: false,
+        },
+        {
+          name: "current shell substitution has its own quote context",
+          word: `"\${ printf $'a\\tb'; }"`,
+          delimiter: `\${ printf 'a\tb'; }`,
+          quoted: true,
+        },
+        {
+          name: "reply substitution has its own quote context",
+          word: `"\${|printf $'a\\tb'; }"`,
+          delimiter: `\${|printf 'a\tb'; }`,
+          quoted: true,
+        },
+        {
+          name: "Unicode escape retains its double quoted backslash",
+          word: "\"$(printf '\\日')\"",
+          delimiter: "$(printf '\\日')",
+          quoted: true,
+        },
+        {
+          name: "control escape before the closing quote stays literal",
+          word: "$'E\\c'",
+          delimiter: "E\\c",
+          quoted: true,
+        },
+        {
+          name: "control escape of an escaped quote keeps the quote",
+          word: "$'E\\c\\''",
+          delimiter: "E\u001c'",
+          quoted: true,
+        },
+      ]) {
+        test(`here document delimiter: ${name}`, () => {
+          const source = `cat << ${word}\n$body\n${delimiter}\nprintf after\n`;
+          const actual = nodes(source);
+          const bodyType = quoted
+            ? "quoted_here_document_body"
+            : "here_document_body";
+          assert.equal(
+            actual.find(({ type }) => type === "here_end")?.text,
+            word,
+          );
+          assert.deepEqual(
+            actual
+              .filter(({ type }) => type === bodyType)
+              .map(({ field, text }) => [field, text]),
+            [["body", "$body\n"]],
+          );
+          assert.equal(
+            actual.find(({ type }) => type === "here_document_end_text")?.text,
+            delimiter,
+          );
+          assert.equal(
+            actual.some(
+              ({ type, text }) =>
+                type === "parameter_expansion" && text === "$body",
+            ),
+            !quoted,
+          );
+          assert.ok(
+            actual.some(
+              ({ field, text }) => field === "name" && text === "printf",
+            ),
+          );
+        });
+      }
+
+      test("delimiter quoting is local to its word inside quoted command substitution", () => {
+        const actual = nodes(
+          `: "$(cat << @($'a\\tb'|c) << \${v:-$'x'}\n$first\n@('a\tb'|c)\n$second\n\${v:-'x'}\n)"\n`,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ["@('a\tb'|c)", `\${v:-'x'}`],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_body")
+            .map(({ text }) => text),
+          ["$first\n", "$second\n"],
+        );
+        assert.ok(
+          !actual.some(({ type }) => type === "quoted_here_document_body"),
+        );
+      });
+
+      for (const source of [
+        'cat << @("a b"|c)\n$body\n@(a b|c)\n',
+        'cat << ""$(printf "a b")\n$body\n$(printf "a b")\n',
+        `cat << \${  :; }\n$body\n\${  :; }\n`,
+        `cat << \${| :; }\n$body\n\${| :; }\n`,
+        `cat << '\${| :; }'\n$body\n\${|:; }\n`,
+      ]) {
+        test(`a delimiter with incorrect normalization remains unterminated: ${JSON.stringify(source)}`, () => {
+          const actual = nodes(source);
+          assert.ok(!actual.some(({ type }) => type === "here_document_end"));
+        });
+      }
+
+      test("brace lookahead skips inner here documents while an outer one is pending", () => {
+        const actual = nodes(
+          ": <<OUT {a,<(cat <<'INNER'\n},(\nINNER\n)}\n$body\nOUT\n",
+        );
+        assert.equal(
+          actual.find(({ type }) => type === "brace_expansion")?.text,
+          "{a,<(cat <<'INNER'\n},(\nINNER\n)}",
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ["INNER", "OUT"],
+        );
+        assert.equal(
+          actual.find(({ type }) => type === "quoted_here_document_body")?.text,
+          "},(\n",
+        );
+      });
+
+      for (const entry of [
+        {
+          name: "a locale assignment changes without changing a Unicode here delimiter",
+          seed: "LC_ALL=C\n: <<$'\\u00e9'\nbody\né\n",
+          remove: "LC_ALL=C",
+          insert: "LC_ALL=en_US.UTF-8",
+          valid: true,
+        },
+        {
+          name: "a here document at a conditional newline gains closing delimiters",
+          seed: `: {a,\${ cat <<E && [[\ntext\nE\nx == x ]]; }}\n`,
+          remove: "text",
+          insert: "]] }",
+          valid: true,
+        },
+        {
+          name: "an arithmetic substitution changes a here document to a here string",
+          seed: ": $(( $(cat <<E\n1\nE\n) + 2 ))\n",
+          remove: "<<E\n1\nE\n",
+          insert: "<<<1\n",
+          valid: true,
+        },
+        {
+          name: "a here string within a brace loses its operand then is repaired",
+          seed: ": {a,$(cat <<<x)}\n",
+          remove: "<<<x",
+          insert: "<<<",
+          valid: false,
+        },
+        {
+          name: "a brace delimiter prefix gains layout without changing its value",
+          seed: `cat << \${ :; }\n$x\n\${ :; }\n`,
+          remove: `<< \${ `,
+          insert: `<< \${\n\t `,
+          valid: true,
+        },
+        {
+          name: "a reply delimiter prefix loses layout without changing its value",
+          seed: `cat << \${| \t:; }\n$x\n\${|:; }\n`,
+          remove: `<< \${| \t`,
+          insert: `<< \${|`,
+          valid: true,
+        },
+        {
+          name: "a brace delimiter changes kind before its terminator",
+          seed: `cat << \${ :; }\n$x\n\${ :; }\n`,
+          remove: `<< \${ `,
+          insert: `<< \${| `,
+          valid: true,
+        },
+        {
+          name: "an inner reply delimiter prefix changes while an outer document is pending",
+          seed: `: <<OUT "$(cat << \${|:; }\n日$x\n\${|:; }\n)"\n$y\nOUT\n`,
+          remove: `<< \${|`,
+          insert: `<< \${|\n\t`,
+          valid: true,
+        },
+        {
+          name: "a process substitution delimiter becomes quoted",
+          seed: "cat << <(:)\n$x\n<(:)\n",
+          remove: "<< <(:)",
+          insert: '<< ""<(:)',
+          valid: true,
+        },
+        {
+          name: "a process substitution delimiter changes direction before its terminator",
+          seed: "cat << <(:)\n$x\n<(:)\n",
+          remove: "<< <",
+          insert: "<< >",
+          valid: true,
+        },
+        {
+          name: "an outer delimiter quote changes removal inside extglob",
+          seed: 'cat << @("a b"|c)\n$x\n@("a b"|c)\n',
+          remove: "<< ",
+          insert: '<< ""',
+          valid: true,
+        },
+        {
+          name: "an ANSI-C delimiter escape changes without changing its value",
+          seed: "cat << @($'a\\tb'|c)\n$x\n@('a\tb'|c)\n",
+          remove: "\\t",
+          insert: "\\x09",
+          valid: true,
+        },
+        {
+          name: "a locale quote prefix changes without changing delimiter spelling",
+          seed: 'cat << $(printf $"a b")\n$x\n$(printf "a b")\n',
+          remove: '$"',
+          insert: '"',
+          valid: true,
+        },
+        {
+          name: "a process substitution delimiter gains a continued terminator",
+          seed: "cat << <(printf 日本)\n$x\n<(printf 日本)\n",
+          remove: "$x\n<(printf 日本)",
+          insert: "$x\n<(printf 日\\\n本)",
+          valid: true,
+        },
+        {
+          name: "an inner process substitution delimiter changes quoting with an outer document pending",
+          seed: ': <<OUT "$(cat << <(:)\n$x\n<(:)\n)"\n$y\nOUT\n',
+          remove: "<< <(:)",
+          insert: '<< ""<(:)',
+          valid: true,
+        },
+        {
+          name: "locale quoted delimiter prefix is removed and restored",
+          seed: 'cat <<[$"x"]\n$x\n[x]\n',
+          remove: '$"',
+          insert: '"',
+          valid: true,
+        },
+        {
+          name: "locale quoted delimiter closing quote is repaired",
+          seed: 'cat <<$"EOF"\n$x\nEOF\n',
+          remove: 'EOF"',
+          insert: "EOF",
+          valid: false,
+        },
+        {
+          name: "here string becomes here document",
+          seed: "cat <<<EOF\nEOF\n",
+          remove: "<<<",
+          insert: "<<",
+          valid: true,
+        },
+        {
+          name: "extglob here document delimiter becomes quoted",
+          seed: "cat <<@(a|b)\n$x\n@(a|b)\n",
+          remove: "<<@(a|b)",
+          insert: "<<'@(a|b)'",
+          valid: true,
+        },
+        {
+          name: "here document current shell substitution changes kind",
+          seed: `cat <<EOF\n\${ printf hi; }\nEOF\n`,
+          remove: `\${ `,
+          insert: `\${| `,
+          valid: true,
+        },
+        {
+          name: "delimiter nested quote boundary is lost then repaired",
+          seed: 'cat <<"$(echo "a b")"\nbody\n$(echo a b)\n',
+          remove: ')"',
+          insert: '"',
+          valid: false,
+        },
+        {
+          name: "quoted delimiter changes expansion ownership",
+          seed: "cat <<EOF\n$x\nEOF\n",
+          remove: "<<EOF",
+          insert: "<<'EOF'",
+          valid: true,
+        },
+        {
+          name: "here document becomes input redirection",
+          seed: "cat <<EOF\nbody\nEOF\n",
+          remove: "<<",
+          insert: "<",
+          valid: true,
+        },
+        {
+          name: "here document end is lost then repaired",
+          seed: "cat <<EOF\nbody\nEOF\n",
+          remove: "body\nEOF",
+          insert: "body\nOTHER",
+          valid: true,
+        },
+        {
+          name: "joining a delimiter line",
+          seed: "cat <<EOF\nbody\nEOF\n",
+          remove: "body\nEOF",
+          insert: "body\nE\\\nOF",
+          valid: true,
+        },
+        {
+          name: "literal body becomes a substitution",
+          seed: "cat <<EOF\nbody\nEOF\n",
+          remove: "body",
+          insert: "$(echo $x)",
+          valid: true,
+        },
+        {
+          name: "nested here document delimiter changes",
+          seed: "cat <<EOF\n$(cat <<INNER\nx\nINNER\n)\nEOF\n",
+          remove: "INNER",
+          insert: "'INNER'",
+          valid: true,
+        },
+        {
+          name: "an inner quoted delimiter changes while an outer document is pending",
+          seed: ': <<OUT "$(cat <<IN\n$x\nIN\n)"\n$y\nOUT\n',
+          remove: "<<IN",
+          insert: "<<'IN'",
+          valid: true,
+        },
+        {
+          name: "an inner terminator is removed while an outer document is pending",
+          seed: ': <<OUT "$(cat <<IN\n$x\nIN\n)"\n$y\nOUT\n',
+          remove: "$x\nIN",
+          insert: "$x\n",
+          valid: false,
+        },
+        {
+          name: "a suspended outer here document loses its terminator",
+          seed: "cat <<OUT\n$(cat <<IN\n$x\nIN\n)\nOUT\n",
+          remove: ")\nOUT",
+          insert: ")\n",
+          valid: true,
+        },
+        {
+          name: "a backquote here document gains a continued terminator",
+          seed: "echo `cat <<EOF\n$x\nEOF\n`\n",
+          remove: "$x\nEOF",
+          insert: "$x\nE\\\\\nOF",
+          valid: true,
+        },
+        {
+          name: "tab stripping exposes a later delimiter line as a command",
+          seed: "cat <<EOF\n\tEOF\nEOF\n",
+          remove: "<<",
+          insert: "<<-",
+          valid: true,
+        },
+        {
+          name: "an empty delimiter becomes a quoted nonempty delimiter",
+          seed: "cat <<'' <<EOF\n$v\n\n$w\nEOF\n",
+          remove: "'' <<EOF\n$v\n",
+          insert: "'END' <<EOF\n$v\nEND",
+          valid: true,
+        },
+      ]) {
+        test(entry.name, () => assertEditRoundTrip(parser, entry));
+      }
+    }
+
+    test("delimiter quote removal retains the newline in a parameter dollar quote", () => {
+      const extquote = !grammar.name.includes("noextquote");
+      const end = extquote ? `\${x:-ab}` : `\${x:-$'ab'}`;
+      for (const [prefix, suffix] of [
+        ["", ""],
+        [": $(", ")\n"],
+        [": {a,$(", ")}\n"],
+      ]) {
+        const source = `${prefix}: <<"\${x:-$'\\\nab'}"\nbody\n${end}\n${suffix}`;
+        const parsed = parser.parse(source, {});
+        assert.equal(parsed.status, prefix === "" ? 0 : 1, source);
+        assert.ok(!parsed.tree.includes("(here_document_end "));
+        const repair = {
+          byte: source.indexOf("\\\n"),
+          deleteBytes: 2,
+          insert: "",
+        };
+        const fresh = parser.parse(applyEdit(source, repair), {});
+        assert.equal(fresh.status, 0, fresh.output);
+        assert.equal(
+          parser.parse(source, { edits: [repair] }).tree,
+          fresh.tree,
+        );
+      }
+    });
+
+    test("substitution boundaries preserve declarations and accept warning-only omissions", () => {
+      for (const [name, prefix, closer] of [
+        ["command", ": $(cat <<E", ")"],
+        ["quoted command", ': "$(cat <<E', ')"'],
+        ["nested command", ": $(: $(cat <<E", "))"],
+        ["input process", ": <(cat <<E", ")"],
+        ["output process", ": >(cat <<E", ")"],
+        ["backquote", ": `cat <<E", "`"],
+        ["quoted backquote", ': "`cat <<E', '`"'],
+        ["current shell", ": ${ cat <<E;", " }"],
+        ["reply", ": ${| cat <<E;", " }"],
+        ["current shell list", ": ${ cat <<E; :;", " }"],
+        ["reply pipeline", ": ${| cat <<E | :;", " }"],
+      ]) {
+        const incomplete = `${prefix}${closer}\n`;
+        const completion = "\nbody\nE\n";
+        const complete = `${prefix}${completion}${closer}\n`;
+        const options = { arguments: ["-c"] };
+        const fresh = parser.parse(incomplete, options);
+        assert.equal(fresh.status, 0, name);
+        assert.equal(parser.parse(`${incomplete}E\n`, options).status, 0, name);
+        assert.match(fresh.tree, /body: io_here/);
+        assert.ok(!fresh.tree.includes("here_document_end"));
+        const original = parser.parse(complete, options);
+        assert.equal(original.status, 0, `${name}\n${original.output}`);
+        const insert = {
+          byte: Buffer.byteLength(prefix),
+          deleteBytes: 0,
+          insert: completion,
+        };
+        const remove = {
+          byte: insert.byte,
+          deleteBytes: Buffer.byteLength(completion),
+          insert: "",
+        };
+        const broken = parser.parse(complete, { ...options, edits: [remove] });
+        assert.equal(broken.status, 0, `${name}\n${broken.output}`);
+        assert.equal(broken.tree, fresh.tree);
+        for (const [source, edits] of [
+          [incomplete, [insert]],
+          [complete, [remove, insert]],
+        ]) {
+          const repaired = parser.parse(source, { ...options, edits });
+          assert.equal(repaired.status, 0, `${name}\n${repaired.output}`);
+          assert.equal(repaired.tree, original.tree, name);
+        }
+      }
+      const source = "cat <<OUT $(:) `:`\nbody\nOUT\n";
+      assert.equal(parser.parse(source, {}).status, 0);
+    });
+
+    test("undecodable delimiter bytes are rejected and repaired without losing body bytes", () => {
+      const extquote = !grammar.name.includes("noextquote");
+      for (const byte of [0xff, 0x80, 0xe3]) {
+        const invalid = Buffer.from([byte]);
+        for (const [open, close, endOpen, endClose] of [
+          ["", "", "", ""],
+          ["'", "'", "", ""],
+          ['"', '"', "", ""],
+          ["\\", "", "", ""],
+          ["$'", "'", "", ""],
+          ["$(echo ", ")", "$(echo ", ")"],
+          ["`echo ", "`", "`echo ", "`"],
+          ['"${x:-', '}"', "${x:-", "}"],
+          [
+            "\"${x:-$'",
+            "'}\"",
+            extquote ? "${x:-" : "${x:-$'",
+            extquote ? "}" : "'}",
+          ],
+        ]) {
+          const prefix = Buffer.from(`cat <<${open}`);
+          const suffix = Buffer.concat([
+            Buffer.from(`${close}\nbody\n${endOpen}`),
+            invalid,
+            Buffer.from(`${endClose}\n${endOpen}E${endClose}\n`),
+          ]);
+          const source = Buffer.concat([prefix, invalid, suffix]);
+          const rejected = parser.parse(source, {});
+          assert.equal(rejected.status, 1, rejected.output);
+          const repaired = parser.parse(source, {
+            arguments: ["-c"],
+            edits: [{ byte: prefix.length, deleteBytes: 1, insert: "E" }],
+          });
+          const fresh = parser.parse(
+            Buffer.concat([prefix, Buffer.from("E"), suffix]),
+            { arguments: ["-c"] },
+          );
+          assert.equal(fresh.status, 0, fresh.output);
+          assert.equal(repaired.status, 0, repaired.output);
+          assert.equal(repaired.tree, fresh.tree);
+        }
+      }
+    });
+
+    test("undecodable body bytes retain their ranges and differ from a valid replacement character", () => {
+      for (const byte of [0xff, 0x80, 0xe3]) {
+        for (const delimiter of ["E", "'E'"]) {
+          const prefix = Buffer.from(`cat <<${delimiter}\n`);
+          const body = Buffer.from([byte, 10]);
+          const source = Buffer.concat([prefix, body, Buffer.from("E\n")]);
+          const nodes = parseNodes(parser, source);
+          const bodyNode = nodes.find(
+            ({ type }) =>
+              type === "here_document_body" ||
+              type === "quoted_here_document_body",
+          );
+          assert.ok(bodyNode);
+          assert.equal(bodyNode.start, prefix.length);
+          assert.equal(bodyNode.end, prefix.length + body.length);
+          assert.deepEqual(source.subarray(bodyNode.start, bodyNode.end), body);
+        }
+      }
+      const source = "cat <<�\nbody\n�\n";
+      assert.equal(parser.parse(source, {}).status, 0);
+    });
+
+    test("EOF acceptance depends on shell structure rather than here-document terminators", () => {
+      const declarations = [
+        ["declaration", "cat <<EOF"],
+        ["trailing blank", "cat <<EOF \t"],
+        ["trailing comment", "cat <<EOF # comment"],
+        ["trailing continuation", "cat <<EOF \\\n"],
+        ["quoted delimiter", "cat <<'EOF'"],
+        ["ANSI-C delimiter", "cat <<$'EOF'"],
+        ["tab stripping", "cat <<-EOF"],
+        ["multiple declarations", "cat <<FIRST <<SECOND"],
+        ["following command", "cat <<EOF; echo after"],
+        ["background command", "cat <<EOF &"],
+        ["pipeline", "cat <<EOF | cat"],
+        ["stderr pipeline", "cat <<EOF |& cat"],
+        ["and-list", "cat <<EOF && echo after"],
+        ["brace group", "{ cat <<EOF; }"],
+        ["subshell", "(cat <<EOF)"],
+        ["function", "f() { cat <<EOF; }"],
+        ["timed command", "time cat <<EOF"],
+        ["coprocess", "coproc cat <<EOF"],
+      ];
+      for (const [name, source] of [
+        ...declarations.flatMap(([name, header]) =>
+          ["", "\n", "\nbody", "\nbody\n"].map((suffix) => [
+            `${name}, suffix ${JSON.stringify(suffix)}`,
+            header + suffix,
+          ]),
+        ),
+        ["empty delimiter", "cat <<''"],
+        ["empty delimiter, newline", "cat <<''\n"],
+        ["empty delimiter, body", "cat <<''\nbody\n"],
+        ["second body", "cat <<FIRST <<SECOND\nFIRST\n"],
+        ["later declaration", "cat <<FIRST\nFIRST\ncat <<SECOND"],
+      ]) {
+        const parsed = parser.parse(source, {});
+        assert.equal(parsed.status, 0, `${name}\n${parsed.output}`);
+        assert.doesNotMatch(parsed.tree, /\((ERROR|MISSING)[ \n]/, name);
+      }
+    });
+
+    test("omitted terminators preserve bodies and enclosing document queues", () => {
+      for (const { source, bodies, ends, names } of [
+        {
+          source: "cat <<''\n  a\n  b\n  ''\n",
+          bodies: ["  a\n  b\n  ''\n"],
+          ends: [],
+          names: ["cat"],
+        },
+        {
+          source: "cat <<A <<B\nA\nbody\n",
+          bodies: ["body\n"],
+          ends: ["A"],
+          names: ["cat"],
+        },
+        {
+          source: ': <<OUT "$(cat <<IN)"\n$x\nOUT\n',
+          bodies: ["$x\n"],
+          ends: ["OUT"],
+          names: [":", "cat"],
+        },
+        {
+          source: ': <<OUT "`cat <<IN`"\n$x\nOUT\n',
+          bodies: ["$x\n"],
+          ends: ["OUT"],
+          names: [":", "cat"],
+        },
+        {
+          source: ': <<OUT "${ cat <<IN; }"\n$x\nOUT\n',
+          bodies: ["$x\n"],
+          ends: ["OUT"],
+          names: [":", "cat"],
+        },
+        {
+          source: ': <<OUT "${| cat <<IN; }"\n$x\nOUT\n',
+          bodies: ["$x\n"],
+          ends: ["OUT"],
+          names: [":", "cat"],
+        },
+        {
+          source: ": `cat <<IN\nbody\n`\necho AFTER\n",
+          bodies: ["body\n"],
+          ends: [],
+          names: [":", "cat", "echo"],
+        },
+        {
+          source: "cat <<OUT\n`cat <<IN\nbody\n`\nOUT\n",
+          bodies: ["`cat <<IN\nbody\n`\n", "body\n"],
+          ends: ["OUT"],
+          names: ["cat", "cat"],
+        },
+      ]) {
+        const actual = parseNodes(parser, source);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) =>
+              ["here_document_body", "quoted_here_document_body"].includes(
+                type,
+              ),
+            )
+            .map(({ text }) => text),
+          bodies,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          ends,
+        );
+        assert.equal(
+          actual.filter(({ type }) => type === "here_document_end").length,
+          ends.length,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ field, type }) => field === "name" && type === "word")
+            .map(({ text }) => text),
+          names,
+        );
+      }
+    });
+
+    test("EOF acceptance does not complete unfinished shell constructs", () => {
+      for (const source of [
+        "cat <<E\n${x:-\n",
+        "cat <<E\n$(echo x\n",
+        ": $(cat <<E\nbody\n)\n",
+        ": <(cat <<E\nbody\n)\n",
+        "if :; then cat <<E\nbody\n",
+        "{ cat <<E\nbody\n",
+        ": ${ cat <<E }",
+        ": ${| cat <<E; if; }",
+      ]) {
+        assert.equal(parser.parse(source, {}).status, 1, source);
+      }
+    });
+
+    test("pending here-documents preserve fresh trees through EOF edits and completion", () => {
+      for (const [name, header, ending] of [
+        ["plain", "cat <<EOF", "\nbody\nEOF"],
+        ["quoted", "cat <<'EOF'", "\n$literal\nEOF\n"],
+        ["empty delimiter", "cat <<''", "\nbody\n\n"],
+        ["tabs", "cat <<-EOF", "\n\tbody\n\tEOF\n"],
+        ["comment", "cat <<EOF # comment", "\nbody\nEOF\n"],
+        ["continuation", "cat <<EOF \\\n", "\nbody\nEOF\n"],
+        ["following command", "cat <<EOF; echo after", "\nbody\nEOF\n"],
+        ["multiple", "cat <<FIRST <<SECOND", "\nFIRST\nSECOND\n"],
+        [
+          "extquote delimiter",
+          `cat <<"\${x:-$'ab'}"`,
+          grammar.name.includes("noextquote")
+            ? `\nbody\n\${x:-$'ab'}\n`
+            : `\nbody\n\${x:-ab}\n`,
+        ],
+      ]) {
+        const source = header + ending;
+        const options = { arguments: ["-c"] };
+        const original = parser.parse(source, options);
+        assert.equal(original.status, 0, `${name}\n${original.output}`);
+        const remove = {
+          byte: Buffer.byteLength(header),
+          deleteBytes: Buffer.byteLength(ending),
+          insert: "",
+        };
+        const restore = { byte: remove.byte, deleteBytes: 0, insert: ending };
+        const incomplete = parser.parse(source, {
+          ...options,
+          edits: [remove],
+        });
+        assert.equal(incomplete.status, 0, `${name}\n${incomplete.output}`);
+        assert.equal(incomplete.tree, parser.parse(header, options).tree);
+        for (const [initial, edits] of [
+          [header, [restore]],
+          [source, [remove, restore]],
+        ]) {
+          const repaired = parser.parse(initial, { ...options, edits });
+          assert.equal(repaired.status, 0, `${name}\n${repaired.output}`);
+          assert.equal(repaired.tree, original.tree, name);
+        }
+      }
+    });
+
+    for (const [name, prefix, delimiter, suffix] of [
+      ["parameter", "cat <<EOF\n${value:-\n", "EOF\n", "}\nEOF\nafter\n"],
+      ["arithmetic", "cat <<EOF\n$((1 +\n", "EOF\n", "))\nEOF\nafter\n"],
+      ["command", "cat <<EOF\n$(printf x\n", "EOF\n", ")\nEOF\nafter\n"],
+      ["backquote", "cat <<EOF\n`printf x\n", "EOF\n", "`\nEOF\nafter\n"],
+      ["current shell", "cat <<EOF\n${ printf x\n", "EOF\n", "}\nEOF\nafter\n"],
+      ["reply", "cat <<EOF\n${| printf x\n", "EOF\n", "}\nEOF\nafter\n"],
+      ["subscript", "cat <<EOF\n${a[\n", "EOF\n", "]}\nEOF\nafter\n"],
+      ["substring", "cat <<EOF\n${value:\n", "EOF\n", "}\nEOF\nafter\n"],
+      ["extglob", "cat <<EOF\n${value#@(\n", "EOF\n", ")}\nEOF\nafter\n"],
+      ["double quote", 'cat <<EOF\n${value:-"\n', "EOF\n", '"}\nEOF\nafter\n'],
+      ["single quote", "cat <<EOF\n${value#'\n", "EOF\n", "'}\nEOF\nafter\n"],
+      [
+        "dollar single quote",
+        "cat <<EOF\n${value#$'\n",
+        "EOF\n",
+        "'}\nEOF\nafter\n",
+      ],
+      [
+        "nested document",
+        "cat <<EOF\n$(cat <<INNER\n",
+        "EOF\n",
+        "INNER\n)\nEOF\nafter\n",
+      ],
+      [
+        "nested quoted document",
+        "cat <<EOF\n$(cat <<'INNER'\n",
+        "EOF\n",
+        "INNER\n)\nEOF\nafter\n",
+      ],
+      [
+        "stripped tabs",
+        "cat <<-EOF\n${value:-\n",
+        "\tEOF\n",
+        "}\nEOF\nafter\n",
+      ],
+      [
+        "continued delimiter",
+        "cat <<EOF\n${value:-\n",
+        "E\\\nOF\n",
+        "}\nEOF\nafter\n",
+      ],
+    ]) {
+      test(`here-document delimiter bounds ${name} before its later closer`, () => {
+        const source = `${prefix}x${delimiter}${suffix}`;
+        const options = { arguments: ["-c"] };
+        const original = parser.parse(source, options);
+        assert.equal(original.status, 0, original.output);
+        const remove = {
+          byte: Buffer.byteLength(prefix),
+          deleteBytes: 1,
+          insert: "",
+        };
+        const fresh = parser.parse(`${prefix}${delimiter}${suffix}`, options);
+        const incremental = parser.parse(source, {
+          ...options,
+          edits: [remove],
+        });
+        assert.equal(fresh.status, 1, fresh.output);
+        assert.equal(incremental.status, 1, incremental.output);
+        const undo = { byte: remove.byte, deleteBytes: 0, insert: "x" };
+        const repaired = parser.parse(source, {
+          ...options,
+          edits: [remove, undo],
+        });
+        assert.equal(repaired.status, 0, repaired.output);
+        assert.equal(repaired.tree, original.tree);
+      });
+    }
+
+    for (const entry of delimiterCases) {
+      test(entry.name, () => {
+        const extquote = !grammar.name.includes("noextquote");
+        const end = extquote ? entry.enabled : entry.disabled;
+        const source = `: <<${entry.word}\n$body\n${end}\n`;
+        if (entry.extglob && !extglob) {
+          assert.equal(parser.parse(source, {}).status, 1);
+          return;
+        }
+        const nodes = parseNodes(parser, source);
+        assert.deepEqual(
+          nodes
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          [end],
+        );
+        assert.deepEqual(
+          nodes
+            .filter(({ type }) => type === "here_end")
+            .map(({ text }) => text),
+          [entry.word],
+        );
+        const nested = `: {a,$(${source})}\n`;
+        const nestedNodes = parseNodes(parser, nested);
+        assert.ok(nestedNodes.some(({ type }) => type === "brace_expansion"));
+        assert.deepEqual(
+          nestedNodes
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          [end],
+        );
+        const prefix = "shopt -s extquote\n";
+        const seed = prefix + source;
+        const edit = { byte: 7, deleteBytes: 1, insert: "u" };
+        const original = parser.parse(seed, {});
+        const fresh = parser.parse(applyEdit(seed, edit), {});
+        const incremental = parser.parse(seed, { edits: [edit] });
+        assert.equal(fresh.status, 0);
+        assert.equal(incremental.tree, fresh.tree);
+        assert.equal(fresh.tree, original.tree);
+        const undo = { ...edit, insert: "s" };
+        assert.equal(
+          parser.parse(seed, { edits: [edit, undo] }).tree,
+          original.tree,
+        );
+        const at = seed.indexOf("$", prefix.length);
+        if (at >= 0) {
+          const remove = { byte: at, deleteBytes: 1, insert: "" };
+          const fresh = parser.parse(applyEdit(seed, remove), {});
+          const incremental = parser.parse(seed, { edits: [remove] });
+          if (fresh.status === 0) assert.equal(incremental.tree, fresh.tree);
+          assert.equal(
+            parser.parse(seed, {
+              edits: [remove, { ...remove, deleteBytes: 0, insert: "$" }],
+            }).tree,
+            original.tree,
+          );
+        }
+      });
+    }
+  });
+}

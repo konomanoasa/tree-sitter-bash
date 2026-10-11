@@ -3295,20 +3295,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -3712,20 +3698,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -4723,7 +4695,7 @@
       },
       "end": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "here_document_end",
@@ -5415,6 +5387,16 @@
           }
         ]
       },
+      "prefix": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "parameter_name_prefix",
+            "named": true
+          }
+        ]
+      },
       "word": {
         "multiple": false,
         "required": false,
@@ -5458,6 +5440,65 @@
     "type": "parameter_length_operator",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "parameter_name_prefix",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "arithmetic_expansion",
+          "named": true
+        },
+        {
+          "type": "backquote_substitution",
+          "named": true
+        },
+        {
+          "type": "command_substitution",
+          "named": true
+        },
+        {
+          "type": "current_shell_substitution",
+          "named": true
+        },
+        {
+          "type": "dollar_single_quoted",
+          "named": true
+        },
+        {
+          "type": "double_quoted",
+          "named": true
+        },
+        {
+          "type": "escaped_character",
+          "named": true
+        },
+        {
+          "type": "literal",
+          "named": true
+        },
+        {
+          "type": "locale_quoted",
+          "named": true
+        },
+        {
+          "type": "parameter_expansion",
+          "named": true
+        },
+        {
+          "type": "reply_substitution",
+          "named": true
+        },
+        {
+          "type": "single_quoted",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_names_operator",

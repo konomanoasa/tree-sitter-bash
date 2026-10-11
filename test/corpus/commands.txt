@@ -3293,3 +3293,84 @@ numeric duplication operands precede adjacent redirects
               (io_file
                 (word
                   (literal))))))))))
+
+================================================================================
+conditional newlines follow negation, groups, and complete terms
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+[[ !
+( -n a
+) &&
+b == c
+]]
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_and_expression
+              (conditional_negation
+                (conditional_not)
+                (conditional_group
+                  (conditional_unary_expression
+                    (conditional_unary_operator)
+                    (word
+                      (literal)))))
+              (and_if)
+              (conditional_binary_expression
+                (word
+                  (literal))
+                (conditional_match_operator)
+                (conditional_pattern
+                  (literal))))))))))
+
+================================================================================
+arithmetic for separator precedes newlines before do
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+================================================================================
+for ((i = 0; i < 1; i++));
+
+do :; done
+
+---
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (arithmetic_for_clause
+            (for_keyword)
+            (arithmetic_assignment_expression
+              (arithmetic_variable)
+              (arithmetic_operator)
+              (arithmetic_number))
+            (arithmetic_binary_expression
+              (arithmetic_variable)
+              (arithmetic_operator)
+              (arithmetic_number))
+            (arithmetic_update_expression
+              (arithmetic_variable)
+              (arithmetic_operator))
+            (do_group
+              (do_keyword)
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal))))))
+                (separator
+                  (separator_op)))
+              (done_keyword))))))))
