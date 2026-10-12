@@ -15,7 +15,7 @@ npm install @konomanoasa/tree-sitter-bash
 
 ## Grammars
 
-Choose one grammar for the whole document.
+Syntax differs with `extglob` and `extquote`, so the grammars are separate.
 
 | Grammar                   | extglob  | extquote |
 | ------------------------- | -------- | -------- |
@@ -37,6 +37,10 @@ npm test
 ## Specification
 
 [GNU Bash Reference Manual 5.3](https://www.gnu.org/software/bash/manual/bash.html)
+
+## Used By
+
+[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode): Emacs major mode.
 
 ## License
 

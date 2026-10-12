@@ -366,3 +366,52 @@ EOF
         (quoted_here_document_text))
       end: (here_document_end
         (here_document_end_text)))))
+
+==================
+a quoted body inside backquotes joins continued lines
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: `cat <<'E'
+a\
+b
+E
+`
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (io_redirect
+                              (io_here
+                                (dless)
+                                (here_end
+                                  (word
+                                    (single_quoted
+                                      (single_quote_content)))))))))))
+                  (here_document_sequence
+                    (here_document_line_end)
+                    (here_document
+                      (quoted_here_document_body
+                        (quoted_here_document_text
+                          (line_continuation)))
+                      (here_document_end
+                        (here_document_end_text)))))))))))))

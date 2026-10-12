@@ -67,6 +67,16 @@ static inline void logical_restore_position(
   input->lexer.result_symbol = position->symbol;
 }
 
+static inline size_t
+logical_lookahead_position(const struct LogicalLexer *input) {
+  if (input->result != SOURCE_CHARACTER) {
+    return input->base + input->cursor.raw_count;
+  }
+  return input->base +
+    (input->character.origin.start > 0 ? (size_t)input->character.origin.start
+                                       : 0);
+}
+
 static inline int32_t logical_peek(struct LogicalLexer *input) {
   struct LogicalPosition position = logical_position(input);
   input->lexer.advance(&input->lexer, false);
@@ -239,7 +249,7 @@ static inline bool logical_fork(
       source_snapshot_clear(&snapshot);
       return false;
     }
-    /* A unit the parent already emitted as a character must not reappear. */
+    /* Do not reemit characters already emitted by the parent. */
     for (
       size_t logical = 0; logical < parent->cursor.logical_count; logical += 1
     ) {
@@ -278,7 +288,6 @@ static inline bool logical_fork(
   return result;
 }
 
-/* Reclassify cached lookahead, not the consumed closing quote. */
 static inline bool logical_replace_view(
   struct LogicalLexer *input,
   size_t inherited_stage_count,

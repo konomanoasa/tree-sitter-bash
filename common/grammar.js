@@ -54,6 +54,11 @@ const regexSourceParts = ($) => [
   physical($, $._ere_source_bar, "|"),
 ];
 
+const ereCount = ($) =>
+  choice(
+    $.duplication_count,
+    alias($._ere_count_source, $.regex_source_expression),
+  );
 const ereCompoundRules = (kind) => {
   const name = (part) => `_ere_${kind}_${part}`;
   return {
@@ -266,12 +271,15 @@ const physicalRules = () =>
       ($) => physicalSource($, $[name], (source) => alias(source, spelling)),
     ]),
   );
-const structuredSourceParts = ($) => [
-  $.escaped_character,
+const quotedLiterals = ($) => [
   $.single_quoted,
   $.double_quoted,
   $.dollar_single_quoted,
   $.locale_quoted,
+];
+const structuredSourceParts = ($) => [
+  $.escaped_character,
+  ...quotedLiterals($),
   $.process_substitution,
   $.current_shell_substitution,
   $.reply_substitution,
@@ -513,10 +521,7 @@ const arithmeticRules = (prefix = "arithmetic") => {
         alias($._arithmetic_source_operator_lexeme, $[`${prefix}_operator`]),
         $[`${group}_source`],
         ...(candidate ? [$.array_subscript] : []),
-        $.single_quoted,
-        $.double_quoted,
-        $.dollar_single_quoted,
-        $.locale_quoted,
+        ...quotedLiterals($),
         $.escaped_character,
         ...quotedExpansionParts($),
       ),
@@ -624,6 +629,7 @@ const separatorOperatorLayout = ($, operator) =>
 
 const newlineListElements = ($) => [
   $.here_document_sequence,
+  inheritedDocument($),
   $._layout_newline,
   $._blank_line,
   $._comment_line,
@@ -699,6 +705,11 @@ const backquoteSubstitution = ($, start) =>
     optional(field("body", $.backquote_substitution_body)),
     backquoteDelimiter($, $._backquote_end),
   );
+const closedCompoundList = ($) =>
+  seq(
+    field("body", alias($._compound_list, $.list)),
+    optional($._closing_layout),
+  );
 const completeCommandsTail = ($) =>
   seq($.list, optional($._linebreak), optional($._free_trailing_layout));
 
@@ -751,29 +762,23 @@ const braceSubstitution = ($, dollar, open) =>
     physical($, open, "{"),
     ...(open.name === "_reply_open" ? [physical($, $._punct_pipe, "|")] : []),
     $._command_substitution_body_begin,
-    choice(
-      seq(
-        field("body", alias($._compound_list, $.list)),
-        optional($._closing_layout),
-      ),
-      optional($._linebreak_layout),
-    ),
+    choice(closedCompoundList($), optional($._linebreak_layout)),
     physical($, $._substitution_brace_close, "}"),
     $._command_substitution_end,
   );
-const extglobPattern = ($) =>
-  seq(
-    field("operator", $.extglob_operator),
-    physical($, $._extglob_open, "("),
-    optional(field("alternative", $.extglob_alternative)),
-    repeat(
-      seq(
-        physical($, $._extglob_bar, "|"),
-        optional(field("alternative", $.extglob_alternative)),
-      ),
+const extglobAlternatives = ($) => [
+  physical($, $._extglob_open, "("),
+  optional(field("alternative", $.extglob_alternative)),
+  repeat(
+    seq(
+      physical($, $._extglob_bar, "|"),
+      optional(field("alternative", $.extglob_alternative)),
     ),
-    physical($, $._extglob_close, ")"),
-  );
+  ),
+  physical($, $._extglob_close, ")"),
+];
+const extglobPattern = ($) =>
+  seq(field("operator", $.extglob_operator), ...extglobAlternatives($));
 const braceExpansion = ($, open) =>
   seq(
     physical($, open, "{"),
@@ -925,7 +930,6 @@ const conditionalThenBranch = ($, header, tail) =>
     tail,
   );
 
-// Bash reads the token after a bare operand on the same line only.
 const conditionalOperand = ($, name, boundary = []) =>
   choice(
     seq(
@@ -1001,11 +1005,13 @@ const commandRedirectContinuations = ($) => [
 const assignmentWord = ($, value) =>
   prec.dynamic(
     ASSIGNMENT_WORD_PRECEDENCE,
-    seq(
-      field("name", alias($._assignment_name_lexeme, $.variable_name)),
-      optional(field("subscript", $.array_subscript)),
-      field("operator", $._assignment_operator),
-      optional(field("value", value)),
+    prec.right(
+      seq(
+        field("name", alias($._assignment_name_lexeme, $.variable_name)),
+        optional(field("subscript", $.array_subscript)),
+        field("operator", $._assignment_operator),
+        optional(field("value", value)),
+      ),
     ),
   );
 
@@ -1036,11 +1042,13 @@ const declarationSuffix = (
         ),
       ),
     ),
-    ...commandRedirectContinuations($).map((redirect) =>
-      seq(redirect, optional($._cmd_suffix)),
-    ),
+    ...redirectedSuffixes($),
   );
 
+const redirectedSuffixes = ($) =>
+  commandRedirectContinuations($).map((redirect) =>
+    seq(redirect, optional($._cmd_suffix)),
+  );
 const redirectList = ($) =>
   seq(
     field("redirect", $.io_redirect),
@@ -1757,9 +1765,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
             field("argument", alias($._command_word, $.word)),
             optional($._cmd_suffix),
           ),
-          ...commandRedirectContinuations($).map((redirect) =>
-            seq(redirect, optional($._cmd_suffix)),
-          ),
+          ...redirectedSuffixes($),
         ),
 
       _declaration_argument: ($) => alias($.declaration_name, $.literal),
@@ -2031,13 +2037,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._case_item_header,
           choice(
             seq(optional($._linebreak), optional($._horizontal_layout)),
-            prec.dynamic(
-              10,
-              seq(
-                field("body", alias($._compound_list, $.list)),
-                optional($._closing_layout),
-              ),
-            ),
+            prec.dynamic(10, closedCompoundList($)),
           ),
         ),
 
@@ -2386,15 +2386,17 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._array_word_start,
         ),
       array_element_assignment: ($) =>
-        seq(
-          $._array_element_start,
-          field("subscript", $.array_subscript),
-          field("operator", $._assignment_operator),
-          optional(field("value", $.assignment_value)),
+        prec.right(
+          seq(
+            $._array_element_start,
+            field("subscript", $.array_subscript),
+            field("operator", $._assignment_operator),
+            optional(field("value", $.assignment_value)),
+          ),
         ),
 
       variable_name: ($) => lexical($, $._variable_name_begin),
-      assignment_value: ($) => $._assignment_source_word,
+      assignment_value: ($) => prec.right($._assignment_source_word),
 
       _assignment_source_word: ($) =>
         repeat1(
@@ -2450,11 +2452,13 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
       _case_word: ($) =>
-        sourceWord(
-          $,
-          $._pattern_word_part,
-          $._assignment_word_part,
-          alias($._case_tilde_expansion, $.tilde_expansion),
+        prec.right(
+          sourceWord(
+            $,
+            $._pattern_word_part,
+            $._assignment_word_part,
+            alias($._case_tilde_expansion, $.tilde_expansion),
+          ),
         ),
       _case_tilde_expansion: ($) =>
         tildeExpansion(
@@ -2726,18 +2730,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         braceSubstitution($, $._dollar_expansion_start, $._reply_open),
       extglob_operator: ($) => lexical($, $._extglob_operator_begin),
       extglob_pattern: ($) => extglobPattern($),
-      extglob_group: ($) =>
-        seq(
-          physical($, $._extglob_open, "("),
-          optional(field("alternative", $.extglob_alternative)),
-          repeat(
-            seq(
-              physical($, $._extglob_bar, "|"),
-              optional(field("alternative", $.extglob_alternative)),
-            ),
-          ),
-          physical($, $._extglob_close, ")"),
-        ),
+      extglob_group: ($) => seq(...extglobAlternatives($)),
       extglob_alternative: ($) =>
         repeat1(
           choice(
@@ -2936,10 +2929,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           choice(
             alias($._parameter_names_text, $.literal),
             $.escaped_character,
-            $.single_quoted,
-            $.double_quoted,
-            $.dollar_single_quoted,
-            $.locale_quoted,
+            ...quotedLiterals($),
             ...quotedExpansionParts($),
           ),
         ),
@@ -3018,10 +3008,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         choice(
           alias($._double_quoted_parameter_text, $.double_quote_text),
           alias($._double_quoted_parameter_escape, $.double_quote_escape),
-          $.single_quoted,
-          $.double_quoted,
-          $.dollar_single_quoted,
-          $.locale_quoted,
+          ...quotedLiterals($),
           ...quotedExpansionParts($),
         ),
       parameter_pattern: ($) => prec.right(1, parameterPatternSource($)),
@@ -3271,25 +3258,11 @@ export default function defineGrammar(name, { extglob, extquote }) {
               physical($, $._ere_question, "?"),
               seq(
                 physical($, $._ere_interval_open, "{"),
-                field(
-                  "minimum",
-                  choice(
-                    $.duplication_count,
-                    alias($._ere_count_source, $.regex_source_expression),
-                  ),
-                ),
+                field("minimum", ereCount($)),
                 optional(
                   seq(
                     physical($, $._ere_comma, ","),
-                    optional(
-                      field(
-                        "maximum",
-                        choice(
-                          $.duplication_count,
-                          alias($._ere_count_source, $.regex_source_expression),
-                        ),
-                      ),
-                    ),
+                    optional(field("maximum", ereCount($))),
                   ),
                 ),
                 physical($, $._ere_interval_close, "}"),
@@ -3467,10 +3440,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
       meta_character: ($) => lexical($, $._ere_meta_character_begin),
       _regex_bash_part: ($) =>
         choice(
-          $.single_quoted,
-          $.double_quoted,
-          $.dollar_single_quoted,
-          $.locale_quoted,
+          ...quotedLiterals($),
           $.escaped_character,
           $.tilde_expansion,
           $.process_substitution,
@@ -3574,6 +3544,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           choice(
             lexical($, $._arithmetic_blank_begin, $._fragmented_layout),
             $._newline,
+            inheritedDocument($),
           ),
         ),
 
@@ -3607,7 +3578,13 @@ export default function defineGrammar(name, { extglob, extquote }) {
       _redirect_separator: ($) => wordSeparator($, $._redirect_separator_begin),
 
       _free_trailing_layout: ($) =>
-        prec.right(1, choice($._closing_layout, trailingComment($))),
+        prec.right(
+          1,
+          choice(
+            seq($._closing_layout, optional(inheritedDocument($))),
+            trailingComment($),
+          ),
+        ),
 
       comment: ($) => $.comment_text,
       comment_text: ($) => lexical($, $._comment_text_begin),

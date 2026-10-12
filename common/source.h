@@ -175,12 +175,16 @@ static inline bool source_snapshot_resume_prefix(
     count > (SOURCE_STATE_CAPACITY - 2) / 2 - resume->stage_count
   )
     return false;
-  struct SourceStage *stages =
-    ts_realloc(resume->stages, (count + resume->stage_count) * sizeof(*stages));
-  if (stages == NULL) return false;
-  resume->stages = stages;
-  if (resume->stage_count > 0)
-    memmove(stages + count, stages, resume->stage_count * sizeof(*stages));
+  size_t total = count + resume->stage_count;
+  /* realloc to zero bytes may free the storage the caller still owns. */
+  if (total > 0) {
+    struct SourceStage *stages =
+      ts_realloc(resume->stages, total * sizeof(*stages));
+    if (stages == NULL) return false;
+    resume->stages = stages;
+    if (resume->stage_count > 0)
+      memmove(stages + count, stages, resume->stage_count * sizeof(*stages));
+  }
   resume->stage_count += count;
   for (size_t index = 0; index < count; index++) {
     struct SourceStage stage = source->stages[index];

@@ -106,4 +106,5 @@ echo a #\
               (backquote_substitution
                 (backquote_substitution_body
                   (comment
-                    (comment_text)))))))))))
+                    (comment_text)))
+                (line_continuation)))))))))

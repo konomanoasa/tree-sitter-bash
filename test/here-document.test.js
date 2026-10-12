@@ -231,6 +231,79 @@ for (const grammar of grammars) {
         }
       }
     });
+    test("inherited documents attach to layout when the interrupted word ends", () => {
+      const seeds = [
+        {
+          seed: ': "$(cat <<E)" $((1 +\nbody\nE\n 2))\n',
+          edits: [[" 2", " 3"]],
+        },
+        {
+          seed: ': "$(cat <<E)" $((1 + 2\nbody\nE\n))\n',
+          edits: [[" 2", " 3"]],
+        },
+        { seed: "(( $(cat <<E) +\nbody\nE\n 1 ))\n", edits: [[" 1", " 2"]] },
+        {
+          seed: "for ((i=$(cat <<E);\n1\nE\n i<2; i++)); do :; done\n",
+          edits: [["i<2", "i<3"]],
+        },
+        { seed: ': "$(cat <<E)" $[1 +\nbody\nE\n 2]\n', edits: [[" 2", " 3"]] },
+        {
+          seed: `: "$(cat <<E)" \${a[0 +\nbody\nE\n 1]}\n`,
+          edits: [[" 1", " 2"]],
+        },
+        {
+          seed: `: "$(cat <<E)" \${x:1 +\nbody\nE\n 1:2}\n`,
+          edits: [[":2", ":3"]],
+        },
+        {
+          seed: ': "$(cat <<E)" foo\\\nbody\nE\n\n',
+          edits: [["foo", "other"]],
+        },
+        {
+          seed: ': "$(cat <<E)" foo\\\nbody\nE\n;\n',
+          edits: [["foo", "other"]],
+        },
+        {
+          seed: ': "$(cat <<E)" $foo\\\nbody\nE\n \n',
+          edits: [["foo", "other"]],
+        },
+        { seed: "x=$(cat <<E)\\\nbody\nE\n\n", edits: [["x=", "y="]] },
+        { seed: "x=$(cat <<E)\\\nbody\nE\n", edits: [["x=", "y="]] },
+        { seed: ': "$(cat <<E)";\\\nbody\nE\n', edits: [[";", " &"]] },
+        { seed: ': "$(cat <<E)" &\\\nbody\nE\n\n', edits: [[" &", ";"]] },
+        { seed: ': "$(cat <<E)" \\\nbody\nE\n', edits: [[" \\", "  \\"]] },
+        { seed: ': "$(cat <<E)" \\\nbody\nE\n\n', edits: [[" \\", "  \\"]] },
+        {
+          seed: "case $(cat <<E)\\\nbody\nE\n\nin body) :;; esac\n",
+          edits: [["body)", "x)"]],
+        },
+        {
+          seed: "$(cat <<A)$(cat <<B)\\\none\nA\ntwo\nB\nme() { :; }\n",
+          edits: [
+            ["me", "name"],
+            ["two", "2"],
+          ],
+        },
+        {
+          seed: "$(cat <<A)\\\n$(cat <<B)na\\\none\nA\ntwo\nB\nme() { :; }\n",
+          edits: [["me", "name"]],
+        },
+        { seed: "cat <<A\n$(cat <<B) x\nA\n", edits: [[" x", " y"]] },
+        { seed: "cat <<A\nx $(cat <<B)\nA\n", edits: [["x ", "y "]] },
+        { seed: "cat <<A\n$(cat <<B)x\\\ny\nA\n", edits: [["y", "z"]] },
+        { seed: `cat <<A\n\${ cat <<B; }\nA\n`, edits: [["cat", "tac"]] },
+        {
+          seed: "cat <<A\n$(x=$(cat <<B)\nbody\nB\n)\nA\n",
+          edits: [["x=", "y="]],
+        },
+      ];
+      for (const { seed, edits } of seeds) {
+        for (const [remove, insert] of [...edits, ["body", '"$x)']]) {
+          if (!seed.includes(remove)) continue;
+          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+        }
+      }
+    });
     test("function-name heredocs preserve discovery positions across edits", () => {
       for (const seed of [
         "$(cat <<A)$(cat <<B)na\\\none\nA\ntwo\nB\nme() { :; }\n",
@@ -252,6 +325,78 @@ for (const grammar of grammars) {
         });
       }
     });
+    for (const { name, seed, remove, insert } of [
+      {
+        name: "space",
+        seed: 'echo BEFORE\n: "$(cat <<E)" \\\nbody\nE\n word\necho AFTER\n',
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "variable",
+        seed: 'echo BEFORE\n: "$(cat <<E)" $foo\\\nbody\nE\nbar\necho AFTER\n',
+        remove: "bar",
+        insert: ") bar",
+      },
+      {
+        name: "parameter",
+        seed: `echo BEFORE\n: "$(cat <<E)" \${foo\\\nbody\nE\nbar}\necho AFTER\n`,
+        remove: "bar",
+        insert: ") bar",
+      },
+      {
+        name: "backquote",
+        seed: 'echo BEFORE\n: "$(cat <<E)" `: \\\n\\$HOME\nE\n word`\necho AFTER\n',
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "function",
+        seed: "echo BEFORE\n$(cat <<E)na\\\nbody\nE\nme() { :; }\necho AFTER\n",
+        remove: "me()",
+        insert: ") me()",
+      },
+      {
+        name: "multiple",
+        seed: "echo BEFORE\n: \"$(cat <<A)$(cat <<'B')\" \\\nfi\nA\n$HOME\nB\n word\necho AFTER\n",
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "quoted-empty",
+        seed: "echo BEFORE\n: \"$(cat <<'')\" \\\nfi\n\n word\necho AFTER\n",
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "stripped",
+        seed: 'echo BEFORE\n: "$(cat <<-E)" \\\n\tfi\n\tE\n word\necho AFTER\n',
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "nested",
+        seed: "echo BEFORE\ncat <<OUT\n$( : \"$(cat <<A)$(cat <<'B')\" \\\nfi\nA\n$HOME\nB\n word\n)\nOUT\necho AFTER\n",
+        remove: " word",
+        insert: "|& |& word",
+      },
+      {
+        name: "nested-body",
+        seed: 'echo BEFORE\n: "$(cat <<E)" \\\n$(cat <<IN\ninner\nIN\n)\nE\n word\necho AFTER\n',
+        remove: " word",
+        insert: ") word",
+      },
+      {
+        name: "unclosed-quote",
+        seed: 'echo BEFORE\n: "$(cat <<E)" \\\n$(printf x)\nE\n word\necho AFTER\n',
+        remove: "$(printf x)",
+        insert: '$(printf "x)',
+      },
+    ]) {
+      test(`inherited document recovery repairs ${name}`, () => {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
+      });
+    }
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
     if (grammar.name === "bash_extglob") {
@@ -514,6 +659,34 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
+          name: "an extglob group stops a substitution from inheriting its body",
+          seed: ": a$(cat <<E)\nx\nE\n",
+          remove: "a$(cat <<E)",
+          insert: "@(a$(cat <<E))",
+          valid: true,
+        },
+        {
+          name: "a regex group stops a substitution from inheriting its body",
+          seed: "[[ x =~ a$(cat <<E) ]]\nx\nE\n",
+          remove: "a$(cat <<E)",
+          insert: "(a$(cat <<E))",
+          valid: true,
+        },
+        {
+          name: "double quotes inside an extglob group resume inheritance",
+          seed: ": @($(cat <<E))\nx\nE\n",
+          remove: "$(cat <<E)",
+          insert: '"$(cat <<E)"',
+          valid: true,
+        },
+        {
+          name: "backquotes join a continued line after an inherited document",
+          seed: ": `: $(cat <<E) x`\nx\nE\n",
+          remove: ") x",
+          insert: ") \\\n x",
+          valid: true,
+        },
+        {
           name: "an ANSI-C delimiter escape changes without changing its value",
           seed: "cat << @($'a\\tb'|c)\n$x\n@('a\tb'|c)\n",
           remove: "\\t",
@@ -696,6 +869,43 @@ for (const grammar of grammars) {
           fresh.tree,
         );
       }
+    });
+
+    test("pending document limits are local to a parsing context and reset after reading", () => {
+      for (const count of [15, 16, 17]) {
+        const declarations = " <<E".repeat(count);
+        const terminators = "E\n".repeat(count);
+        const local = `:${declarations}\n${terminators}`;
+        for (const source of [
+          local,
+          `: "$(${local})"\n`,
+          `: <<OUT\n$(${local})\nOUT\n`,
+          `${": <<E; ".repeat(count)}\n${terminators}`,
+        ]) {
+          assert.equal(
+            parser.parse(source, {}).status,
+            count > 16 ? 1 : 0,
+            source,
+          );
+        }
+        const source = `${": $(: <<E); ".repeat(count)}\n${terminators}`;
+        assert.equal(parser.parse(source, {}).status, 0, source);
+        assert.equal(parser.parse(": <<E\nE\n".repeat(count), {}).status, 0);
+      }
+      const outer = " <<OUT".repeat(16);
+      const ends = "OUT\n".repeat(16);
+      const nested = `:${outer} "$(:${" <<IN".repeat(16)}\n${"IN\n".repeat(16)})"\n${ends}`;
+      assert.equal(parser.parse(nested, {}).status, 0, nested);
+      assert.equal(
+        parser.parse(`:${outer}; { : <<IN; }\n${ends}IN\n`, {}).status,
+        1,
+      );
+      assertEditRoundTrip(parser, {
+        seed: `:${outer}\n${ends}`,
+        remove: ":",
+        insert: ": <<EXCESS",
+        valid: false,
+      });
     });
 
     test("substitution boundaries preserve declarations and accept warning-only omissions", () => {

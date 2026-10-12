@@ -247,6 +247,42 @@ test_here_document_activation_preserves_queues_and_suspended_frames(void) {
   }
 }
 
+static void test_here_document_limit_counts_each_waiting_context(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  for (size_t depth = 0; depth < 2; depth++) {
+    scanner.substitution_depth = depth;
+    for (size_t index = 0; index < 16; index++)
+      assert(
+        append_pending_document(&scanner, make_document("E", false, false))
+      );
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned length = snapshot(&scanner, state);
+    bash_scanner_deserialize(&scanner, state, length);
+    struct HereDocument excess = make_document("E", false, false);
+    assert(!append_pending_document(&scanner, excess));
+    clear_document(&excess);
+    assert_scanner_matches_snapshot(&scanner, state, length);
+  }
+  scanner.substitution_depth = 0;
+  inherit_documents_above(&scanner.pending, 0);
+  assert(!here_document_queue_available(&scanner.pending, 0, 0));
+  assert(activate_startable_pending_documents(&scanner));
+  assert(append_pending_document(&scanner, make_document("E", false, false)));
+  clear_scanner(&scanner);
+
+  assert(scanner_source_ready(&scanner));
+  scanner.substitution_depth = 1;
+  for (size_t index = 0; index < 16; index++)
+    assert(append_pending_document(&scanner, make_document("E", false, false)));
+  scanner.substitution_depth = 0;
+  inherit_documents_above(&scanner.pending, 0);
+  for (size_t index = 0; index < 16; index++)
+    assert(append_pending_document(&scanner, make_document("E", false, false)));
+  assert(scanner.pending.count == 32);
+  clear_scanner(&scanner);
+}
+
 static void
 test_here_document_input_stops_before_nested_source_can_cross_its_end(void) {
   const struct {
@@ -921,6 +957,55 @@ static void test_brace_word_extent_survives_nested_substitutions(void) {
   bash_scanner_destroy(scanner);
 }
 
+static void test_substitution_host_follows_pattern_and_quote_contexts(void) {
+  struct Scanner *scanner = bash_scanner_create();
+  assert(scanner != NULL && scanner_source_ready(scanner));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_WORD);
+  assert(source_context_push(scanner, BRACE_WORD_START));
+  assert(source_context_push(scanner, EXTGLOB_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_PATTERN);
+  assert(source_context_push(scanner, PARAMETER_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_PATTERN);
+  assert(source_context_push(scanner, DQ_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_QUOTED);
+  assert(source_context_push(scanner, COMMAND_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_WORD);
+  assert(source_context_push(scanner, PARAMETER_OPEN));
+  assert(source_context_push(scanner, EXTGLOB_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_BRACED);
+  while (scanner->context_count > 1) assert(source_context_pop(scanner));
+  assert(source_context_push(scanner, REGEX_START));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_WORD);
+  assert(source_context_commit(scanner, REGEX_OPEN));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_PATTERN);
+  assert(source_context_commit(scanner, REGEX_CLOSE));
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_WORD);
+  assert(source_context_pop(scanner));
+
+  const size_t pattern_characters = 4;
+  scanner->contexts[0].word_remaining = pattern_characters;
+  scanner->contexts[0].pattern_region = true;
+  char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  unsigned length = snapshot(scanner, state);
+  bash_scanner_deserialize(scanner, state, length);
+  assert(scanner->context_count == 1 && scanner->contexts[0].pattern_region);
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_PATTERN);
+  assert(source_context_push(scanner, COMMAND_OPEN));
+  scanner->substitution_depth = 1;
+  assert(append_pending_document(scanner, make_document("E", false, false)));
+  assert(source_context_commit(scanner, COMMAND_SUBSTITUTION_END));
+  assert(scanner->pending.count == 0);
+  assert(consume_context_remaining(scanner, pattern_characters));
+  assert(!scanner->contexts[0].pattern_region);
+  assert(substitution_host(scanner) == SUBSTITUTION_HOST_WORD);
+  assert(source_context_push(scanner, COMMAND_OPEN));
+  scanner->substitution_depth = 1;
+  assert(append_pending_document(scanner, make_document("E", false, false)));
+  assert(source_context_commit(scanner, COMMAND_SUBSTITUTION_END));
+  assert(scanner->pending.count == 1 && scanner->pending.data[0].inherited);
+  bash_scanner_destroy(scanner);
+}
+
 static void test_arithmetic_field_extent_survives_nested_expansions(void) {
   const size_t outer_characters = 257;
   const size_t inner_characters = 43;
@@ -1448,6 +1533,30 @@ test_checkpoint_reuses_storage_and_preserves_snapshot_on_failure(void) {
 #endif
 }
 
+static void test_snapshot_prefix_resume_without_stages_keeps_storage(void) {
+  struct SourceStage stage = source_stage(SOURCE_REMOVE_CONTINUATIONS);
+  struct SourceCursor cursor;
+  assert(source_cursor_init(&cursor, &stage, 1, NULL, NULL));
+  struct SourceSnapshot source = {0};
+  assert(source_checkpoint(&cursor, &source));
+  struct SourceSnapshot resume = {0};
+  assert(source_snapshot_copy(&resume, &source));
+  assert(source_snapshot_keep_suffix(&resume, 1));
+  struct SourceStage *storage = resume.stages;
+  assert(storage != NULL && resume.stage_count == 0);
+  assert(source_snapshot_resume_prefix(&resume, &source, 0));
+  assert(resume.stages == storage && resume.stage_count == 0);
+  assert(source_snapshot_resume_prefix(&resume, &source, 1));
+  assert(resume.stage_count == 1);
+  assert(resume.stages[0].kind == SOURCE_REMOVE_CONTINUATIONS);
+  source_snapshot_clear(&resume);
+  source_snapshot_clear(&source);
+  source_cursor_clear(&cursor);
+#ifdef TREE_SITTER_REUSE_ALLOCATOR
+  assert(reuse_live_allocations == 0);
+#endif
+}
+
 static void test_source_reader_failure_releases_owned_memory(void) {
   const int32_t input[] = {'a', '\\', '\n', 'b'};
   struct SourceStage stages[] = {
@@ -1754,7 +1863,6 @@ static void test_logical_forks_preserve_ancestor_pending_units(void) {
   logical_clear(&parent);
   native_input_clear(&native);
 
-  // A backslash the parent already emitted is not pending for the child.
   source_native_init(&mock, input, ARRAY_LENGTH(input));
   native = (struct NativeInput){.lexer = &mock.lexer};
   struct SourceStage literal[] = {quoted, quoted};
@@ -1887,6 +1995,149 @@ test_inherited_document_restores_suspended_input_and_emission(void) {
   clear_scanner(&copy);
 }
 
+static void test_recovery_reads_nested_documents_and_resumes_the_host(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  assert(append_document(&scanner.pending, make_document("OUT", false, false)));
+  assert(activate_startable_pending_documents(&scanner));
+  assert(source_context_push(&scanner, HERE_DOCUMENT_BODY_START));
+  assert(source_context_push(&scanner, COMMAND_OPEN));
+  scanner.substitution_depth = 1;
+  for (size_t index = 0; index < 2; index++) {
+    struct HereDocument doc =
+      make_document(index == 0 ? "A" : "B", index == 1, false);
+    doc.input_owner = 1;
+    doc.inherited = true;
+    assert(append_document(&scanner.pending, doc));
+  }
+  const char *source = "fi\nA\n$HOME\nB\nme";
+  scanner.inherited_line_ready = true;
+  scanner.emission = (struct LexicalEmission){
+    .symbol = VARIABLE_NAME_BEGIN,
+    .remaining = strlen(source),
+    .active = true,
+    .fragmented = true,
+  };
+  const struct {
+    enum TokenType symbol;
+    size_t consumed;
+  } expected[] = {
+    {INHERITED_HERE_DOCUMENT_BEGIN, 0},
+    {HERE_DOCUMENT_BODY_START, 0},
+    {HERE_DOCUMENT_CONTENT_LINE_START, 0},
+    {HERE_DOCUMENT_TEXT_BEGIN, 0},
+    {HERE_DOCUMENT_TEXT_BEGIN_PIECE, 2},
+    {NEWLINE, 0},
+    {NEWLINE_BEGIN_PIECE, 1},
+    {HERE_DOCUMENT_END_BEGIN, 0},
+    {HERE_DOCUMENT_END_TEXT_BEGIN, 0},
+    {HERE_DOCUMENT_END_TEXT_BEGIN_PIECE, 1},
+    {HERE_DOCUMENT_END_LINE_END, 0},
+    {HERE_DOCUMENT_END_LINE_END_BEGIN_PIECE, 1},
+    {HERE_DOCUMENT_END_COMMIT, 0},
+    {QUOTED_HERE_DOCUMENT_BODY_START, 0},
+    {HERE_DOCUMENT_CONTENT_LINE_START, 0},
+    {QUOTED_HERE_DOCUMENT_TEXT, 0},
+    {QUOTED_HERE_DOCUMENT_TEXT_BEGIN_PIECE, 5},
+    {NEWLINE, 0},
+    {NEWLINE_BEGIN_PIECE, 1},
+    {QUOTED_HERE_DOCUMENT_END_BEGIN, 0},
+    {QUOTED_HERE_DOCUMENT_END_TEXT, 0},
+    {QUOTED_HERE_DOCUMENT_END_TEXT_BEGIN_PIECE, 1},
+    {HERE_DOCUMENT_END_LINE_END, 0},
+    {HERE_DOCUMENT_END_LINE_END_BEGIN_PIECE, 1},
+    {HERE_DOCUMENT_END_COMMIT, 0},
+    {HERE_DOCUMENT_SEQUENCE_END, 0},
+    {LEXEME_FRAGMENT, 2},
+    {FRAGMENTED_LEXEME_END, 0},
+  };
+  int32_t input[MOCK_INPUT_CAPACITY];
+  size_t length = strlen(source);
+  assert(length < ARRAY_LENGTH(input));
+  for (size_t index = 0; index < length; index++) input[index] = source[index];
+  bool valid[TOKEN_COUNT];
+  for (size_t index = 0; index < TOKEN_COUNT; index++) valid[index] = true;
+  size_t offset = 0;
+  for (size_t index = 0; index < ARRAY_LENGTH(expected); index++) {
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned state_length = snapshot(&scanner, state);
+    bash_scanner_deserialize(&scanner, state, state_length);
+    struct MockLexer lexer;
+    init_mock_lexer(&lexer, input + offset, length - offset);
+#ifdef TREE_SITTER_REUSE_ALLOCATOR
+    size_t first_allocation = reuse_allocation_calls;
+#endif
+    assert(bash_scanner_scan(&scanner, &lexer.lexer, valid));
+    assert(lexer.lexer.result_symbol == expected[index].symbol);
+    assert(lexer.mark == expected[index].consumed);
+#ifdef TREE_SITTER_REUSE_ALLOCATOR
+    size_t allocation_count = reuse_allocation_calls - first_allocation;
+    size_t live_allocations = reuse_live_allocations;
+    for (size_t failure = 1; failure <= allocation_count; failure++) {
+      struct Scanner failed = {0};
+      bash_scanner_deserialize(&failed, state, state_length);
+      struct MockLexer attempt;
+      init_mock_lexer(&attempt, input + offset, length - offset);
+      reuse_fail_allocation_call = reuse_allocation_calls + failure;
+      bool accepted = bash_scanner_scan(&failed, &attempt.lexer, valid);
+      reuse_fail_allocation_call = 0;
+      assert(!accepted);
+      assert_scanner_matches_snapshot(&failed, state, state_length);
+      clear_scanner(&failed);
+      assert(reuse_live_allocations == live_allocations);
+    }
+#endif
+    offset += lexer.mark;
+  }
+  assert(offset == length);
+  assert(scanner.suspended_frame_count == 0);
+  assert(scanner.active.documents.count == 1);
+  assert(scanner.active.documents.data[0].delimiter_length == 3);
+  assert(memcmp(scanner.active.documents.data[0].delimiter, "OUT", 3) == 0);
+  assert(scanner.context_count == 2);
+  assert(top_context_opener(&scanner) == COMMAND_OPEN);
+  assert(!scanner.emission.active);
+  assert(!scanner.sequence_end_pending);
+  clear_scanner(&scanner);
+}
+
+static void
+test_recovery_finishes_unterminated_documents_without_end_text(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  for (size_t index = 0; index < 2; index++) {
+    struct HereDocument doc = make_document("E", index == 1, false);
+    doc.inherited = true;
+    assert(append_document(&scanner.pending, doc));
+  }
+  scanner.inherited_line_ready = true;
+  const enum TokenType expected[] = {
+    INHERITED_HERE_DOCUMENT_BEGIN,
+    HERE_DOCUMENT_BODY_START,
+    HERE_DOCUMENT_END_COMMIT,
+    QUOTED_HERE_DOCUMENT_BODY_START,
+    HERE_DOCUMENT_END_COMMIT,
+    HERE_DOCUMENT_SEQUENCE_END,
+  };
+  bool valid[TOKEN_COUNT];
+  for (size_t index = 0; index < TOKEN_COUNT; index++) valid[index] = true;
+  for (size_t index = 0; index < ARRAY_LENGTH(expected); index++) {
+    struct MockLexer lexer;
+    init_mock_lexer(&lexer, NULL, 0);
+    assert(bash_scanner_scan(&scanner, &lexer.lexer, valid));
+    assert(lexer.lexer.result_symbol == expected[index]);
+    assert(lexer.mark == 0);
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned length = snapshot(&scanner, state);
+    bash_scanner_deserialize(&scanner, state, length);
+  }
+  assert(scanner.pending.count == 0);
+  assert(scanner.active.documents.count == 0);
+  assert(scanner.context_count == 0);
+  assert(!scanner.sequence_end_pending);
+  clear_scanner(&scanner);
+}
+
 #ifdef TREE_SITTER_REUSE_ALLOCATOR
 static void
 test_inherited_lookahead_failures_leave_no_state_or_allocations(void) {
@@ -1934,6 +2185,8 @@ test_inherited_lookahead_failures_leave_no_state_or_allocations(void) {
 #endif
 
 int main(void) {
+  test_recovery_finishes_unterminated_documents_without_end_text();
+  test_recovery_reads_nested_documents_and_resumes_the_host();
   test_inherited_document_restores_suspended_input_and_emission();
   test_source_reading_removes_nul_and_preserves_scalar_positions();
   test_nul_removal_precedes_continuations_and_snapshot_resumption();
@@ -1945,6 +2198,7 @@ int main(void) {
   test_every_raw_cut_restores_pending_source_without_rereading();
   test_snapshot_capacity_and_invalid_data_are_transactional();
   test_checkpoint_reuses_storage_and_preserves_snapshot_on_failure();
+  test_snapshot_prefix_resume_without_stages_keeps_storage();
   test_source_reader_failure_releases_owned_memory();
   test_logical_context_changes_reclassify_cached_lookahead();
   test_logical_backquote_closers_belong_to_the_innermost_active_view();
@@ -1953,6 +2207,7 @@ int main(void) {
 
   test_recovery_consumes_words_without_downgrading_reserved_tokens();
   test_here_document_activation_preserves_queues_and_suspended_frames();
+  test_here_document_limit_counts_each_waiting_context();
   test_pending_here_document_sequence_preserves_state();
   test_delimiter_quote_removal_retains_quoted_newlines();
   test_delimiter_read_distinguishes_input_and_resource_failures();
@@ -1965,6 +2220,7 @@ int main(void) {
   test_truncated_and_malformed_states_stay_bounded();
   test_regex_boundaries_round_trip_across_nested_substitutions();
   test_brace_word_extent_survives_nested_substitutions();
+  test_substitution_host_follows_pattern_and_quote_contexts();
   test_arithmetic_field_extent_survives_nested_expansions();
 #ifdef TREE_SITTER_REUSE_ALLOCATOR
   test_inherited_lookahead_failures_leave_no_state_or_allocations();

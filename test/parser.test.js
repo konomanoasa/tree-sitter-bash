@@ -799,6 +799,30 @@ for (const grammar of grammars) {
         }
       });
 
+      test("numeric descriptor bounds apply after source decoding and leading zeros", () => {
+        for (const { digits, descriptor } of [
+          { digits: "2147483647", descriptor: true },
+          { digits: "2147483648", descriptor: false },
+          { digits: "0002147483647", descriptor: true },
+          { digits: "0002147483648", descriptor: false },
+          { digits: "0".repeat(128), descriptor: true },
+          { digits: "9".repeat(128), descriptor: false },
+        ]) {
+          for (const joiner of ["", "\\\n", "\0"]) {
+            const spelling = digits.slice(0, 3) + joiner + digits.slice(3);
+            const actual = nodes(`: ${spelling}>out\n`);
+            assert.equal(
+              actual.some(({ type }) => type === "io_number"),
+              descriptor,
+            );
+            const value = actual.find(({ type, field }) =>
+              descriptor ? type === "io_number" : field === "argument",
+            );
+            assert.equal(value?.text, spelling);
+          }
+        }
+      });
+
       test("array descriptors retain names subscript source and command ownership", () => {
         const actual = nodes('{ :; } {fd["x y"]}>out\n');
         assert.deepEqual(
@@ -1473,6 +1497,20 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
+          name: "descriptor overflow becomes an argument",
+          seed: ": 2147483647>out\n",
+          remove: "2147483647",
+          insert: "2147483648",
+          valid: true,
+        },
+        {
+          name: "descriptor overflow after a compound command is repaired",
+          seed: "{ :; } 2147483647>out\n",
+          remove: "2147483647",
+          insert: "0002147483648",
+          valid: false,
+        },
+        {
           name: "numeric descriptor becomes a process substitution word prefix",
           seed: ": 2>out\n",
           remove: ">out",
@@ -1675,6 +1713,38 @@ for (const grammar of grammars) {
         "p=(a)\\\n",
       ]) {
         assert.equal(parser.parse(source, {}).status, 0, source);
+      }
+    });
+
+    test("arithmetic layout is only space, tab, and newline", () => {
+      for (const [blank, structured] of [
+        [" ", true],
+        ["\t", true],
+        ["\n", true],
+        ["\v", false],
+        ["\f", false],
+        ["\r", false],
+      ]) {
+        for (const source of [
+          `: $((1${blank}+ 2))\n`,
+          `: $[1${blank}+ 2]\n`,
+          `((1${blank}+ 2))\n`,
+          `: \${a[1${blank}+ 2]}\n`,
+        ]) {
+          const types = nodes(source).map(({ type }) => type);
+          assert.equal(
+            types.includes("arithmetic_binary_expression") ||
+              types.includes("arithmetic_candidate_binary_expression"),
+            structured,
+            JSON.stringify(source),
+          );
+          assert.equal(
+            types.includes("arithmetic_source_expression") ||
+              types.includes("arithmetic_candidate_source_expression"),
+            !structured,
+            JSON.stringify(source),
+          );
+        }
       }
     });
 

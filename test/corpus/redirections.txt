@@ -461,39 +461,60 @@ descriptor duplication operators accept an adjacent numeric operand
 0:17 - 1:0      "\n"
 
 ==================
-numeric descriptor source does not impose a runtime integer range
+numeric descriptors stop at the signed 32 bit lexical boundary
+:language(bash)
 :language(bash_extglob)
-:cst
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
 ==================
-{ :; } 999999999999999999999>out
+: 2147483647>out 0000000001>out
 
 ------------------
 
-0:0  - 1:0    program
-0:0  - 0:32     commands: list
-0:0  - 0:32       and_or: and_or
-0:0  - 0:32         pipeline: pipeline
-0:0  - 0:32           command: command
-0:0  - 0:6              body: brace_group
-0:0  - 0:1                "{"
-0:1  - 0:4                body: list
-0:2  - 0:3                  and_or: and_or
-0:2  - 0:3                    pipeline: pipeline
-0:2  - 0:3                      command: command
-0:2  - 0:3                        body: simple_command
-0:2  - 0:3                          name: word
-0:2  - 0:3                            literal `:`
-0:3  - 0:4                  terminator: separator
-0:3  - 0:4                    operator: separator_op
-0:3  - 0:4                      ";"
-0:5  - 0:6                "}"
-0:7  - 0:32             redirect: io_redirect
-0:7  - 0:28               number: io_number `999999999999999999999`
-0:28 - 0:32               body: io_file
-0:28 - 0:29                 ">"
-0:29 - 0:32                 filename: word
-0:29 - 0:32                   literal `out`
-0:32 - 1:0      "\n"
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            redirect: (io_redirect number: (io_number) body: (io_file filename: (word (literal))))
+            redirect: (io_redirect number: (io_number) body: (io_file filename: (word (literal))))))))))
+
+==================
+overflowing descriptor digits remain ordinary arguments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: 2147483648>out 999999999999999999999>out
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word (literal))
+            redirect: (io_redirect body: (io_file filename: (word (literal))))
+            argument: (word (literal))
+            redirect: (io_redirect body: (io_file filename: (word (literal))))))))))
+
+==================
+overflowing descriptor digits cannot follow a compound command
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+{ :; } 2147483648>out
+
+------------------
 
 ==================
 quoted separated and invalid descriptor spellings remain ordinary words

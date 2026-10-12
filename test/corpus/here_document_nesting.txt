@@ -1170,3 +1170,680 @@ E
                                   (here_document_end_text))))
                             (word
                               (literal))))))))))))))))
+
+==================
+inherited here document splits arithmetic layout
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: "$(cat <<E)" $((1 +
+body
+E
+ 2))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (command_substitution
+                  (command_substitution_body
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (io_redirect
+                                (io_here
+                                  (dless)
+                                  (here_end
+                                    (word
+                                      (literal))))))))))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (here_document_sequence
+                    (here_document
+                      (here_document_body
+                        (here_document_text))
+                      (here_document_end
+                        (here_document_end_text))))
+                  (arithmetic_number))))))))))
+
+==================
+inherited here document stays in a word that ends before a blank line
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: "$(cat <<E)" foo\
+body
+E
+
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (command_substitution
+                  (command_substitution_body
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (io_redirect
+                                (io_here
+                                  (dless)
+                                  (here_end
+                                    (word
+                                      (literal))))))))))))))
+            (word
+              (literal)
+              (line_continuation)
+              (here_document_sequence
+                (here_document
+                  (here_document_body
+                    (here_document_text))
+                  (here_document_end
+                    (here_document_end_text)))))))))))
+
+==================
+inherited here document after a terminator trails the list at EOF
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: "$(cat <<E)";\
+body
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (command_substitution
+                  (command_substitution_body
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (io_redirect
+                                (io_here
+                                  (dless)
+                                  (here_end
+                                    (word
+                                      (literal))))))))))))))))))
+    (separator_op))
+  (line_continuation)
+  (here_document_sequence
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+inherited here document after trailing layout closes the program
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: "$(cat <<E)" \
+body
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (command_substitution
+                  (command_substitution_body
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (simple_command
+                              (word
+                                (literal))
+                              (io_redirect
+                                (io_here
+                                  (dless)
+                                  (here_end
+                                    (word
+                                      (literal)))))))))))))))))))
+  (line_continuation)
+  (here_document_sequence
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+function-name lookahead starts a later document at the previous terminator
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+$(cat <<A)$(cat <<B)\
+one
+A
+two
+B
+me() { :; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (function_definition
+            (function_name
+              (lexeme_fragment)
+              (lexeme_fragment)
+              (line_continuation)
+              (here_document_sequence
+                (here_document
+                  (here_document_body
+                    (here_document_text))
+                  (here_document_end
+                    (here_document_end_text)))
+                (here_document
+                  (here_document_body
+                    (here_document_text))
+                  (here_document_end
+                    (here_document_end_text))))
+              (lexeme_fragment))
+            (function_body
+              (brace_group
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))))))
+                  (separator
+                    (separator_op)))))))))))
+
+==================
+a substitution closing inside a body leaves its here document without a body
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<A
+$(cat <<B) x
+A
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (literal))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (command_substitution
+          (command_substitution_body
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal))
+                      (io_redirect
+                        (io_here
+                          (dless)
+                          (here_end
+                            (word
+                              (literal))))))))))))
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+a substitution inside an extglob pattern keeps its here document
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: @($(cat <<E))
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (io_redirect
+                                  (io_here
+                                    (dless)
+                                    (here_end
+                                      (word
+                                        (literal)))))))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))))
+
+==================
+double quotes inside an extglob pattern resume here document inheritance
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: @("$(cat <<E)")
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (double_quoted
+                    (command_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (io_redirect
+                                    (io_here
+                                      (dless)
+                                      (here_end
+                                        (word
+                                          (literal)))))))))))))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+a brace expansion crossing an extglob pattern keeps its here document
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: @({a,$(cat <<E)})
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal)
+              (brace_expansion
+                (brace_alternative
+                  (literal))
+                (brace_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (io_redirect
+                                  (io_here
+                                    (dless)
+                                    (here_end
+                                      (word
+                                        (literal))))))))))))))
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))))
+
+==================
+a substitution inside a regex group keeps its here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x =~ ($(cat <<E)) ]]
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (extended_reg_exp
+                  (ere_branch
+                    (ere_expression
+                      (regex_source_expression
+                        (command_substitution
+                          (command_substitution_body
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (io_redirect
+                                        (io_here
+                                          (dless)
+                                          (here_end
+                                            (word
+                                              (literal))))))))))))))))))
+            (conditional_close)))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))))
+
+==================
+a substitution inside a conditional pattern group keeps its here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x == @($(cat <<E)) ]]
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_match_operator)
+              (conditional_pattern
+                (extglob_pattern
+                  (extglob_operator)
+                  (extglob_alternative
+                    (command_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (io_redirect
+                                    (io_here
+                                      (dless)
+                                      (here_end
+                                        (word
+                                          (literal))))))))))))))))
+            (conditional_close)))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))))
+
+==================
+an extglob pattern inside a parameter expansion inherits its here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: ${u#@($(cat <<E))}
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (variable_name)
+                (parameter_pattern_operator)
+                (parameter_pattern
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (command_substitution
+                        (command_substitution_body
+                          (list
+                            (and_or
+                              (pipeline
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (io_redirect
+                                      (io_here
+                                        (dless)
+                                        (here_end
+                                          (word
+                                            (literal))))))))))))))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+a continued line inside backquotes does not start an inherited body
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: `: $(cat <<E) \
+ x`
+x
+E
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (command_substitution
+                                (command_substitution_body
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (io_redirect
+                                              (io_here
+                                                (dless)
+                                                (here_end
+                                                  (word
+                                                    (literal)))))))))))))
+                            (line_continuation)
+                            (word
+                              (literal))))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))))

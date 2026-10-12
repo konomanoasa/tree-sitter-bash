@@ -82,3 +82,40 @@ echo `printf "%s" @(a|b) ${x//a/b}`
                                   (parameter_replacement_separator)
                                   (parameter_word
                                     (literal)))))))))))))))))))
+
+==================
+backquotes join continued lines inside single quotes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: `printf %s 'a\
+b'`
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (literal))
+                            (word
+                              (single_quoted
+                                (single_quote_content
+                                  (line_continuation))))))))))))))))))

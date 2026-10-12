@@ -475,6 +475,65 @@ a=([a b] [(] [)] [key]=value)
                     (literal)))))))))))
 
 ==================
+extglob operators are plain inside leading bracket payloads
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+a=([@(x] [x@(y] [[:@(x{a,b}:]])
+a[@(x] b
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (array_assignment
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source))))
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source))))
+                (word
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_character_class_source
+                        (pattern_character_class_content_source)
+                        (brace_expansion
+                          (brace_alternative
+                            (literal))
+                          (brace_alternative
+                            (literal)))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source)
+                  (pattern_bracket_character_source))))
+            (word
+              (literal))))))))
+
+==================
 array words apply lexical brackets only at an unquoted start
 :language(bash)
 :language(bash_extglob)

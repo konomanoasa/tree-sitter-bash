@@ -450,7 +450,7 @@ arithmetic nested assignment
 :language(bash_noextquote)
 :language(bash_extglob_noextquote)
 ==================
-echo $((a ? b=1 : c=2)) $((a=1,b=2,c))
+echo $((a ? b=1 : (c=2))) $((a=1,b=2,c))
 
 ------------------
 
@@ -472,10 +472,11 @@ echo $((a ? b=1 : c=2)) $((a=1,b=2,c))
                     (arithmetic_operator)
                     (arithmetic_number))
                   (arithmetic_operator)
-                  (arithmetic_assignment_expression
-                    (arithmetic_variable)
-                    (arithmetic_operator)
-                    (arithmetic_number)))))
+                  (parenthesized_arithmetic
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number))))))
             (word
               (arithmetic_expansion
                 (arithmetic_sequence_expression
@@ -724,6 +725,57 @@ bracket and parenthesis arithmetic nest with array references
             right: (arithmetic_expansion expression: (arithmetic_number)))))))))))))
 
 ==================
+bracket arithmetic subscripts keep unbalanced parentheses as source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+
+: $[a[(]] $[a[1>(]+1] $[(b[)])]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_array_reference
+                  (arithmetic_variable)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (subscript_text)))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (arithmetic_candidate_number)
+                          (arithmetic_candidate_operator)
+                          (subscript_text)))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (parenthesized_arithmetic
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_source_expression
+                          (subscript_text))))))))))))))
+
+==================
 bracket arithmetic quotations protect closing brackets
 :language(bash)
 :language(bash_extglob)
@@ -893,3 +945,33 @@ echo $(( $
 1:8  - 1:9                    ")"
 1:9  - 1:10                   ")"
 1:10 - 2:0      "\n"
+
+==================
+an assignment in a conditional alternative stays arithmetic source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a ? b : c=2))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))

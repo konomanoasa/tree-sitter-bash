@@ -356,6 +356,32 @@ for (const grammar of grammars) {
       );
     });
 
+    test("inherited document recovery scales with body and following commands", (context) => {
+      const prefix = ': "$(cat <<E)" \\\n';
+      for (const size of hereDocumentBodyCharacters) {
+        const source = `${prefix}x${"a".repeat(size)}\nE\n) word\necho AFTER\n`;
+        measure(
+          context,
+          parser,
+          `${grammar.name}/inherited recovery body/${size}`,
+          source,
+          { byte: prefix.length, deleteBytes: 1, insert: "y" },
+          1,
+        );
+      }
+      for (const count of localCommandRows) {
+        const source = `${prefix}body\nE\n) word\n${"echo aaaa\n".repeat(count)}`;
+        measure(
+          context,
+          parser,
+          `${grammar.name}/inherited recovery commands/${count}`,
+          source,
+          { byte: source.indexOf("aaaa"), deleteBytes: 1, insert: "b" },
+          1,
+        );
+      }
+    });
+
     test("quoted here-document edits retain the selected extquote conditions", (context) => {
       const delimiter = grammar.name.includes("noextquote")
         ? `\${x:-$'ab'}`

@@ -212,6 +212,26 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
+    test("undecodable bytes after dollar quote escapes keep words scannable", () => {
+      const invalid = Buffer.from([0xff]);
+      for (const [prefix, suffix, type] of [
+        [": $'a\\", "b'\n", "dollar_single_quote_escape"],
+        ["f$'\\", "'() { :; }\n", "function_name"],
+        ["[[ $'\\", "' == x ]]\n", "conditional_binary_expression"],
+        [": ${x:-$'\\", "'}\n", "parameter_expansion"],
+        ...(extglob ? [[": @($'\\", "')\n", "extglob_pattern"]] : []),
+      ]) {
+        const source = Buffer.concat([
+          Buffer.from(prefix),
+          invalid,
+          Buffer.from(suffix),
+        ]);
+        const parsed = parser.parse(source, { arguments: ["-c"] });
+        assert.equal(parsed.status, 0, parsed.output);
+        assert.ok(parsed.output.includes(type), parsed.output);
+      }
+    });
+
     test("literal words preserve structure when edited into quotes, expansions and patterns", () => {
       const replacements = [
         { insert: 'a"aa"a', type: "double_quoted", text: '"aa"' },
