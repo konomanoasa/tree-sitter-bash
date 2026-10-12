@@ -1,0 +1,368 @@
+==================
+commands in here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<EOF
+$([[ x == x ]] && printf y)
+${ for ((i=0;i<1;i++)); do printf z; done; }
+EOF
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (io_redirect
+              (io_here
+                (dless )
+                (here_end
+                  (word
+                    (literal ))))))))))
+  (here_document_sequence
+    (here_document_line_end )
+    (here_document
+      (here_document_body
+        (command_substitution
+          (command_substitution_body
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (conditional_command
+                      (conditional_open)
+                      (conditional_binary_expression
+                        (word
+                          (literal ))
+                        (conditional_match_operator )
+                        (conditional_pattern
+                          (literal)))
+                      (conditional_close))))
+                (and_if )
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal ))
+                      (word
+                        (literal )))))))))
+        (current_shell_substitution
+          (list
+            (and_or
+              (pipeline
+                (command
+                  (arithmetic_for_clause
+                    (for_keyword )
+                    (arithmetic_for_open)
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable )
+                      (arithmetic_operator )
+                      (arithmetic_number ))
+                    (arithmetic_binary_expression
+                      (arithmetic_variable )
+                      (arithmetic_operator )
+                      (arithmetic_number ))
+                    (arithmetic_update_expression
+                      (arithmetic_variable )
+                      (arithmetic_operator ))
+                    (do_group
+                      (do_keyword )
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal ))
+                                (word
+                                  (literal ))))))
+                        (separator
+                          (separator_op )))
+                      (done_keyword ))))))
+            (separator
+              (separator_op )))))
+      (here_document_end
+        (here_document_end_text )))))
+
+==================
+expansions in here document
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<EOF
+${x//a/b} ${ printf hi; } ${| REPLY=x; } $((2**3))
+EOF
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (literal))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (parameter_expansion
+          (variable_name)
+          (parameter_replacement
+            (parameter_replacement_operator)
+            (parameter_pattern
+              (literal))
+            (parameter_replacement_separator)
+            (parameter_word
+              (literal))))
+        (here_document_text)
+        (current_shell_substitution
+          (list
+            (and_or
+              (pipeline
+                (command
+                  (simple_command
+                    (word
+                      (literal))
+                    (word
+                      (literal))))))
+            (separator
+              (separator_op))))
+        (here_document_text)
+        (reply_substitution
+          (list
+            (and_or
+              (pipeline
+                (command
+                  (simple_command
+                    (assignment_word
+                      (variable_name)
+                      (assignment_value
+                        (literal)))))))
+            (separator
+              (separator_op))))
+        (here_document_text)
+        (arithmetic_expansion
+          (arithmetic_binary_expression
+            (arithmetic_number)
+            (arithmetic_operator)
+            (arithmetic_number))))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+an empty quoted delimiter does not invent a terminator at EOF
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<''
+  a
+  b
+  ''
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (single_quoted))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text)
+        (quoted_here_document_text)
+        (quoted_here_document_text)))))
+
+==================
+an unquoted body keeps expansions and apparent commands through EOF
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<E
+$x
+echo AFTER
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name))
+        (here_document_text)))))
+
+==================
+unquoted body preserves expansions and literal double quotes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<EOF
+"$x" $(echo y) $((1+2))
+EOF
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (here_document_text)
+        (parameter_expansion
+          parameter: (variable_name))
+        (here_document_text)
+        (command_substitution
+          body: (command_substitution_body
+            (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal)))))))))
+        (here_document_text)
+        (arithmetic_expansion
+          expression: (arithmetic_binary_expression
+            left: (arithmetic_number)
+            operator: (arithmetic_operator)
+            right: (arithmetic_number))))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+outer delimiter quoting disables body expansion
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<E"OF"
+$x $(echo y)
+EOF
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal)
+                    (double_quoted
+                      (double_quote_text)))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+quoted delimiter does not join body lines
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<'EOF'
+E\
+OF
+EOF
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (single_quoted
+                      (single_quote_content)))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text)
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))

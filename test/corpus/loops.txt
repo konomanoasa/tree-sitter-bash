@@ -1,0 +1,380 @@
+==================
+select word list
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+select choice in a b; do break; done
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (select_clause
+            (select_keyword )
+            (name )
+            (in_keyword )
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (sequential_sep )
+            (do_group
+              (do_keyword )
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op )))
+              (done_keyword ))))))))
+
+==================
+select positional parameters
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+select choice; do break; done
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (select_clause
+            (select_keyword )
+            (name )
+            (sequential_sep )
+            (do_group
+              (do_keyword )
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op )))
+              (done_keyword ))))))))
+
+==================
+for brace body
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+for x in a b; { :; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (for_clause
+            (for_keyword )
+            (name )
+            (in_keyword )
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (sequential_sep )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))))
+
+==================
+select brace body
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+select x in a b; { break; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (select_clause
+            (select_keyword )
+            (name )
+            (in_keyword )
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (sequential_sep )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))))
+
+==================
+word loop body separators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+for x do :; done
+for x; { :; }
+select x
+{ :; }
+select x in a b; { :; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (for_clause
+            (for_keyword )
+            (name )
+            (do_group
+              (do_keyword )
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op )))
+              (done_keyword ))))))
+    (and_or
+      (pipeline
+        (command
+          (for_clause
+            (for_keyword )
+            (name )
+            (sequential_sep )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (select_clause
+            (select_keyword )
+            (name )
+            (sequential_sep )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (select_clause
+            (select_keyword )
+            (name )
+            (in_keyword )
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (sequential_sep )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))))
+
+==================
+loops preserve variables word lists conditions and bodies
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+for x in one two; do echo "$x"; done
+while test "$x"; do :; done
+until test "$y"; do :; done
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (for_clause
+            (for_keyword)
+            name: (name)
+            in: (in_keyword)
+            word: (word
+              (literal))
+            word: (word
+              (literal))
+            separator: (sequential_sep)
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (double_quoted
+                            (parameter_expansion
+                              parameter: (variable_name))))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (while_clause
+            (while_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (until_clause
+            (until_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))))
+
+==================
+for brace body missing separator "for x { :; }\n"
+:language(bash_extglob)
+:error
+==================
+for x { :; }
+
+------------------
+
+
+
+==================
+select brace body missing separator "select x { :; }\n"
+:language(bash_extglob)
+:error
+==================
+select x { :; }
+
+------------------
+
+
+
+==================
+for word list missing separator "for x in a { :; }\n"
+:language(bash_extglob)
+:error
+==================
+for x in a { :; }
+
+------------------
+
+
+
+==================
+select word list missing separator "select x in a { :; }\n"
+:language(bash_extglob)
+:error
+==================
+select x in a { :; }
+
+------------------

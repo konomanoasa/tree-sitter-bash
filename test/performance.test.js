@@ -145,14 +145,44 @@ const workloads = [
     source: (n) => `echo $((x${"+1".repeat(n)}))\n`,
   },
   {
+    name: "bracket arithmetic operands",
+    sizes: sequenceElementCounts,
+    source: (n) => `echo $[x${"+1".repeat(n)}]\n`,
+  },
+  {
+    name: "bracket arithmetic depth",
+    sizes: normalNestingDepths,
+    source: (n) => `echo ${"$[".repeat(n)}x${"]".repeat(n)}\n`,
+  },
+  {
     name: "here document bytes",
     sizes: hereDocumentBodyCharacters,
     source: (n) => `cat <<EOF\nx${"a".repeat(n)}\nEOF\n`,
   },
   {
+    name: "inherited here document bytes",
+    sizes: hereDocumentBodyCharacters,
+    source: (n) => `: "$(cat <<E)" $foo\\\nx${"a".repeat(n)}\nE\nbar\n`,
+  },
+  {
     name: "substitution depth",
     sizes: normalNestingDepths,
     source: (n) => `echo ${"$(echo ".repeat(n)}x${")".repeat(n)}\n`,
+  },
+  {
+    name: "process substitution command words",
+    sizes: sequenceElementCounts,
+    source: (n) => `<(echo ${"a ".repeat(n)}x) arg\n`,
+  },
+  {
+    name: "function name process substitutions",
+    sizes: sequenceElementCounts,
+    source: (n) => `${"<(:)".repeat(n)}x() { :; }\n`,
+  },
+  {
+    name: "function name process substitution depth",
+    sizes: normalNestingDepths,
+    source: (n) => `${"<(echo ".repeat(n)}x${")".repeat(n)}() { :; }\n`,
   },
 ];
 

@@ -506,19 +506,24 @@ test_delimiter_read_distinguishes_input_and_resource_failures(void) {
     const char *source;
     int32_t character;
     enum DelimiterReadResult expected;
+    const char *delimiter;
   } cases[] = {
-    {"@\n", -1, DELIMITER_READ_INVALID},
-    {"@", -1, DELIMITER_READ_INVALID},
-    {"'@'\n", -1, DELIMITER_READ_INVALID},
-    {"\"@\"\n", -1, DELIMITER_READ_INVALID},
-    {"\\@\n", -1, DELIMITER_READ_INVALID},
-    {"$'@'\n", -1, DELIMITER_READ_INVALID},
-    {"$'\\0@'\n", -1, DELIMITER_READ_INVALID},
-    {"\"${x:-$'@'}\"\n", -1, DELIMITER_READ_INVALID},
-    {"$(echo @)\n", -1, DELIMITER_READ_INVALID},
-    {"`echo @`\n", -1, DELIMITER_READ_INVALID},
-    {"@\n", 0xfffd, DELIMITER_READ_WORD},
-    {oversized, 'a', DELIMITER_READ_RESOURCE_FAILURE},
+    {"@\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"@", -1, DELIMITER_READ_INVALID, NULL},
+    {"'@'\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"\"@\"\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"\\@\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"$'@'\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"$'\\0@'\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"\"${x:-$'@'}\"\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"$(echo @)\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"`echo @`\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"@\n", 0xfffd, DELIMITER_READ_WORD, "\xef\xbf\xbd"},
+    {"E\\", -1, DELIMITER_READ_WORD, "E\\"},
+    {"\\", -1, DELIMITER_READ_WORD, "\\"},
+    {"'E'\\", -1, DELIMITER_READ_WORD, "E\\"},
+    {"E\\@", 'F', DELIMITER_READ_WORD, "EF"},
+    {oversized, 'a', DELIMITER_READ_RESOURCE_FAILURE, NULL},
   };
   for (size_t index = 0; index < ARRAY_LENGTH(cases); index++) {
     struct Scanner scanner = {0};
@@ -549,7 +554,12 @@ test_delimiter_read_distinguishes_input_and_resource_failures(void) {
       ) == cases[index].expected
     );
     bool accepted = cases[index].expected == DELIMITER_READ_WORD;
-    if (accepted) clear_document(&document);
+    if (accepted) {
+      const char *delimiter = cases[index].delimiter;
+      assert(document.delimiter_length == strlen(delimiter));
+      assert(memcmp(document.delimiter, delimiter, strlen(delimiter)) == 0);
+      clear_document(&document);
+    }
     assert(!native.failed);
     assert(!lookahead_has_failed(&probe.lexer));
     lookahead_seek(&probe, 0);
@@ -772,6 +782,33 @@ static void test_nested_context_round_trip_and_reset(void) {
   bash_scanner_destroy(scanner);
 }
 
+static void
+test_pipeline_time_context_survives_serialization_and_documents(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  assert(source_context_commit(&scanner, PUNCT_PIPE));
+  char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  unsigned length = snapshot(&scanner, state);
+  bash_scanner_deserialize(&scanner, state, length);
+  assert(source_context_commit(&scanner, LOGICAL_NEWLINE_BEGIN));
+  assert(scanner.time_context == TIME_WORD);
+  assert(source_context_commit(&scanner, LOGICAL_NEWLINE_BEGIN));
+  assert(scanner.time_context == TIME_AFTER_NEWLINE);
+  assert(append_pending_document(&scanner, make_document("E", false, false)));
+  assert(activate_startable_pending_documents(&scanner));
+  assert(source_context_push(&scanner, HERE_DOCUMENT_BODY_START));
+  assert(source_context_commit(&scanner, PUNCT_PIPE));
+  length = snapshot(&scanner, state);
+  bash_scanner_deserialize(&scanner, state, length);
+  assert(scanner.time_context == TIME_AFTER_PIPE);
+  assert(source_context_pop(&scanner));
+  assert(scanner.time_context == TIME_AFTER_NEWLINE);
+  length = snapshot(&scanner, state);
+  bash_scanner_deserialize(&scanner, state, length);
+  assert(scanner.time_context == TIME_AFTER_NEWLINE);
+  clear_scanner(&scanner);
+}
+
 static void test_repeated_contexts_fit_serialization_budget(void) {
   const size_t repeated_contexts = 4096;
   struct Scanner *scanner = bash_scanner_create();
@@ -884,30 +921,46 @@ static void test_brace_word_extent_survives_nested_substitutions(void) {
   bash_scanner_destroy(scanner);
 }
 
-static void test_substring_operand_extent_survives_nested_expansions(void) {
+static void test_arithmetic_field_extent_survives_nested_expansions(void) {
   const size_t outer_characters = 257;
   const size_t inner_characters = 43;
-  struct Scanner *scanner = bash_scanner_create();
-  assert(scanner != NULL && scanner_source_ready(scanner));
-  assert(source_context_push(scanner, PARAMETER_OPEN));
-  assert(source_context_push(scanner, PARAMETER_OPEN));
-  assert(source_context_commit(scanner, PARAMETER_SUBSTRING_BEGIN));
-  assert(scanner->contexts[0].opener == PARAMETER_OPEN);
-  scanner->contexts[1].substring_remaining = outer_characters;
-  assert(source_context_push(scanner, DQ_OPEN));
-  assert(source_context_push(scanner, PARAMETER_OPEN));
-  assert(source_context_commit(scanner, SUBSTRING_SEPARATOR_BEGIN));
-  scanner->contexts[3].substring_remaining = inner_characters;
-  char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
-  unsigned length = snapshot(scanner, state);
-  bash_scanner_deserialize(scanner, state, length);
-  assert(scanner->context_count == 4);
-  assert(substring_remaining(scanner) == inner_characters);
-  assert(source_context_pop(scanner));
-  assert(substring_remaining(scanner) == 0);
-  assert(source_context_pop(scanner));
-  assert(substring_remaining(scanner) == outer_characters);
-  bash_scanner_destroy(scanner);
+  const enum TokenType openers[] = {
+    PARAMETER_SUBSTRING_BEGIN,
+    BRACKET_ARITHMETIC_OPEN
+  };
+  for (size_t index = 0; index < ARRAY_COUNT(openers); index++) {
+    struct Scanner *scanner = bash_scanner_create();
+    assert(scanner != NULL && scanner_source_ready(scanner));
+    assert(source_context_push(scanner, PARAMETER_OPEN));
+    if (openers[index] == PARAMETER_SUBSTRING_BEGIN) {
+      assert(source_context_push(scanner, PARAMETER_OPEN));
+      assert(source_context_commit(scanner, PARAMETER_SUBSTRING_BEGIN));
+    } else {
+      assert(source_context_commit(scanner, BRACKET_ARITHMETIC_OPEN));
+    }
+    assert(scanner->contexts[0].opener == PARAMETER_OPEN);
+    scanner->contexts[1].arithmetic_field_remaining = outer_characters;
+    assert(source_context_push(scanner, DQ_OPEN));
+    assert(source_context_push(scanner, PARAMETER_OPEN));
+    assert(source_context_commit(scanner, SUBSTRING_SEPARATOR_BEGIN));
+    scanner->contexts[3].arithmetic_field_remaining = inner_characters;
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned length = snapshot(scanner, state);
+    bash_scanner_deserialize(scanner, state, length);
+    assert(scanner->context_count == 4);
+    assert(arithmetic_field_remaining(scanner) == inner_characters);
+    consume_context_remaining(scanner, 3);
+    assert(arithmetic_field_remaining(scanner) == inner_characters - 3);
+    assert(source_context_pop(scanner));
+    assert(arithmetic_field_remaining(scanner) == 0);
+    assert(source_context_pop(scanner));
+    assert(arithmetic_field_remaining(scanner) == outer_characters - 3);
+    if (openers[index] == BRACKET_ARITHMETIC_OPEN) {
+      assert(source_context_commit(scanner, BRACKET_ARITHMETIC_CLOSE));
+      assert(top_context_opener(scanner) == PARAMETER_OPEN);
+    }
+    bash_scanner_destroy(scanner);
+  }
 }
 
 struct SourceTestInput {
@@ -1700,6 +1753,25 @@ static void test_logical_forks_preserve_ancestor_pending_units(void) {
   assert(mock.marks == 0);
   logical_clear(&parent);
   native_input_clear(&native);
+
+  // A backslash the parent already emitted is not pending for the child.
+  source_native_init(&mock, input, ARRAY_LENGTH(input));
+  native = (struct NativeInput){.lexer = &mock.lexer};
+  struct SourceStage literal[] = {quoted, quoted};
+  struct SourceSnapshot comment = {.stages = literal, .stage_count = 2};
+  assert(logical_init(&parent, &native, &comment));
+  assert(parent.lexer.lookahead == '\\');
+  parent.lexer.advance(&parent.lexer, false);
+  assert(parent.lexer.lookahead == '\n');
+  assert(parent.consumed == 1);
+  assert(logical_fork(&child, &parent, parent.consumed, 1, &stages[1], 1));
+  assert(child.lexer.lookahead == '\n');
+  child.lexer.advance(&child.lexer, false);
+  assert(child.lexer.lookahead == 'x');
+  assert(child.cursor.removal_count == 0);
+  logical_clear(&child);
+  logical_clear(&parent);
+  native_input_clear(&native);
 }
 
 #ifdef TREE_SITTER_REUSE_ALLOCATOR
@@ -1769,7 +1841,100 @@ static void test_logical_resume_does_not_repeat_already_emitted_source(void) {
   source_cursor_clear(&cursor);
 }
 
+static void
+test_inherited_document_restores_suspended_input_and_emission(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  struct HereDocument document = make_document("E", false, false);
+  document.inherited = true;
+  document.start_after = 7;
+  assert(append_document(&scanner.pending, document));
+  assert(!has_inherited_document(&scanner));
+  assert(!has_startable_pending_document(&scanner));
+  char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  unsigned length = snapshot(&scanner, state);
+  bash_scanner_deserialize(&scanner, state, length);
+  assert(scanner.pending.data[0].start_after == 7);
+  assert(consume_context_remaining(&scanner, 6));
+  assert(!has_inherited_document(&scanner));
+  assert(consume_context_remaining(&scanner, 1));
+  assert(has_inherited_document(&scanner));
+  assert(source_context_push(&scanner, BACKQUOTE_START));
+  size_t host_depth = scanner.source.stage_count;
+  assert(activate_startable_pending_documents(&scanner));
+  scanner.active.interrupted = (struct LexicalEmission){
+    .symbol = VARIABLE_NAME_BEGIN,
+    .remaining = 12,
+    .active = true,
+    .fragmented = true,
+  };
+  assert(source_context_push(&scanner, HERE_DOCUMENT_BODY_START));
+  assert(scanner.source.stage_count == 4);
+  assert(top_context(&scanner)->resume != NULL);
+  length = snapshot(&scanner, state);
+  struct Scanner copy;
+  assert(scanner_copy(&scanner, &copy));
+  assert(top_context(&copy)->resume != top_context(&scanner)->resume);
+  clear_scanner(&scanner);
+  bash_scanner_deserialize(&scanner, state, length);
+  assert(consume_context_remaining(&scanner, 5));
+  assert(scanner.active.interrupted.remaining == 7);
+  assert(copy.active.interrupted.remaining == 12);
+  assert(source_context_pop(&scanner));
+  assert(scanner.source.stage_count == host_depth);
+  assert(top_context_opener(&scanner) == BACKQUOTE_START);
+  clear_scanner(&scanner);
+  clear_scanner(&copy);
+}
+
+#ifdef TREE_SITTER_REUSE_ALLOCATOR
+static void
+test_inherited_lookahead_failures_leave_no_state_or_allocations(void) {
+  const char *sources[] = {
+    "foo\\\nbody\nE\nbar",
+    "$(cat <<E)na\\\nbody\nE\nme()",
+  };
+  for (size_t fixture = 0; fixture < ARRAY_LENGTH(sources); fixture++) {
+    size_t allocation_count = 0;
+    for (size_t failure = 0; failure <= allocation_count; failure++) {
+      struct Scanner scanner = {0};
+      assert(scanner_source_ready(&scanner));
+      if (fixture == 0) {
+        struct HereDocument document = make_document("E", false, false);
+        document.inherited = true;
+        assert(append_document(&scanner.pending, document));
+      }
+      char before[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+      unsigned before_length = snapshot(&scanner, before);
+      int32_t input[MOCK_INPUT_CAPACITY];
+      size_t length = strlen(sources[fixture]);
+      assert(length < ARRAY_LENGTH(input));
+      for (size_t index = 0; index < length; index++)
+        input[index] = (unsigned char)sources[fixture][index];
+      struct MockLexer mock;
+      init_mock_lexer(&mock, input, length);
+      bool valid[TOKEN_COUNT] = {0};
+      valid[fixture == 0 ? VARIABLE_NAME_BEGIN : FNAME_TOKEN] = true;
+      size_t calls = reuse_allocation_calls;
+      if (failure > 0) reuse_fail_allocation_call = calls + failure;
+      bool accepted = bash_scanner_scan(&scanner, &mock.lexer, valid);
+      reuse_fail_allocation_call = 0;
+      if (failure == 0) {
+        allocation_count = reuse_allocation_calls - calls;
+        assert(accepted && allocation_count > 0);
+      } else {
+        assert(!accepted);
+        assert_scanner_matches_snapshot(&scanner, before, before_length);
+      }
+      clear_scanner(&scanner);
+      assert(reuse_live_allocations == 0);
+    }
+  }
+}
+#endif
+
 int main(void) {
+  test_inherited_document_restores_suspended_input_and_emission();
   test_source_reading_removes_nul_and_preserves_scalar_positions();
   test_nul_removal_precedes_continuations_and_snapshot_resumption();
   test_ancestor_removal_survives_local_quoting();
@@ -1795,12 +1960,14 @@ int main(void) {
   test_here_document_end_restores_its_source_and_serialized_depth();
   test_scanner_copy_owns_nested_state_and_preserves_source_on_failure();
   test_nested_context_round_trip_and_reset();
+  test_pipeline_time_context_survives_serialization_and_documents();
   test_repeated_contexts_fit_serialization_budget();
   test_truncated_and_malformed_states_stay_bounded();
   test_regex_boundaries_round_trip_across_nested_substitutions();
   test_brace_word_extent_survives_nested_substitutions();
-  test_substring_operand_extent_survives_nested_expansions();
+  test_arithmetic_field_extent_survives_nested_expansions();
 #ifdef TREE_SITTER_REUSE_ALLOCATOR
+  test_inherited_lookahead_failures_leave_no_state_or_allocations();
   test_delimiter_allocation_failures_preserve_the_failure_reason();
   test_source_failures_release_owned_memory();
   test_logical_fork_allocation_failures_preserve_parent();

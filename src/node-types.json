@@ -2,52 +2,58 @@
   {
     "type": "(",
     "named": false,
-    "fields": {}
-  },
-  {
-    "type": "((",
-    "named": false,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": ")",
     "named": false,
-    "fields": {}
-  },
-  {
-    "type": "..",
-    "named": false,
-    "fields": {}
-  },
-  {
-    "type": "/",
-    "named": false,
-    "fields": {}
-  },
-  {
-    "type": ":",
-    "named": false,
-    "fields": {}
-  },
-  {
-    "type": "@",
-    "named": false,
-    "fields": {}
-  },
-  {
-    "type": "[[",
-    "named": false,
-    "fields": {}
-  },
-  {
-    "type": "]]",
-    "named": false,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "and_if",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "and_or",
@@ -96,12 +102,54 @@
   {
     "type": "anddgreat",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "andgreat",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_array_reference",
@@ -227,6 +275,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -383,6 +441,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -509,6 +577,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -665,6 +743,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -891,17 +979,69 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "arithmetic_candidate_number",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_candidate_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_candidate_sequence_expression",
@@ -1057,6 +1197,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1113,6 +1263,10 @@
         },
         {
           "type": "escaped_character",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -1226,6 +1380,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1256,12 +1420,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "arithmetic_candidate_variable",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_command",
@@ -1341,6 +1536,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1567,6 +1772,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1647,6 +1862,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1728,6 +1953,10 @@
             "named": true
           },
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "parameter_expansion",
             "named": true
           },
@@ -1799,6 +2028,10 @@
           },
           {
             "type": "current_shell_substitution",
+            "named": true
+          },
+          {
+            "type": "here_document_sequence",
             "named": true
           },
           {
@@ -1876,6 +2109,10 @@
             "named": true
           },
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "parameter_expansion",
             "named": true
           },
@@ -1895,6 +2132,10 @@
       "required": true,
       "types": [
         {
+          "type": "arithmetic_for_open",
+          "named": true
+        },
+        {
           "type": "comment",
           "named": true
         },
@@ -1910,14 +2151,82 @@
     }
   },
   {
+    "type": "arithmetic_for_open",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "arithmetic_number",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_sequence_expression",
@@ -2073,6 +2382,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2132,6 +2451,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "locale_quoted",
           "named": true
         },
@@ -2157,7 +2480,28 @@
   {
     "type": "arithmetic_source_fragment",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "arithmetic_unary_expression",
@@ -2243,6 +2587,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2273,12 +2627,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "arithmetic_variable",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "array_assignment",
@@ -2328,6 +2713,10 @@
           },
           {
             "type": "assignment_append",
+            "named": true
+          },
+          {
+            "type": "here_document_sequence",
             "named": true
           }
         ]
@@ -2394,12 +2783,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "assignment_append",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "assignment_value",
@@ -2443,6 +2863,10 @@
         },
         {
           "type": "extglob_pattern",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -2513,6 +2937,10 @@
           {
             "type": "assignment_append",
             "named": true
+          },
+          {
+            "type": "here_document_sequence",
+            "named": true
           }
         ]
       },
@@ -2556,6 +2984,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2584,7 +3022,28 @@
   {
     "type": "bang",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "brace_alternative",
@@ -2631,6 +3090,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "literal",
           "named": true
         },
@@ -2672,7 +3135,28 @@
   {
     "type": "brace_endpoint",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "brace_expansion",
@@ -2690,11 +3174,15 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
           "type": "brace_sequence",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -2714,12 +3202,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "brace_increment",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "brace_sequence",
@@ -2755,6 +3274,42 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "brace_sequence_separator",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "brace_sequence_separator",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2762,9 +3317,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "matching_list",
           "named": true
@@ -2781,11 +3340,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "follow_list",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -2930,7 +3493,28 @@
   {
     "type": "case_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "character_class",
@@ -2950,27 +3534,121 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "class_name",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "clobber",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "collating_element_multi",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "collating_element_single",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "collating_symbol",
@@ -2998,6 +3676,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -3081,11 +3769,25 @@
         "required": false,
         "types": [
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "io_redirect",
             "named": true
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -3102,6 +3804,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -3145,7 +3857,28 @@
   {
     "type": "comment_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "conditional_and_expression",
@@ -3295,12 +4028,69 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "conditional_binary_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "conditional_close",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "conditional_command",
@@ -3343,10 +4133,18 @@
     },
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "comment",
+          "named": true
+        },
+        {
+          "type": "conditional_close",
+          "named": true
+        },
+        {
+          "type": "conditional_open",
           "named": true
         },
         {
@@ -3413,7 +4211,28 @@
   {
     "type": "conditional_match_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "conditional_negation",
@@ -3482,7 +4301,54 @@
   {
     "type": "conditional_not",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "conditional_open",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "conditional_or_expression",
@@ -3627,6 +4493,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "literal",
           "named": true
         },
@@ -3672,7 +4542,28 @@
   {
     "type": "conditional_regex_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "conditional_unary_expression",
@@ -3698,12 +4589,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "conditional_unary_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "coproc",
@@ -3788,6 +4710,10 @@
         "required": false,
         "types": [
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "io_redirect",
             "named": true
           }
@@ -3795,11 +4721,15 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "coproc_keyword",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -3808,7 +4738,28 @@
   {
     "type": "coproc_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "current_shell_substitution",
@@ -3843,22 +4794,106 @@
   {
     "type": "declaration_name",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dgreat",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dless",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dlessdash",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "do_group",
@@ -3886,6 +4921,10 @@
         {
           "type": "done_keyword",
           "named": true
+        },
+        {
+          "type": "here_document_sequence",
+          "named": true
         }
       ]
     }
@@ -3893,17 +4932,80 @@
   {
     "type": "do_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dollar_single_quote_escape",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dollar_single_quote_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dollar_single_quoted",
@@ -3920,6 +5022,10 @@
         {
           "type": "dollar_single_quote_text",
           "named": true
+        },
+        {
+          "type": "here_document_sequence",
+          "named": true
         }
       ]
     }
@@ -3927,17 +5033,80 @@
   {
     "type": "done_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "double_quote_escape",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "double_quote_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "double_quoted",
@@ -3972,6 +5141,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "parameter_expansion",
           "named": true
         },
@@ -3985,27 +5158,132 @@
   {
     "type": "dsemi",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "dsemi_and",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "duplication_count",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "elif_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "else_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "else_part",
@@ -4065,6 +5343,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "then_keyword",
           "named": true
         }
@@ -4112,6 +5394,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -4175,6 +5467,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -4225,6 +5527,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "one_char_or_coll_elem_ere",
           "named": true
         }
@@ -4234,12 +5540,54 @@
   {
     "type": "esac_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "escaped_character",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "expression_term",
@@ -4274,6 +5622,10 @@
       "types": [
         {
           "type": "ere_branch",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -4332,6 +5684,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "literal",
           "named": true
         },
@@ -4384,12 +5740,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "extglob_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "extglob_pattern",
@@ -4415,12 +5802,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "fi_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "follow_list",
@@ -4500,6 +5918,10 @@
         "required": false,
         "types": [
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "word",
             "named": true
           }
@@ -4528,7 +5950,28 @@
   {
     "type": "for_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "function_body",
@@ -4599,11 +6042,25 @@
         "required": false,
         "types": [
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "io_redirect",
             "named": true
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -4650,11 +6107,15 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
           "type": "function_keyword",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -4663,17 +6124,80 @@
   {
     "type": "function_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "function_name",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "greatand",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "here_document",
@@ -4734,6 +6258,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "here_document_text",
           "named": true
         },
@@ -4751,13 +6279,28 @@
   {
     "type": "here_document_end",
     "named": true,
-    "fields": {},
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": false,
       "types": [
         {
           "type": "here_document_end_text",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -4766,17 +6309,80 @@
   {
     "type": "here_document_end_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "here_document_escape",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "here_document_line_end",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "here_document_sequence",
@@ -4804,7 +6410,7 @@
       },
       "line_end": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "here_document_line_end",
@@ -4812,12 +6418,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "here_document_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "here_end",
@@ -4838,7 +6475,28 @@
   {
     "type": "here_string_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "if_clause",
@@ -4884,6 +6542,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "if_keyword",
           "named": true
         },
@@ -4897,12 +6559,54 @@
   {
     "type": "if_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "in_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "io_file",
@@ -4964,6 +6668,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -4994,12 +6708,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "io_number",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "io_redirect",
@@ -5059,17 +6804,69 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "lessand",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "lessgreat",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "list",
@@ -5094,6 +6891,10 @@
             "named": true
           },
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "separator",
             "named": true
           },
@@ -5109,6 +6910,10 @@
         "types": [
           {
             "type": "and_or",
+            "named": true
+          },
+          {
+            "type": "here_document_sequence",
             "named": true
           },
           {
@@ -5175,12 +6980,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "literal",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "locale_quoted",
@@ -5215,6 +7051,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "parameter_expansion",
           "named": true
         },
@@ -5243,23 +7083,69 @@
   {
     "type": "meta_character",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "name",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "nonmatching_list",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "bracket_list",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -5270,11 +7156,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
           "type": "bracket_expression",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -5287,12 +7177,54 @@
   {
     "type": "or_if",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "ordinary_character",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_case_conversion",
@@ -5323,7 +7255,28 @@
   {
     "type": "parameter_case_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_expansion",
@@ -5409,9 +7362,13 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "parameter_case_conversion",
           "named": true
@@ -5434,12 +7391,54 @@
   {
     "type": "parameter_indirection_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_length_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_name_prefix",
@@ -5503,7 +7502,28 @@
   {
     "type": "parameter_names_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_pattern",
@@ -5547,6 +7567,10 @@
         },
         {
           "type": "extglob_pattern",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -5595,7 +7619,28 @@
   {
     "type": "parameter_pattern_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_replacement",
@@ -5631,12 +7676,69 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "parameter_replacement_separator",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "parameter_replacement_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "parameter_replacement_separator",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_substring",
@@ -5672,12 +7774,69 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "parameter_substring_separator",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "parameter_substring_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "parameter_substring_separator",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_transformation",
@@ -5688,8 +7847,8 @@
         "required": true,
         "types": [
           {
-            "type": "@",
-            "named": false
+            "type": "parameter_transformation_operator",
+            "named": true
           }
         ]
       },
@@ -5708,12 +7867,80 @@
   {
     "type": "parameter_transformation_code",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "parameter_transformation_operator",
+    "named": true,
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_value_operator",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "parameter_word",
@@ -5765,6 +7992,10 @@
         },
         {
           "type": "extglob_pattern",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -5884,6 +8115,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -5960,6 +8201,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -6016,6 +8267,10 @@
         },
         {
           "type": "escaped_character",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -6102,6 +8357,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "locale_quoted",
           "named": true
         },
@@ -6127,12 +8386,54 @@
   {
     "type": "pattern_bracket_character_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_bracket_hyphen_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_bracket_members_source",
@@ -6229,12 +8530,54 @@
   {
     "type": "pattern_bracket_negation_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_bracket_range_operator_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_bracket_range_source",
@@ -6424,12 +8767,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "pattern_character_class_content_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_character_class_source",
@@ -6501,12 +8875,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "pattern_collating_symbol_character_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_collating_symbol_source",
@@ -6578,12 +8983,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "pattern_equivalence_class_character_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_equivalence_class_source",
@@ -6655,6 +9091,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -6671,22 +9117,95 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "pattern_question_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pattern_star_source",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pipe_and",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pipeline",
@@ -6716,6 +9235,10 @@
         "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "here_document_sequence",
+            "named": true
+          },
           {
             "type": "pipe_and",
             "named": true
@@ -6755,7 +9278,28 @@
   {
     "type": "positional_parameter",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "process_substitution",
@@ -6785,6 +9329,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -6840,11 +9394,15 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
           "type": "comment",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -6859,6 +9417,10 @@
       "required": false,
       "types": [
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "quoted_here_document_text",
           "named": true
         }
@@ -6868,7 +9430,28 @@
   {
     "type": "quoted_here_document_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "range_expression",
@@ -6880,6 +9463,10 @@
       "types": [
         {
           "type": "end_range",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -6995,6 +9582,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "locale_quoted",
           "named": true
         },
@@ -7028,12 +9619,54 @@
   {
     "type": "regex_source_fragment",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "repetition_modifier",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "reply_substitution",
@@ -7128,6 +9761,10 @@
         "required": false,
         "types": [
           {
+            "type": "here_document_sequence",
+            "named": true
+          },
+          {
             "type": "word",
             "named": true
           }
@@ -7156,12 +9793,54 @@
   {
     "type": "select_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "semi_and",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "separator",
@@ -7218,7 +9897,17 @@
   {
     "type": "separator_op",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "sequential_sep",
@@ -7260,6 +9949,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -7314,6 +10013,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -7342,16 +10051,41 @@
   {
     "type": "single_quote_content",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "single_quoted",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "single_quote_content",
           "named": true
@@ -7362,18 +10096,43 @@
   {
     "type": "special_parameter",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "start_range",
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "end_range",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         }
       ]
@@ -7382,7 +10141,28 @@
   {
     "type": "subscript_all_elements_candidate",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "subscript_source",
@@ -7466,12 +10246,43 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
     "type": "subscript_text",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "subshell",
@@ -7487,6 +10298,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -7494,7 +10315,7 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
@@ -7554,6 +10375,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "parameter_expansion",
           "named": true
         },
@@ -7571,7 +10396,28 @@
   {
     "type": "then_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "tilde_expansion",
@@ -7587,6 +10433,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -7634,6 +10490,10 @@
           "named": true
         },
         {
+          "type": "here_document_sequence",
+          "named": true
+        },
+        {
           "type": "literal",
           "named": true
         },
@@ -7675,12 +10535,54 @@
   {
     "type": "time_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "time_option",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "timing",
@@ -7698,9 +10600,13 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "time_keyword",
           "named": true
@@ -7734,9 +10640,13 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "until_keyword",
           "named": true
@@ -7747,12 +10657,54 @@
   {
     "type": "until_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "variable_name",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "while_clause",
@@ -7780,9 +10732,13 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        },
         {
           "type": "while_keyword",
           "named": true
@@ -7793,7 +10749,28 @@
   {
     "type": "while_keyword",
     "named": true,
-    "fields": {}
+    "fields": {
+      "fragment": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "lexeme_fragment",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "word",
@@ -7837,6 +10814,10 @@
         },
         {
           "type": "extglob_pattern",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
           "named": true
         },
         {
@@ -7923,6 +10904,10 @@
     "named": false
   },
   {
+    "type": ":",
+    "named": false
+  },
+  {
     "type": ";",
     "named": false
   },
@@ -7957,6 +10942,10 @@
   {
     "type": "`",
     "named": false
+  },
+  {
+    "type": "lexeme_fragment",
+    "named": true
   },
   {
     "type": "line_continuation",

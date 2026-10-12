@@ -1,0 +1,84 @@
+==================
+backquote substitution retains nested command source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo `printf '%s' "$x"`
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (single_quoted
+                                (single_quote_content)))
+                            argument: (word
+                              (double_quoted
+                                (parameter_expansion
+                                  parameter: (variable_name))))))))))))))))))
+
+==================
+backquote nesting
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+echo `printf "%s" @(a|b) ${x//a/b}`
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal))
+                            (word
+                              (double_quoted
+                                (double_quote_text)))
+                            (word
+                              (extglob_pattern
+                                (extglob_operator)
+                                (extglob_alternative
+                                  (literal))
+                                (extglob_alternative
+                                  (literal))))
+                            (word
+                              (parameter_expansion
+                                (variable_name)
+                                (parameter_replacement
+                                  (parameter_replacement_operator)
+                                  (parameter_pattern
+                                    (literal))
+                                  (parameter_replacement_separator)
+                                  (parameter_word
+                                    (literal)))))))))))))))))))

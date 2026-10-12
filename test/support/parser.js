@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createTreeSitter, grammars, root } from "../../scripts/tree-sitter.js";
-import { sourceNodes } from "./cst.js";
+import { cstFingerprint, sourceNodes } from "./cst.js";
 
 const parseTimeoutMs = 30_000;
 
@@ -100,9 +100,9 @@ export function assertEditRoundTrip(parser, { seed, remove, insert, valid }) {
   const incremental = parser.parse(seed, { ...options, edits: [edit] });
   if (valid) {
     assert.equal(incremental.status, 0, incremental.output);
-    assert.equal(incremental.tree, fresh.tree);
+    assert.equal(cstFingerprint(incremental.tree), cstFingerprint(fresh.tree));
   }
   const repaired = parser.parse(seed, { ...options, edits: [edit, undo] });
   assert.equal(repaired.status, 0, repaired.output);
-  assert.equal(repaired.tree, original.tree);
+  assert.equal(cstFingerprint(repaired.tree), cstFingerprint(original.tree));
 }

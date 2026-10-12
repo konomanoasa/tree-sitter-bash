@@ -1,0 +1,303 @@
+==================
+scalar append
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+x+=one y+=two echo "$x"
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name )
+              (assignment_append )
+              (assignment_value
+                (literal )))
+            (assignment_word
+              (variable_name )
+              (assignment_append )
+              (assignment_value
+                (literal )))
+            (word
+              (literal ))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name ))))))))))
+
+==================
+assignments command name arguments and ordered redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+A=one 2>err echo "$A" tail >out
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            assignment: (assignment_word
+              name: (variable_name)
+              value: (assignment_value
+                (literal)))
+            redirect: (io_redirect
+              number: (io_number)
+              body: (io_file
+                filename: (word
+                  (literal))))
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name))))
+            argument: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_file
+                filename: (word
+                  (literal))))))))))
+
+==================
+leading redirects permit compound assignments before and after declaration names
+:language(bash_extglob)
+:cst
+==================
+>out 2>err a=(one) b+=(two) declare c=(three)
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:45     commands: list
+0:0  - 0:45       and_or: and_or
+0:0  - 0:45         pipeline: pipeline
+0:0  - 0:45           command: command
+0:0  - 0:45             body: simple_command
+0:0  - 0:4                redirect: io_redirect
+0:0  - 0:4                  body: io_file
+0:0  - 0:1                    ">"
+0:1  - 0:4                    filename: word
+0:1  - 0:4                      literal `out`
+0:5  - 0:10               redirect: io_redirect
+0:5  - 0:6                  number: io_number `2`
+0:6  - 0:10                 body: io_file
+0:6  - 0:7                    ">"
+0:7  - 0:10                   filename: word
+0:7  - 0:10                     literal `err`
+0:11 - 0:18               assignment: assignment_word
+0:11 - 0:12                 name: variable_name `a`
+0:12 - 0:13                 "="
+0:13 - 0:18                 value: array_assignment
+0:13 - 0:14                   "("
+0:14 - 0:17                   element: word
+0:14 - 0:17                     literal `one`
+0:17 - 0:18                   ")"
+0:19 - 0:27               assignment: assignment_word
+0:19 - 0:20                 name: variable_name `b`
+0:20 - 0:22                 operator: assignment_append `+=`
+0:22 - 0:27                 value: array_assignment
+0:22 - 0:23                   "("
+0:23 - 0:26                   element: word
+0:23 - 0:26                     literal `two`
+0:26 - 0:27                   ")"
+0:28 - 0:35               name: declaration_name `declare`
+0:36 - 0:45               assignment: assignment_word
+0:36 - 0:37                 name: variable_name `c`
+0:37 - 0:38                 "="
+0:38 - 0:45                 value: array_assignment
+0:38 - 0:39                   "("
+0:39 - 0:44                   element: word
+0:39 - 0:44                     literal `three`
+0:44 - 0:45                   ")"
+0:45 - 1:0      "\n"
+
+==================
+redirects after an assignment preserve subsequent scalar assignments and declarations
+:language(bash_extglob)
+:cst
+==================
+x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:47     commands: list
+0:0  - 0:41       and_or: and_or
+0:0  - 0:41         pipeline: pipeline
+0:0  - 0:41           command: command
+0:0  - 0:41             body: simple_command
+0:0  - 0:7                assignment: assignment_word
+0:0  - 0:1                  name: variable_name `x`
+0:1  - 0:2                  "="
+0:2  - 0:7                  value: array_assignment
+0:2  - 0:3                    "("
+0:3  - 0:6                    element: word
+0:3  - 0:6                      literal `one`
+0:6  - 0:7                    ")"
+0:7  - 0:11               redirect: io_redirect
+0:7  - 0:11                 body: io_file
+0:7  - 0:8                    ">"
+0:8  - 0:11                   filename: word
+0:8  - 0:11                     literal `out`
+0:12 - 0:15               assignment: assignment_word
+0:12 - 0:13                 name: variable_name `c`
+0:13 - 0:14                 "="
+0:14 - 0:15                 value: assignment_value
+0:14 - 0:15                   literal `z`
+0:16 - 0:21               redirect: io_redirect
+0:16 - 0:17                 number: io_number `2`
+0:17 - 0:21                 body: io_file
+0:17 - 0:18                   ">"
+0:18 - 0:21                   filename: word
+0:18 - 0:21                     literal `err`
+0:22 - 0:29               name: declaration_name `declare`
+0:30 - 0:34               assignment: assignment_word
+0:30 - 0:31                 name: variable_name `a`
+0:31 - 0:32                 "="
+0:32 - 0:34                 value: assignment_value
+0:32 - 0:34                   parameter_expansion
+0:32 - 0:33                     "$"
+0:33 - 0:34                     parameter: variable_name `v`
+0:35 - 0:41               assignment: assignment_word
+0:35 - 0:36                 name: variable_name `b`
+0:36 - 0:38                 operator: assignment_append `+=`
+0:38 - 0:41                 value: assignment_value
+0:38 - 0:39                   tilde_expansion
+0:38 - 0:39                     "~"
+0:39 - 0:41                   literal `/p`
+0:41 - 0:42       separator: separator_op
+0:41 - 0:42         ";"
+0:43 - 0:47       and_or: and_or
+0:43 - 0:47         pipeline: pipeline
+0:43 - 0:47           command: command
+0:43 - 0:47             body: simple_command
+0:43 - 0:47               assignment: assignment_word
+0:43 - 0:44                 name: variable_name `y`
+0:44 - 0:45                 "="
+0:45 - 0:47                 value: array_assignment
+0:45 - 0:46                   "("
+0:46 - 0:47                   ")"
+0:47 - 1:0      "\n"
+
+==================
+parenthesized assignment subscripts take precedence over function names: "a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }\n"
+:language(bash_extglob)
+:cst
+==================
+a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:59     commands: list
+0:0  - 0:10       and_or: and_or
+0:0  - 0:10         pipeline: pipeline
+0:0  - 0:10           command: command
+0:0  - 0:10             body: simple_command
+0:0  - 0:10               assignment: assignment_word
+0:0  - 0:1                  name: variable_name `a`
+0:1  - 0:8                  subscript: array_subscript
+0:1  - 0:2                    "["
+0:2  - 0:7                    source: subscript_source
+0:2  - 0:7                      candidate: parenthesized_arithmetic_candidate
+0:2  - 0:3                        "("
+0:3  - 0:6                        expression: arithmetic_candidate_binary_expression
+0:3  - 0:4                          left: arithmetic_candidate_variable `i`
+0:4  - 0:5                          operator: arithmetic_candidate_operator `+`
+0:5  - 0:6                          right: arithmetic_candidate_number `1`
+0:6  - 0:7                        ")"
+0:7  - 0:8                    "]"
+0:8  - 0:9                  "="
+0:9  - 0:10                 value: assignment_value
+0:9  - 0:10                   literal `x`
+0:10 - 0:11       separator: separator_op
+0:10 - 0:11         ";"
+0:12 - 0:25       and_or: and_or
+0:12 - 0:25         pipeline: pipeline
+0:12 - 0:25           command: command
+0:12 - 0:25             body: simple_command
+0:12 - 0:25               assignment: assignment_word
+0:12 - 0:13                 name: variable_name `a`
+0:13 - 0:22                 subscript: array_subscript
+0:13 - 0:14                   "["
+0:14 - 0:21                   source: subscript_source
+0:15 - 0:20                     candidate: parenthesized_arithmetic_candidate
+0:15 - 0:16                       "("
+0:16 - 0:19                       expression: arithmetic_candidate_binary_expression
+0:16 - 0:17                         left: arithmetic_candidate_variable `j`
+0:17 - 0:18                         operator: arithmetic_candidate_operator `+`
+0:18 - 0:19                         right: arithmetic_candidate_number `2`
+0:19 - 0:20                       ")"
+0:21 - 0:22                   "]"
+0:22 - 0:24                 operator: assignment_append `+=`
+0:24 - 0:25                 value: assignment_value
+0:24 - 0:25                   literal `y`
+0:25 - 0:26       separator: separator_op
+0:25 - 0:26         ";"
+0:27 - 0:43       and_or: and_or
+0:27 - 0:43         pipeline: pipeline
+0:27 - 0:43           command: command
+0:27 - 0:43             body: function_definition
+0:27 - 0:33               name: function_name `a[(x)]`
+0:34 - 0:35               "("
+0:35 - 0:36               ")"
+0:37 - 0:43               body: function_body
+0:37 - 0:43                 body: brace_group
+0:37 - 0:38                   "{"
+0:38 - 0:41                   body: list
+0:39 - 0:40                     and_or: and_or
+0:39 - 0:40                       pipeline: pipeline
+0:39 - 0:40                         command: command
+0:39 - 0:40                           body: simple_command
+0:39 - 0:40                             name: word
+0:39 - 0:40                               literal `:`
+0:40 - 0:41                     terminator: separator
+0:40 - 0:41                       operator: separator_op
+0:40 - 0:41                         ";"
+0:42 - 0:43                   "}"
+0:43 - 0:44       separator: separator_op
+0:43 - 0:44         ";"
+0:45 - 0:59       and_or: and_or
+0:45 - 0:59         pipeline: pipeline
+0:45 - 0:59           command: command
+0:45 - 0:59             body: function_definition
+0:45 - 0:49               name: function_name `a[ ]`
+0:50 - 0:51               "("
+0:51 - 0:52               ")"
+0:53 - 0:59               body: function_body
+0:53 - 0:59                 body: brace_group
+0:53 - 0:54                   "{"
+0:54 - 0:57                   body: list
+0:55 - 0:56                     and_or: and_or
+0:55 - 0:56                       pipeline: pipeline
+0:55 - 0:56                         command: command
+0:55 - 0:56                           body: simple_command
+0:55 - 0:56                             name: word
+0:55 - 0:56                               literal `:`
+0:56 - 0:57                     terminator: separator
+0:56 - 0:57                       operator: separator_op
+0:56 - 0:57                         ";"
+0:58 - 0:59                   "}"
+0:59 - 1:0      "\n"
+
+==================
+parenthesized assignment subscripts take precedence over function names rejects "a[ () { :; }\n"
+:language(bash_extglob)
+:error
+==================
+a[ () { :; }
+
+------------------

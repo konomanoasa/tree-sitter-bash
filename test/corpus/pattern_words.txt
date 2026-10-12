@@ -1,0 +1,403 @@
+==================
+Reserved punctuation separates groups and extglob
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+[[ ((x)) ]]
+! ( : )
+!(x|y)
+[[ !(x|y) && ! (x) ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_group
+              (conditional_group
+                (word
+                  (literal))))
+            (conditional_close)))))
+    (and_or
+      (pipeline
+        (bang)
+        (command
+          (subshell
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal)))))))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))))))
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (word
+                (extglob_pattern
+                  (extglob_operator)
+                  (extglob_alternative
+                    (literal))
+                  (extglob_alternative
+                    (literal))))
+              (and_if)
+              (conditional_negation
+                (conditional_not)
+                (conditional_group
+                  (word
+                    (literal)))))
+            (conditional_close)))))))
+
+==================
+special parameter spellings before extglob patterns are literal dollars
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+$@(a) $!(b|c)x
+$?(d)() { :; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal)))
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (function_definition
+            (function_name)
+            (function_body
+              (brace_group
+                (list
+                  (and_or
+                    (pipeline
+                      (command
+                        (simple_command
+                          (word
+                            (literal))))))
+                  (separator
+                    (separator_op)))))))))))
+
+==================
+extglob kinds and nesting
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))))
+            (word
+              (extglob_pattern
+                (extglob_operator)))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (literal))))))))))
+
+==================
+extglob source delimiters
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))
+                (extglob_alternative
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)
+                      (pattern_bracket_character_source))))
+                (extglob_alternative
+                  (double_quoted
+                    (double_quote_text)))
+                (extglob_alternative
+                  (escaped_character))
+                (extglob_alternative
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (literal))))))))))
+                (extglob_alternative
+                  (parameter_expansion
+                    (variable_name)))))
+            (word
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal)
+                  (extglob_group
+                    (extglob_alternative
+                      (literal))
+                    (extglob_alternative
+                      (literal))))))))))))
+
+==================
+bracket negation
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo [^a] [!a]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_negation_source)
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (pattern_bracket_source
+                (pattern_bracket_negation_source)
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))))))))
+
+==================
+Dollar-prefixed extglobs retain literal prefixes and pattern operators
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+: $@(a) $?(b)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word (literal))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative (literal))))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative (literal))))))))))
+
+==================
+extglob suffixes stay in command words beside function definitions
+:language(bash_extglob)
+:cst
+==================
+a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:56     commands: list
+0:0  - 0:14       and_or: and_or
+0:0  - 0:14         pipeline: pipeline
+0:0  - 0:14           command: command
+0:0  - 0:14             body: simple_command
+0:0  - 0:10               name: word
+0:0  - 0:1                  literal `a`
+0:1  - 0:4                  pattern_bracket_source
+0:1  - 0:2                    "["
+0:2  - 0:3                    members: pattern_bracket_members_source
+0:2  - 0:3                      member: pattern_bracket_character_source ` `
+0:3  - 0:4                    "]"
+0:4  - 0:10                 extglob_pattern
+0:4  - 0:5                    operator: extglob_operator `@`
+0:5  - 0:6                    "("
+0:6  - 0:7                    alternative: extglob_alternative
+0:6  - 0:7                      literal `x`
+0:7  - 0:8                    "|"
+0:8  - 0:9                    alternative: extglob_alternative
+0:8  - 0:9                      literal `y`
+0:9  - 0:10                   ")"
+0:11 - 0:14               argument: word
+0:11 - 0:14                 literal `arg`
+0:14 - 0:15       separator: separator_op
+0:14 - 0:15         ";"
+0:16 - 0:27       and_or: and_or
+0:16 - 0:27         pipeline: pipeline
+0:16 - 0:27           command: command
+0:16 - 0:27             body: simple_command
+0:16 - 0:23               name: word
+0:16 - 0:17                 literal `x`
+0:17 - 0:23                 extglob_pattern
+0:17 - 0:18                   operator: extglob_operator `@`
+0:18 - 0:19                   "("
+0:19 - 0:20                   alternative: extglob_alternative
+0:19 - 0:20                     literal `a`
+0:20 - 0:21                   "|"
+0:21 - 0:22                   alternative: extglob_alternative
+0:21 - 0:22                     literal `b`
+0:22 - 0:23                   ")"
+0:24 - 0:27               argument: word
+0:24 - 0:27                 literal `arg`
+0:27 - 0:28       separator: separator_op
+0:27 - 0:28         ";"
+0:29 - 0:41       and_or: and_or
+0:29 - 0:41         pipeline: pipeline
+0:29 - 0:41           command: command
+0:29 - 0:41             body: function_definition
+0:29 - 0:31               name: function_name `f+`
+0:32 - 0:33               "("
+0:33 - 0:34               ")"
+0:35 - 0:41               body: function_body
+0:35 - 0:41                 body: brace_group
+0:35 - 0:36                   "{"
+0:36 - 0:39                   body: list
+0:37 - 0:38                     and_or: and_or
+0:37 - 0:38                       pipeline: pipeline
+0:37 - 0:38                         command: command
+0:37 - 0:38                           body: simple_command
+0:37 - 0:38                             name: word
+0:37 - 0:38                               literal `:`
+0:38 - 0:39                     terminator: separator
+0:38 - 0:39                       operator: separator_op
+0:38 - 0:39                         ";"
+0:40 - 0:41                   "}"
+0:41 - 0:42       separator: separator_op
+0:41 - 0:42         ";"
+0:43 - 0:56       and_or: and_or
+0:43 - 0:56         pipeline: pipeline
+0:43 - 0:56           command: command
+0:43 - 0:56             body: function_definition
+0:43 - 0:47               name: function_name `'f@'`
+0:47 - 0:48               "("
+0:48 - 0:49               ")"
+0:50 - 0:56               body: function_body
+0:50 - 0:56                 body: brace_group
+0:50 - 0:51                   "{"
+0:51 - 0:54                   body: list
+0:52 - 0:53                     and_or: and_or
+0:52 - 0:53                       pipeline: pipeline
+0:52 - 0:53                         command: command
+0:52 - 0:53                           body: simple_command
+0:52 - 0:53                             name: word
+0:52 - 0:53                               literal `:`
+0:53 - 0:54                     terminator: separator
+0:53 - 0:54                       operator: separator_op
+0:53 - 0:54                         ";"
+0:55 - 0:56                   "}"
+0:56 - 1:0      "\n"
+
+==================
+extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"
+:language(bash_extglob)
+:error
+==================
+echo @([)])
+
+------------------

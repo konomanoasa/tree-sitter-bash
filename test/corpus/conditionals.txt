@@ -1,0 +1,1002 @@
+==================
+conditional words retain adjacent operators and closing spellings
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ a[k]=~ && -n $x]] && $x]] == "x"=~ ]]
+[[ "x"-eq ]]; [[ x =~ "]]" ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (conditional_and_expression
+                (word
+                  (literal)
+                  (pattern_bracket_source
+                    (pattern_bracket_members_source
+                      (pattern_bracket_character_source)))
+                  (literal))
+                (and_if)
+                (conditional_unary_expression
+                  (conditional_unary_operator)
+                  (word
+                    (parameter_expansion
+                      (variable_name))
+                    (literal))))
+              (and_if)
+              (conditional_binary_expression
+                (word
+                  (parameter_expansion
+                    (variable_name))
+                  (literal))
+                (conditional_match_operator)
+                (conditional_pattern
+                  (double_quoted
+                    (double_quote_text))
+                  (literal))))
+            (conditional_close)))))
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (word
+              (double_quoted
+                (double_quote_text))
+              (literal))
+            (conditional_close)))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (double_quoted
+                    (double_quote_text)))))
+            (conditional_close)))))))
+
+==================
+conditional punctuation still separates words without blanks
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x<y && ("x">"y") || x==y ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_or_expression
+              (conditional_and_expression
+                (conditional_binary_expression
+                  (word
+                    (literal))
+                  (conditional_binary_operator)
+                  (word
+                    (literal)))
+                (and_if)
+                (conditional_group
+                  (conditional_binary_expression
+                    (word
+                      (double_quoted
+                        (double_quote_text)))
+                    (conditional_binary_operator)
+                    (word
+                      (double_quoted
+                        (double_quote_text))))))
+              (or_if)
+              (word
+                (literal)
+                (literal)))
+            (conditional_close)))))))
+
+==================
+conditional precedence
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x -eq 2 || ( -n y && -z z ) ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_or_expression
+              (conditional_binary_expression
+                (word
+                  (literal ))
+                (conditional_binary_operator )
+                (word
+                  (literal )))
+              (or_if )
+              (conditional_group
+                (conditional_and_expression
+                  (conditional_unary_expression
+                    (conditional_unary_operator )
+                    (word
+                      (literal )))
+                  (and_if )
+                  (conditional_unary_expression
+                    (conditional_unary_operator )
+                    (word
+                      (literal))))))
+            (conditional_close)))))))
+
+==================
+conditional comparison and pattern
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ $x == @(a|b) && ! -f "$p" ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (conditional_binary_expression
+                (word
+                  (parameter_expansion
+                    (variable_name )))
+                (conditional_match_operator )
+                (conditional_pattern
+                  (extglob_pattern
+                    (extglob_operator )
+                    (extglob_alternative
+                      (literal ))
+                    (extglob_alternative
+                      (literal )))))
+              (and_if )
+              (conditional_negation
+                (conditional_not )
+                (conditional_unary_expression
+                  (conditional_unary_operator )
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)))))))
+            (conditional_close)))))))
+
+==================
+conditional compact ordering
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x<y && x>z ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (conditional_binary_expression
+                (word
+                  (literal ))
+                (conditional_binary_operator )
+                (word
+                  (literal )))
+              (and_if )
+              (conditional_binary_expression
+                (word
+                  (literal ))
+                (conditional_binary_operator )
+                (word
+                  (literal))))
+            (conditional_close)))))))
+
+==================
+conditional line breaks
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[
+ -n "$x" &&
+ $x != *.txt
+]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (conditional_unary_expression
+                (conditional_unary_operator )
+                (word
+                  (double_quoted
+                    (parameter_expansion
+                      (variable_name )))))
+              (and_if )
+              (conditional_binary_expression
+                (word
+                  (parameter_expansion
+                    (variable_name )))
+                (conditional_match_operator )
+                (conditional_pattern
+                  (pattern_star_source )
+                  (literal))))
+            (conditional_close)))))))
+
+==================
+conditional comments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ # comment
+x ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (comment
+              (comment_text ))
+            (word
+              (literal))
+            (conditional_close)))))))
+
+==================
+conditional literal braces
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ x == {a,b} ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal ))
+              (conditional_match_operator )
+              (conditional_pattern
+                (literal)))
+            (conditional_close)))))))
+
+==================
+conditional quoted operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ "!" == "-n" ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (double_quoted
+                  (double_quote_text )))
+              (conditional_match_operator )
+              (conditional_pattern
+                (double_quoted
+                  (double_quote_text))))
+            (conditional_close)))))))
+
+==================
+conditional word argument
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo [[ x ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (word
+              (literal ))))))))
+
+==================
+conditional simple tests
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+test "$x" = y; [ -n "$x" ]; let "x++"
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name ))))
+            (word
+              (literal ))
+            (word
+              (literal ))))))
+    (separator_op )
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (word
+              (literal ))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name ))))
+            (word
+              (literal ))))))
+    (separator_op )
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (word
+              (double_quoted
+                (double_quote_text )))))))))
+
+==================
+conditional newlines follow negation, groups, and complete terms
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ !
+( -n a
+) &&
+b == c
+]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (conditional_negation
+                (conditional_not)
+                (conditional_group
+                  (conditional_unary_expression
+                    (conditional_unary_operator)
+                    (word
+                      (literal)))))
+              (and_if)
+              (conditional_binary_expression
+                (word
+                  (literal))
+                (conditional_match_operator)
+                (conditional_pattern
+                  (literal))))
+            (conditional_close)))))))
+
+==================
+conditionals preserve condition consequence and alternatives
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (if_clause
+            (if_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name))))))))
+              terminator: (separator
+                operator: (separator_op)))
+            (then_keyword)
+            consequence: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              terminator: (separator
+                operator: (separator_op)))
+            alternative: (else_part
+              (elif_keyword)
+              condition: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))
+                        argument: (word
+                          (double_quoted
+                            (parameter_expansion
+                              parameter: (variable_name))))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (then_keyword)
+              consequence: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              alternative: (else_part
+                (else_keyword)
+                body: (list
+                  and_or: (and_or
+                    pipeline: (pipeline
+                      command: (command
+                        body: (simple_command
+                          name: (word
+                            (literal))
+                          argument: (word
+                            (literal))))))
+                  terminator: (separator
+                    operator: (separator_op)))))
+            (fi_keyword)))))))
+
+==================
+Conditional pattern forces nested extglob with extquote enabled
+:language(bash)
+:language(bash_extglob)
+==================
+[[ a == $(: <<@("${x:-$'ab'}"|c)
+body
+@("${x:-ab}"|c)
+) ]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (conditional_command
+            (conditional_open)
+            condition: (conditional_binary_expression
+              left: (word
+                (literal))
+              operator: (conditional_match_operator)
+              right: (conditional_pattern
+                (command_substitution
+                  body: (command_substitution_body
+                    (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              redirect: (io_redirect
+                                body: (io_here
+                                  operator: (dless)
+                                  end: (here_end
+                                    word: (word
+                                      (extglob_pattern
+                                        operator: (extglob_operator)
+                                        alternative: (extglob_alternative
+                                          (double_quoted
+                                            (parameter_expansion
+                                              parameter: (variable_name)
+                                              operator: (parameter_value_operator)
+                                              word: (parameter_word
+                                                (dollar_single_quoted
+                                                  (dollar_single_quote_text))))))
+                                        alternative: (extglob_alternative
+                                          (literal))))))))))))
+                    (here_document_sequence
+                      line_end: (here_document_line_end)
+                      document: (here_document
+                        body: (here_document_body
+                          (here_document_text))
+                        end: (here_document_end
+                          (here_document_end_text))))))))
+            (conditional_close)))))))
+
+==================
+Conditional pattern forces nested extglob with extquote disabled
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+[[ a == $(: <<@("${x:-$'ab'}"|c)
+body
+@("${x:-$'ab'}"|c)
+) ]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (conditional_command
+            (conditional_open)
+            condition: (conditional_binary_expression
+              left: (word
+                (literal))
+              operator: (conditional_match_operator)
+              right: (conditional_pattern
+                (command_substitution
+                  body: (command_substitution_body
+                    (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              redirect: (io_redirect
+                                body: (io_here
+                                  operator: (dless)
+                                  end: (here_end
+                                    word: (word
+                                      (extglob_pattern
+                                        operator: (extglob_operator)
+                                        alternative: (extglob_alternative
+                                          (double_quoted
+                                            (parameter_expansion
+                                              parameter: (variable_name)
+                                              operator: (parameter_value_operator)
+                                              word: (parameter_word
+                                                (dollar_single_quoted
+                                                  (dollar_single_quote_text))))))
+                                        alternative: (extglob_alternative
+                                          (literal))))))))))))
+                    (here_document_sequence
+                      line_end: (here_document_line_end)
+                      document: (here_document
+                        body: (here_document_body
+                          (here_document_text))
+                        end: (here_document_end
+                          (here_document_end_text))))))))
+            (conditional_close)))))))
+
+==================
+punctuation reserved words introduce conditional groups and negated subshells
+:language(bash_extglob)
+:cst
+==================
+[[ ((x)) ]]; ! ( : )
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:20     commands: list
+0:0  - 0:11       and_or: and_or
+0:0  - 0:11         pipeline: pipeline
+0:0  - 0:11           command: command
+0:0  - 0:11             body: conditional_command
+0:0  - 0:2                conditional_open `[[`
+0:3  - 0:8                condition: conditional_group
+0:3  - 0:4                  "("
+0:4  - 0:7                  expression: conditional_group
+0:4  - 0:5                    "("
+0:5  - 0:6                    expression: word
+0:5  - 0:6                      literal `x`
+0:6  - 0:7                    ")"
+0:7  - 0:8                  ")"
+0:9  - 0:11               conditional_close `]]`
+0:11 - 0:12       separator: separator_op
+0:11 - 0:12         ";"
+0:13 - 0:20       and_or: and_or
+0:13 - 0:20         pipeline: pipeline
+0:13 - 0:14           negation: bang `!`
+0:15 - 0:20           command: command
+0:15 - 0:20             body: subshell
+0:15 - 0:16               "("
+0:16 - 0:18               body: list
+0:17 - 0:18                 and_or: and_or
+0:17 - 0:18                   pipeline: pipeline
+0:17 - 0:18                     command: command
+0:17 - 0:18                       body: simple_command
+0:17 - 0:18                         name: word
+0:17 - 0:18                           literal `:`
+0:19 - 0:20               ")"
+0:20 - 1:0      "\n"
+
+==================
+adjacent parentheses distinguish extglob from command and conditional negation
+:language(bash_extglob)
+:cst
+==================
+!(x|y); [[ !(x|y) ]]; ! ( : ); [[ ! (x) ]]
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:42     commands: list
+0:0  - 0:6        and_or: and_or
+0:0  - 0:6          pipeline: pipeline
+0:0  - 0:6            command: command
+0:0  - 0:6              body: simple_command
+0:0  - 0:6                name: word
+0:0  - 0:6                  extglob_pattern
+0:0  - 0:1                    operator: extglob_operator `!`
+0:1  - 0:2                    "("
+0:2  - 0:3                    alternative: extglob_alternative
+0:2  - 0:3                      literal `x`
+0:3  - 0:4                    "|"
+0:4  - 0:5                    alternative: extglob_alternative
+0:4  - 0:5                      literal `y`
+0:5  - 0:6                    ")"
+0:6  - 0:7        separator: separator_op
+0:6  - 0:7          ";"
+0:8  - 0:20       and_or: and_or
+0:8  - 0:20         pipeline: pipeline
+0:8  - 0:20           command: command
+0:8  - 0:20             body: conditional_command
+0:8  - 0:10               conditional_open `[[`
+0:11 - 0:17               condition: word
+0:11 - 0:17                 extglob_pattern
+0:11 - 0:12                   operator: extglob_operator `!`
+0:12 - 0:13                   "("
+0:13 - 0:14                   alternative: extglob_alternative
+0:13 - 0:14                     literal `x`
+0:14 - 0:15                   "|"
+0:15 - 0:16                   alternative: extglob_alternative
+0:15 - 0:16                     literal `y`
+0:16 - 0:17                   ")"
+0:18 - 0:20               conditional_close `]]`
+0:20 - 0:21       separator: separator_op
+0:20 - 0:21         ";"
+0:22 - 0:29       and_or: and_or
+0:22 - 0:29         pipeline: pipeline
+0:22 - 0:23           negation: bang `!`
+0:24 - 0:29           command: command
+0:24 - 0:29             body: subshell
+0:24 - 0:25               "("
+0:25 - 0:27               body: list
+0:26 - 0:27                 and_or: and_or
+0:26 - 0:27                   pipeline: pipeline
+0:26 - 0:27                     command: command
+0:26 - 0:27                       body: simple_command
+0:26 - 0:27                         name: word
+0:26 - 0:27                           literal `:`
+0:28 - 0:29               ")"
+0:29 - 0:30       separator: separator_op
+0:29 - 0:30         ";"
+0:31 - 0:42       and_or: and_or
+0:31 - 0:42         pipeline: pipeline
+0:31 - 0:42           command: command
+0:31 - 0:42             body: conditional_command
+0:31 - 0:33               conditional_open `[[`
+0:34 - 0:39               condition: conditional_negation
+0:34 - 0:35                 operator: conditional_not `!`
+0:36 - 0:39                 operand: conditional_group
+0:36 - 0:37                   "("
+0:37 - 0:38                   expression: word
+0:37 - 0:38                     literal `x`
+0:38 - 0:39                   ")"
+0:40 - 0:42               conditional_close `]]`
+0:42 - 1:0      "\n"
+
+==================
+conditional precedence owns pattern and regex operands
+:language(bash_extglob)
+:cst
+==================
+[[ x == @(a|b) || y =~ (c|d) && ! -n "$z" ]]
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:44     commands: list
+0:0  - 0:44       and_or: and_or
+0:0  - 0:44         pipeline: pipeline
+0:0  - 0:44           command: command
+0:0  - 0:44             body: conditional_command
+0:0  - 0:2                conditional_open `[[`
+0:3  - 0:41               condition: conditional_or_expression
+0:3  - 0:14                 left: conditional_binary_expression
+0:3  - 0:4                    left: word
+0:3  - 0:4                      literal `x`
+0:5  - 0:7                    operator: conditional_match_operator `==`
+0:8  - 0:14                   right: conditional_pattern
+0:8  - 0:14                     extglob_pattern
+0:8  - 0:9                        operator: extglob_operator `@`
+0:9  - 0:10                       "("
+0:10 - 0:11                       alternative: extglob_alternative
+0:10 - 0:11                         literal `a`
+0:11 - 0:12                       "|"
+0:12 - 0:13                       alternative: extglob_alternative
+0:12 - 0:13                         literal `b`
+0:13 - 0:14                       ")"
+0:15 - 0:17                 operator: or_if `||`
+0:18 - 0:41                 right: conditional_and_expression
+0:18 - 0:28                   left: conditional_binary_expression
+0:18 - 0:19                     left: word
+0:18 - 0:19                       literal `y`
+0:20 - 0:22                     operator: conditional_regex_operator `=~`
+0:23 - 0:28                     right: regex_operand
+0:23 - 0:28                       expression: extended_reg_exp
+0:23 - 0:28                         ere_branch
+0:23 - 0:28                           ere_expression
+0:23 - 0:24                             "("
+0:24 - 0:27                             expression: extended_reg_exp
+0:24 - 0:25                               ere_branch
+0:24 - 0:25                                 ere_expression
+0:24 - 0:25                                   one_char_or_coll_elem_ere
+0:24 - 0:25                                     ordinary_character `c`
+0:25 - 0:26                               "|"
+0:26 - 0:27                               ere_branch
+0:26 - 0:27                                 ere_expression
+0:26 - 0:27                                   one_char_or_coll_elem_ere
+0:26 - 0:27                                     ordinary_character `d`
+0:27 - 0:28                             ")"
+0:29 - 0:31                   operator: and_if `&&`
+0:32 - 0:41                   right: conditional_negation
+0:32 - 0:33                     operator: conditional_not `!`
+0:34 - 0:41                     operand: conditional_unary_expression
+0:34 - 0:36                       operator: conditional_unary_operator `-n`
+0:37 - 0:41                       operand: word
+0:37 - 0:41                         double_quoted
+0:37 - 0:38                           "\""
+0:38 - 0:40                           parameter_expansion
+0:38 - 0:39                             "$"
+0:39 - 0:40                             parameter: variable_name `z`
+0:40 - 0:41                           "\""
+0:42 - 0:44               conditional_close `]]`
+0:44 - 1:0      "\n"
+
+==================
+command boundaries reject "[[ a\n]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a
+]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ a # comment\n]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a # comment
+]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ a\n== b ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a
+== b ]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ a ==\nb ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a ==
+b ]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ a =~\nb ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a =~
+b ]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ -n\na ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ -n
+a ]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ ! a\n]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ ! a
+]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ ( a\n) ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ ( a
+) ]]
+
+------------------
+
+
+
+==================
+command boundaries reject "[[ a\n&& b ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ a
+&& b ]]
+
+------------------
+
+
+
+==================
+conditional missing operand "[[ x == ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ x == ]]
+
+------------------
+
+
+
+==================
+conditional missing end "[[ x == y\n"
+:language(bash_extglob)
+:error
+==================
+[[ x == y
+
+------------------
+
+
+
+==================
+conditional unary requires operand "[[ -n ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ -n ]]
+
+------------------
+
+
+
+==================
+conditional misplaced operator "[[ x -eq ]]\n"
+:language(bash_extglob)
+:error
+==================
+[[ x -eq ]]
+
+------------------

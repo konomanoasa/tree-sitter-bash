@@ -19,6 +19,36 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
+    test("pipe timing boundaries survive layout edits and nested sources", () => {
+      for (const [seed, remove, insert] of [
+        [": |\ntime x\n", "|", "|&"],
+        [": |\ntime x\n", "\n", "\n\n"],
+        [": | # c\ntime x\n", "# c\n", "# c\n# d\n"],
+        [": |&\\\ntime x\n", "\\\n", "\n"],
+        [": |\nti\\\nme x\n", "|", "|&"],
+        [": |\0\nti\0me x\n", "|", "|&"],
+        [': |&\n"time" x\n', '"time"', "time"],
+        [": |&\nx=1 time x\n", "x=1 ", ""],
+        [": |&\n>/dev/null time x\n", ">/dev/null ", ""],
+        [": |\ntime() { :; }\n", "|", "|&"],
+        [": <<E |\n$(time :)\nE\ntime x\n", "|", "|&"],
+        [": <<'E' |\nbody\nE\ntime x\n", "|", "|&"],
+        [": <<E <<F |\n$(echo x)\nE\nbody\nF\ntime x\n", "|", "|&"],
+        [': "$(echo x |\ntime x)"\n', "|", "|&"],
+        [": <(echo x |\ntime x)\n", "|", "|&"],
+        [`: \${ echo x |\ntime x; }\n`, "|", "|&"],
+        [": `echo x |\ntime x`\n", "|", "|&"],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
+        const edit = {
+          byte: Buffer.byteLength(seed.slice(0, seed.indexOf(remove))),
+          deleteBytes: Buffer.byteLength(remove),
+          insert,
+        };
+        const incremental = parser.parse(seed, { edits: [edit] });
+        assert.equal(incremental.status, 1, incremental.output);
+      }
+    });
     test("word loop headers remain deterministic and repair across body boundaries", () => {
       for (const [seed, remove, insert, valid] of [
         [
@@ -193,6 +223,115 @@ for (const grammar of grammars) {
       }
     });
 
+    test("process substitutions in function names preserve their source spelling", () => {
+      for (const [source, name] of [
+        ["<(:)() { :; }\n", "<(:)"],
+        ["function a>(:) { :; }\n", "a>(:)"],
+        ["function <(:)z() { :; }\n", "<(:)z"],
+        ["a<(:)>(:)=b() { :; }\n", "a<(:)>(:)=b"],
+        ["if<(:)() { :; }\n", "if<(:)"],
+        ["<(printf '%s' ')')() { :; }\n", "<(printf '%s' ')')"],
+        ["<(cat <(echo x))() { :; }\n", "<(cat <(echo x))"],
+        ["<(cat <<E\n)\nE\n)() { :; }\n", "<(cat <<E\n)\nE\n)"],
+        ["<\\\n(:)() { :; }\n", "<\\\n(:)"],
+      ]) {
+        const actual = nodes(source);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "function_name")
+            .map(({ field, text }) => [field, text]),
+          [["name", name]],
+          source,
+        );
+        assert.deepEqual(
+          actual.filter(({ type }) => type === "process_substitution"),
+          [],
+          source,
+        );
+      }
+    });
+
+    test("embedded lookahead keeps process substitution function names whole", () => {
+      const name = "<(printf '%s' ')')";
+      const definition = `${name}() { :; }`;
+      for (const source of [
+        `if false; then ${definition}; fi\n`,
+        `: $(${definition}; :)\n`,
+        `: "$(${definition}; :)"\n`,
+        `: \${x:-$(${definition}; :)}\n`,
+        `: {a,$(${definition}; :)}\n`,
+        `: <(${definition}; :)\n`,
+        `: $((1 + $(${definition}; :)))\n`,
+        `: \`${definition}; :\`\n`,
+      ]) {
+        assert.deepEqual(
+          nodes(source)
+            .filter(({ type }) => type === "function_name")
+            .map(({ text }) => text),
+          [name],
+          source,
+        );
+      }
+    });
+
+    test("function name process substitutions respect extglob configuration", () => {
+      const source =
+        "<(:)@(a)() { :; }; @(a)>(:)() { :; }; function a<(:)@(b) { :; }\n";
+      if (extglob) {
+        assert.deepEqual(
+          nodes(source)
+            .filter(({ type }) => type === "function_name")
+            .map(({ text }) => text),
+          ["<(:)@(a)", "@(a)>(:)", "a<(:)@(b)"],
+        );
+      } else {
+        assert.equal(parser.parse(source, {}).status, 1);
+      }
+    });
+
+    test("process substitution function names stop at shell word boundaries", () => {
+      const actual = nodes("<(:)\nx=<(:)\na<(:) word\nf<(:)() { :; } >out\n");
+      assert.deepEqual(
+        actual
+          .filter(({ type }) => type === "function_name")
+          .map(({ text }) => text),
+        ["f<(:)"],
+      );
+      assert.deepEqual(
+        actual
+          .filter(({ type }) => type === "process_substitution")
+          .map(({ text }) => text),
+        ["<(:)", "<(:)", "<(:)"],
+      );
+      assert.equal(
+        actual.find(({ type }) => type === "function_body")?.text,
+        "{ :; } >out",
+      );
+      for (const source of [
+        "< (:)() { :; }\n",
+        "<(:) >out () { :; }\n",
+        "<(:) extra() { :; }\n",
+        "x=<(:)() { :; }\n",
+      ]) {
+        assert.equal(parser.parse(source, {}).status, 1, source);
+      }
+    });
+
+    test("process substitution function name edits match fresh parses and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["run() { :; } >out\n", "run", "a<(:)", true],
+        ["<(:)() { :; }\n", "<", ">", true],
+        ["<(:)() { :; }\n", ":)", ":", false],
+        ["function <(:) { :; }\n", "<(:)", "run", true],
+        ["<(printf '%s' ')')() { :; }\n", "')'", "')", false],
+        ["<\\\n(:)() { :; }\n", "\\\n", " ", false],
+        ["<(:)() { :; }\n", "() { :; }", "argument", true],
+        ["<(:)() { :; }\n", "<(:)", "<(:)@(a)", extglob],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
     if (grammar.name === "bash_extglob") {
       test("comment becomes a command", () => {
         assertEditRoundTrip(parser, {
@@ -201,72 +340,6 @@ for (const grammar of grammars) {
           insert: "",
           valid: true,
         });
-      });
-
-      test("punctuation reserved words introduce conditional groups and negated subshells", () => {
-        const actual = nodes("[[ ((x)) ]]; ! ( : )\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "conditional_group")
-            .map(({ text }) => text),
-          ["((x))", "(x)"],
-        );
-        assert.equal(actual.find(({ type }) => type === "bang")?.text, "!");
-        assert.equal(
-          actual.filter(({ type }) => type === "function_definition").length,
-          0,
-        );
-      });
-
-      test("escaped command and function names advance through each source escape", () => {
-        const actual = nodes(
-          "\\if arg; \\! () { :; }; function f\\ name { :; }\n",
-        );
-        assert.ok(
-          actual.some(
-            ({ type, field, text }) =>
-              type === "word" && field === "name" && text === "\\if",
-          ),
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "function_name")
-            .map(({ text }) => text),
-          ["\\!", "f\\ name"],
-        );
-      });
-
-      test("quoted and explicit function names retain reserved spellings", () => {
-        const actual = nodes(
-          '"[[" () { :; }; "!" () { :; }; function } { :; }; function then { :; }\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "function_name")
-            .map(({ text }) => text),
-          ['"[["', '"!"', "}", "then"],
-        );
-      });
-
-      test("function names accept non-assignment equals signs and extglob patterns", () => {
-        const actual = nodes(
-          "=a() { :; }; 1=a() { :; }; a-b=c() { :; }; a[1]x=y() { :; }; a++=b() { :; }; @(a)() { :; }; x@(a|b)y () { :; }; function @(a) { :; }\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "function_name")
-            .map(({ text }) => text),
-          [
-            "=a",
-            "1=a",
-            "a-b=c",
-            "a[1]x=y",
-            "a++=b",
-            "@(a)",
-            "x@(a|b)y",
-            "@(a)",
-          ],
-        );
       });
 
       test("time is a command or function name after a pipe", () => {
@@ -289,17 +362,6 @@ for (const grammar of grammars) {
             .map(({ text }) => text),
           ["ti\\\nme"],
         );
-      });
-
-      test("quoted negation and joined substitutions remain pipeline command words", () => {
-        const actual = nodes(': | "!" : |& \\! : | !(x|y) | !<(:)\n');
-        assert.deepEqual(
-          actual
-            .filter(({ type, field }) => type === "word" && field === "name")
-            .map(({ text }) => text),
-          [":", '"!"', "\\!", "!(x|y)", "!<(:)", ":"],
-        );
-        assert.equal(actual.filter(({ type }) => type === "bang").length, 0);
       });
 
       test("conditional words keep adjacent operator and closing spellings", () => {
@@ -367,20 +429,6 @@ for (const grammar of grammars) {
         }
       });
 
-      test("conditional closing words remain words outside command position", () => {
-        assert.deepEqual(
-          nodes("x=1 ]]; echo ]] >]]\n")
-            .filter(({ type }) => type === "word")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["name", "]]"],
-            ["name", "echo"],
-            ["argument", "]]"],
-            ["filename", "]]"],
-          ],
-        );
-      });
-
       test("conditional closing words cannot serve as operands", () => {
         for (const prefix of [
           "",
@@ -433,55 +481,6 @@ for (const grammar of grammars) {
         });
       }
 
-      for (const source of [
-        ": | ! :\n",
-        ": |& ! :\n",
-        ": | !\n",
-        ": |& !\n",
-        "! && :\n",
-        "! || :\n",
-        "! | :\n",
-        "!\n&& :\n",
-        "echo $(!)\n",
-        "f() { ! }\n",
-        "case x in x) !;; esac\n",
-        "case x in x) !;& esac\n",
-        "! () { :; }\n",
-        "[[ () { :; }\n",
-        "{ () { :; }\n",
-        "} () { :; }\n",
-        "]] () { :; }\n",
-        "a+=b() { :; }\n",
-        "a[1]+=b() { :; }\n",
-        "@() { :; }\n",
-        "]]\n",
-        "! ]]\n",
-        ": | ]]\n",
-        ": $(]])\n",
-        "[[ a\n]]\n",
-        "[[ a # comment\n]]\n",
-        "[[ a\n== b ]]\n",
-        "[[ a ==\nb ]]\n",
-        "[[ a =~\nb ]]\n",
-        "[[ -n\na ]]\n",
-        "[[ ! a\n]]\n",
-        "[[ ( a\n) ]]\n",
-        "[[ a\n&& b ]]\n",
-        "declare >out a=(one)\n",
-        "declare 2>out a=(one)\n",
-        "declare &>out a=(one)\n",
-        "declare {fd}>out a=(one)\n",
-        "declare <<<input a=(one)\n",
-        "declare <(echo x) a=(one)\n",
-        "declare >(echo x) a=(one)\n",
-        "declare a=(one)>out b=(two)\n",
-      ]) {
-        test(`command boundaries reject ${JSON.stringify(source)}`, () => {
-          const result = parser.parse(source, {});
-          assert.equal(result.status, 1, result.output);
-        });
-      }
-
       for (const boundary of [
         ">out",
         "2>out",
@@ -511,18 +510,6 @@ for (const grammar of grammars) {
           );
         });
       }
-
-      test("declarations survive leading redirects and substitutions inside arguments", () => {
-        const actual = nodes(
-          `>out declare pre<(echo x) a=(one) a=<(echo y) b=(two) "\${v}" c=(three)\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ text }) => text),
-          ["a=(one)", "a=<(echo y)", "b=(two)", "c=(three)"],
-        );
-      });
 
       for (const spelling of [
         "if",
@@ -563,152 +550,6 @@ for (const grammar of grammars) {
         }
       }
 
-      test("adjacent parentheses distinguish extglob from command and conditional negation", () => {
-        const actual = nodes("!(x|y); [[ !(x|y) ]]; ! ( : ); [[ ! (x) ]]\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ["!(x|y)", "!(x|y)"],
-        );
-        assert.equal(actual.filter(({ type }) => type === "bang").length, 1);
-        assert.equal(
-          actual.filter(({ type }) => type === "conditional_not").length,
-          1,
-        );
-      });
-
-      test("command roles and redirection targets retain source fields", () => {
-        const actual = nodes("A=one echo 日本語 >out\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "word")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["name", "echo"],
-            ["argument", "日本語"],
-            ["filename", "out"],
-          ],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "assignment_word")?.text,
-          "A=one",
-        );
-      });
-
-      test("arithmetic for quotes protect semicolons and closing parentheses", () => {
-        const actual = nodes("for (($'a;))';$\"b;))\";$'c\\'')); do :; done\n");
-        assert.deepEqual(
-          actual
-            .filter(({ field }) =>
-              ["initializer", "condition", "update"].includes(field),
-            )
-            .map(({ type, field, text }) => [type, field, text]),
-          [
-            ["arithmetic_source_expression", "initializer", "$'a;))'"],
-            ["arithmetic_source_expression", "condition", '$"b;))"'],
-            ["arithmetic_source_expression", "update", "$'c\\''"],
-          ],
-        );
-      });
-
-      test("parenthesized assignment subscripts take precedence over function names", () => {
-        const actual = nodes(
-          "a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ text }) => text),
-          ["a[(i+1)]=x", "a[ (j+2) ]+=y"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "function_name")
-            .map(({ text }) => text),
-          ["a[(x)]", "a[ ]"],
-        );
-        assert.equal(parser.parse("a[ () { :; }\n", {}).status, 1);
-      });
-
-      test("declaration subscripts respect ordinary word and command boundaries", () => {
-        const actual = nodes(
-          'declare a[x y]=z b["x y"]=v; declare a[x; echo next\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ text }) => text),
-          ['b["x y"]=v'],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          ["a[x", "y]=z", "a[x", "next"],
-        );
-        assert.equal(parser.parse("declare a[(i+1)]=x\n", {}).status, 1);
-      });
-
-      test("command-name subscripts retain whitespace and operators in one word", () => {
-        const actual = nodes(
-          "a[ ] one; a[(x)] two; a[;|\n)] three; a[(] four\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type, field }) => type === "word" && field === "name")
-            .map(({ text }) => text),
-          ["a[ ]", "a[(x)]", "a[;|\n)]", "a[(]"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          ["one", "two", "three", "four"],
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "pattern_bracket_source").length,
-          4,
-        );
-        assert.ok(
-          !actual.some(
-            ({ type }) => type === "array_subscript" || type === "subshell",
-          ),
-        );
-      });
-
-      test("command-name subscript boundaries stop at the first lexical bracket pair", () => {
-        const actual = nodes(
-          'a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\\[ ] tail; 1a[ ] tail; a-b[ ] tail\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type, field }) => type === "word" && field === "name")
-            .map(({ text }) => text),
-          ["a[x][", "a[]", "echo", '"a"[', "a\\[", "1a[", "a-b["],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          [
-            "]",
-            "tail",
-            "next",
-            "a[",
-            "]",
-            "]",
-            "tail",
-            "]",
-            "tail",
-            "]",
-            "tail",
-            "]",
-            "tail",
-          ],
-        );
-      });
-
       test("command-name subscript source retains quotes expansions and physical ranges", () => {
         const source = 'a["x y"$p$(printf x)日本\\\n ]suffix tail\n';
         const actual = nodes(source);
@@ -735,87 +576,6 @@ for (const grammar of grammars) {
             ["command_substitution", "$(printf x)"],
             ["line_continuation", "\\"],
           ],
-        );
-      });
-
-      test("nested command-name subscript bounds survive assignments and redirections", () => {
-        const actual = nodes("a[$(>out x=y a[)] ) ] next\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type, field }) => type === "word" && field === "name")
-            .map(({ text }) => text),
-          ["a[$(>out x=y a[)] ) ]", "a[)]"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          ["next"],
-        );
-      });
-
-      test("extglob suffixes stay in command words beside function definitions", () => {
-        const actual = nodes(
-          "a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ["@(x|y)", "@(a|b)"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "function_name")
-            .map(({ text }) => text),
-          ["f+", "'f@'"],
-        );
-      });
-
-      test("conditional precedence owns pattern and regex operands", () => {
-        const actual = nodes('[[ x == @(a|b) || y =~ (c|d) && ! -n "$z" ]]\n');
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              [
-                "conditional_or_expression",
-                "conditional_and_expression",
-                "conditional_pattern",
-                "regex_operand",
-              ].includes(type),
-            )
-            .map(({ type, text }) => [type, text]),
-          [
-            [
-              "conditional_or_expression",
-              'x == @(a|b) || y =~ (c|d) && ! -n "$z"',
-            ],
-            ["conditional_pattern", "@(a|b)"],
-            ["conditional_and_expression", 'y =~ (c|d) && ! -n "$z"'],
-            ["regex_operand", "(c|d)"],
-          ],
-        );
-      });
-
-      test("arithmetic for fields distinguish all three expressions", () => {
-        const actual = nodes("for ((i=0;i<2;i++)); do :; done\n");
-        assert.deepEqual(
-          actual
-            .filter(({ field }) =>
-              ["initializer", "condition", "update"].includes(field),
-            )
-            .map(({ field, text }) => [field, text]),
-          [
-            ["initializer", "i=0"],
-            ["condition", "i<2"],
-            ["update", "i++"],
-          ],
-        );
-        assert.equal(
-          nodes("for ((;;)) do break; done\n").filter(({ field }) =>
-            ["initializer", "condition", "update"].includes(field),
-          ).length,
-          0,
         );
       });
 
@@ -923,97 +683,6 @@ for (const grammar of grammars) {
         });
       }
 
-      for (const source of [
-        "for ((a[x;y];;)); do :; done\n",
-        "for ((;a[(x;y)];)); do :; done\n",
-        "for ((;;a[x;y])); do :; done\n",
-        "for (((x;y);;)); do :; done\n",
-        "for ((a[x;y])); do :; done\n",
-        "for (((x;y;z)); do :; done\n",
-        "for ((x;y;z))); do :; done\n",
-        "echo $(for ((a[x;y];;)); do :; done)\n",
-        "echo `for ((a[x;y];;)); do :; done`\n",
-      ]) {
-        test(`arithmetic for requires two separators and balanced outer parentheses in ${JSON.stringify(source)}`, () => {
-          const result = parser.parse(source, {});
-          assert.equal(result.status, 1, result.output);
-        });
-      }
-
-      test("array assignments preserve type neutral keys and element order", () => {
-        const actual = nodes(
-          'declare -A a=(["日本語"]=one [x+y]+=two three)\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "element")
-            .map(({ text }) => text),
-          ['["日本語"]=one', "[x+y]+=two", "three"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "subscript_source")
-            .map(({ text }) => text),
-          ['"日本語"', "x+y"],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "declaration_name")?.text,
-          "declare",
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "assignment_append")?.text,
-          "+=",
-        );
-      });
-
-      test("array words keep leading lexical brackets across whitespace and operators", () => {
-        const actual = nodes(
-          "declare -A a=([a b] [a;b] [a|b] [a<b] [(] [)] [a\nb])\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "element")
-            .map(({ type, text }) => [type, text]),
-          ["[a b]", "[a;b]", "[a|b]", "[a<b]", "[(]", "[)]", "[a\nb]"].map(
-            (text) => ["word", text],
-          ),
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "pattern_bracket_source").length,
-          7,
-        );
-        assert.ok(
-          !actual.some(
-            ({ type }) => type === "array_subscript" || type === "subshell",
-          ),
-        );
-      });
-
-      test("array lexical brackets apply only at an unquoted element start", () => {
-        const actual = nodes('a=([x][a b] "[a b]" \\[a b] a[x y])\n');
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "element")
-            .map(({ text }) => text),
-          ["[x][a", "b]", '"[a b]"', "\\[a", "b]", "a[x", "y]"],
-        );
-      });
-
-      test("array elements retain ordinary quoting and reserved spellings in nested contexts", () => {
-        const actual = nodes(
-          'a=(for); : "$(a=(\\( \\)))"; coproc worker a=(for time "if")\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "element")
-            .map(({ type, text }) => [type, text]),
-          ["for", "\\(", "\\)", "for", "time", '"if"'].map((text) => [
-            "word",
-            text,
-          ]),
-        );
-      });
-
       test("array bracket words preserve nested words quotes expansions and physical ranges", () => {
         const outer = '["x y"$p$(b=([x y]); printf z)日本\\\n ]suffix';
         const actual = nodes(`a=(${outer} [key]=value)\n`);
@@ -1049,79 +718,6 @@ for (const grammar of grammars) {
         assert.ok(element);
         assert.equal(element.start, 3);
         assert.equal(element.end, 3 + Buffer.byteLength(outer));
-      });
-
-      test("leading redirects permit compound assignments before and after declaration names", () => {
-        const actual = nodes(">out 2>err a=(one) b+=(two) declare c=(three)\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["assignment", "a=(one)"],
-            ["assignment", "b+=(two)"],
-            ["assignment", "c=(three)"],
-          ],
-        );
-      });
-
-      test("redirects after an assignment preserve subsequent scalar assignments and declarations", () => {
-        const actual = nodes(
-          "x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ field, text }) => [field, text]),
-          ["x=(one)", "c=z", "a=$v", "b+=~/p", "y=()"].map((text) => [
-            "assignment",
-            text,
-          ]),
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "declaration_name")?.text,
-          "declare",
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "tilde_expansion")?.text,
-          "~",
-        );
-      });
-
-      for (const source of [
-        "a=([)\n",
-        "a=([x)\n",
-        "declare -A a=([x)\n",
-        "x=y >out b=(one)\n",
-        "x=y>out b=(one)\n",
-        "x=y >out c=z b=(one)\n",
-        ">out x=y 2>err b=(one)\n",
-        "x=() >out declare b=(one)\n",
-        "x=y >out declare a=x b+=(one)\n",
-      ]) {
-        test(`compound assignment boundaries reject ${JSON.stringify(source)}`, () => {
-          const result = parser.parse(source, {});
-          assert.equal(result.status, 1, result.output);
-        });
-      }
-
-      test("pipeline prefixes and coprocess names own their commands", () => {
-        const actual = nodes("time -p ! coproc worker { :; } |& cat\n");
-        assert.deepEqual(
-          actual
-            .filter(
-              ({ type, text }) =>
-                ["timing", "bang", "pipe_and"].includes(type) ||
-                (type === "word" && text === "worker"),
-            )
-            .map(({ type, field, text }) => [type, field, text]),
-          [
-            ["timing", "timing", "time -p"],
-            ["bang", "negation", "!"],
-            ["word", "name", "worker"],
-            ["pipe_and", "operator", "|&"],
-          ],
-        );
       });
 
       test("word loops require a separator before braces but allow an adjacent do group", () => {
@@ -1175,47 +771,6 @@ for (const grammar of grammars) {
         }
       });
 
-      test("coprocess assignment-shaped arguments preserve their argument role", () => {
-        const actual = nodes(
-          'coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ type, text }) => [type, text]),
-          [
-            ["assignment_word", 'a=("x y" $p $(printf z))'],
-            ["word", "z"],
-            ["assignment_word", "x+=y"],
-            ["word", "declare"],
-            ["word", "-a"],
-            ["assignment_word", "b+=(2)"],
-            ["word", "tail"],
-          ],
-        );
-        assert.deepEqual(
-          actual.filter(({ field }) => field === "assignment"),
-          [],
-        );
-        assert.equal(
-          actual.find(({ field }) => field === "redirect")?.text,
-          ">out",
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "declaration_name").length,
-          0,
-        );
-        const declaration = nodes("coproc declare a=(1)\n");
-        assert.equal(
-          declaration.find(({ type }) => type === "declaration_name")?.text,
-          "declare",
-        );
-        assert.equal(
-          declaration.find(({ field }) => field === "assignment")?.text,
-          "a=(1)",
-        );
-      });
-
       test("coprocess pending command words preserve brackets and end assignment recognition", () => {
         for (const { source, arguments: arguments_ } of [
           {
@@ -1242,37 +797,6 @@ for (const grammar of grammars) {
             source,
           );
         }
-      });
-
-      test("redirection descriptors and here string operators retain exact ranges", () => {
-        const actual = nodes(': {fd}>out 3<&4- &>>log <<<"$x"\n');
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              [
-                "io_variable",
-                "io_number",
-                "anddgreat",
-                "here_string_operator",
-              ].includes(type),
-            )
-            .map(({ text }) => text),
-          ["{fd}", "3", "&>>", "<<<"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "filename")
-            .map(({ text }) => text),
-          ["out", "4-", "log", '"$x"'],
-        );
-        assert.deepEqual(
-          actual
-            .filter(
-              ({ type, field }) => type === "variable_name" && field === "name",
-            )
-            .map(({ start, end, text }) => [start, end, text]),
-          [[3, 5, "fd"]],
-        );
       });
 
       test("array descriptors retain names subscript source and command ownership", () => {
@@ -1337,22 +861,6 @@ for (const grammar of grammars) {
         }
       });
 
-      test("descriptor spellings remain word prefixes before process substitutions", () => {
-        const actual = nodes(": 2<(printf x) {fd}>(:) {fd[0]}<(printf y)\n");
-        assert.deepEqual(
-          actual.filter(({ type }) =>
-            ["io_variable", "io_number", "io_redirect"].includes(type),
-          ),
-          [],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          ["2<(printf x)", "x", "{fd}>(:)", "{fd[0]}<(printf y)", "y"],
-        );
-      });
-
       test("combined output operators remain redirects after compound commands", () => {
         for (const command of [
           "{ :; }",
@@ -1407,36 +915,6 @@ for (const grammar of grammars) {
         }
       });
 
-      test("descriptor duplication operators accept an adjacent numeric operand", () => {
-        const actual = nodes(": <&2>out >&3>log\n");
-        assert.deepEqual(
-          actual.filter(({ type }) => type === "io_number"),
-          [],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "filename")
-            .map(({ text }) => text),
-          ["2", "out", "3", "log"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "literal")
-            .map(({ text }) => text),
-          [":", "2", "out", "3", "log"],
-        );
-      });
-
-      test("numeric descriptor source does not impose a runtime integer range", () => {
-        const actual = nodes("{ :; } 999999999999999999999>out\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "io_number")
-            .map(({ field, text }) => [field, text]),
-          [["number", "999999999999999999999"]],
-        );
-      });
-
       test("variable descriptor leaves retain original ranges across continuations", () => {
         const actual = nodes(": {\\\nf\\\nd\\\n}\\\n>out\n");
         assert.deepEqual(
@@ -1469,44 +947,6 @@ for (const grammar of grammars) {
         );
       });
 
-      test("quoted separated and invalid descriptor spellings remain ordinary words", () => {
-        const actual = nodes(
-          ": {fd} >out '{fd}'>out {1fd}>out {fd>out {fd[]}>out {fd[ x ]}>out {fd[x][y]}>out\n",
-        );
-        assert.deepEqual(
-          actual.filter(({ type }) => type === "io_variable"),
-          [],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "argument")
-            .map(({ text }) => text),
-          [
-            "{fd}",
-            "'{fd}'",
-            "{1fd}",
-            "{fd",
-            "{fd[]}",
-            "{fd[",
-            "x",
-            "]}",
-            "{fd[x][y]}",
-          ],
-        );
-      });
-
-      test("function names and body redirections retain source ownership", () => {
-        const actual = nodes("function a-b() { :; } >out\n");
-        assert.equal(
-          actual.find(({ type }) => type === "function_name")?.text,
-          "a-b",
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "function_body")?.text,
-          "{ :; } >out",
-        );
-      });
-
       test("Bash command delimiters retain continuation slashes exactly once", () => {
         const source =
           "[\\\n[ x =\\\n= y ]\\\n]\nfor (\\\n(;;)) do break; done\n";
@@ -1518,85 +958,6 @@ for (const grammar of grammars) {
           [...source.matchAll(/\\\n/g)].map(({ index }) => [index, index + 1]),
         );
         assert.ok(actual.every(({ start, end }) => start < end));
-      });
-
-      for (const [name, source] of [
-        ["numeric descriptor cannot be a redirect operand", ": >2>out\n"],
-        ["variable descriptor cannot be a redirect operand", ": >{fd}>out\n"],
-        ["array descriptor cannot be a redirect operand", ": >{fd[0]}>out\n"],
-        ["numeric descriptor cannot be a conditional operand", "[[ 2>1 ]]\n"],
-        [
-          "combined output redirect cannot split into a background separator",
-          "{ :; } &>a[ x ]\n",
-        ],
-        [
-          "combined append redirect cannot split into a background separator",
-          "f() { :; } &>>a[ x ]\n",
-        ],
-        ["for brace body missing separator", "for x { :; }\n"],
-        ["select brace body missing separator", "select x { :; }\n"],
-        ["for word list missing separator", "for x in a { :; }\n"],
-        ["select word list missing separator", "select x in a { :; }\n"],
-        [
-          "coprocess array after ordinary argument",
-          "coproc worker tail a=(1)\n",
-        ],
-        ["coprocess array after redirect", "coproc worker >out a=(1)\n"],
-        [
-          "coprocess array after process substitution",
-          "coproc worker <(:) a=(1)\n",
-        ],
-        [
-          "coprocess array after assignment prefix",
-          "coproc x=y worker a=(1)\n",
-        ],
-        ["coprocess array after redirect prefix", "coproc >out worker a=(1)\n"],
-        [
-          "coprocess quoted declaration argument",
-          'coproc worker "declare" a=(1)\n',
-        ],
-        ["coprocess reserved command name", "coproc do\n"],
-        ["coprocess reserved first argument", "coproc worker do\n"],
-        [
-          "coprocess declaration reserved first argument",
-          "coproc declare do\n",
-        ],
-        ["conditional missing operand", "[[ x == ]]\n"],
-        ["conditional missing end", "[[ x == y\n"],
-        ["conditional regex unclosed group", "[[ x =~ ( ]]\n"],
-        ["array missing close", "a=(one two\n"],
-        ["ordinary command array argument", "echo a=(one two)\n"],
-        ["quoted declaration array argument", '"declare" a=(one two)\n'],
-        ["command prefixed declaration", "command declare a=(one)\n"],
-        ["builtin prefixed declaration", "builtin declare a=(one)\n"],
-        ["extglob collision function", "@() { :; }\n"],
-        ["function absent body", "function f()\n"],
-        ["arithmetic for missing separator", "for ((i=0;i<2)) do :; done\n"],
-        [
-          "conditional regex bracket does not quote parenthesis",
-          "[[ x =~ [)] ]]\n",
-        ],
-        [
-          "conditional regex unclosed parenthesis inside bracket",
-          "[[ x =~ [(] ]]\n",
-        ],
-        ["conditional regex bracket does not join words", "[[ x =~ [a b] ]]\n"],
-        ["conditional unary requires operand", "[[ -n ]]\n"],
-        ["conditional misplaced operator", "[[ x -eq ]]\n"],
-      ]) {
-        test(name, () => {
-          const result = parser.parse(source, {});
-          assert.equal(result.status, 1, result.output);
-          assert.equal(parser.parse(source, {}).tree, result.tree);
-        });
-      }
-
-      test("Unicode function names do not alias ASCII reserved spellings", () => {
-        const actual = nodes("ũf() { :; }\n");
-        assert.equal(
-          actual.find(({ type }) => type === "function_name")?.text,
-          "ũf",
-        );
       });
 
       for (const entry of [

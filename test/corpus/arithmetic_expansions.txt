@@ -1,0 +1,895 @@
+==================
+structured arithmetic retains precedence assignment and conditional
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((x = 1 + 2 * 3)) $((x ? y : z))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_assignment_expression
+                  left: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_binary_expression
+                    left: (arithmetic_number)
+                    operator: (arithmetic_operator)
+                    right: (arithmetic_binary_expression
+                      left: (arithmetic_number)
+                      operator: (arithmetic_operator)
+                      right: (arithmetic_number))))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_conditional_expression
+                  condition: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  consequence: (arithmetic_variable)
+                  operator: (arithmetic_operator)
+                  alternative: (arithmetic_variable))))))))))
+
+==================
+arithmetic source fragments stay together before expansion
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((0x$y)) $((12${suffix}))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_source_fragment)
+                  (parameter_expansion
+                    parameter: (variable_name)))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (parameter_expansion
+                    parameter: (variable_name)))))))))))
+
+==================
+arithmetic evaluation errors remain arithmetic source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((0xg)) $((printf hi)) $(((x)=1)) $((1;2)) $((1/0))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_source_fragment))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_variable)
+                  (arithmetic_variable))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (parenthesized_arithmetic_source
+                    (arithmetic_variable))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_binary_expression
+                  left: (arithmetic_number)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_number))))))))))
+
+==================
+empty arithmetic and quoted arithmetic remain expansions
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $(()) $(('1')) $(("2"))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (single_quoted
+                    (single_quote_content)))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (double_quoted
+                    (double_quote_text)))))))))))
+
+==================
+arithmetic operators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a=2**3**2,b++,--c,++d+e--)) $((-2**2))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_sequence_expression
+                  (arithmetic_sequence_expression
+                    (arithmetic_sequence_expression
+                      (arithmetic_assignment_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_binary_expression
+                          (arithmetic_number)
+                          (arithmetic_operator)
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))))
+                      (arithmetic_operator)
+                      (arithmetic_update_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)))
+                    (arithmetic_operator)
+                    (arithmetic_update_expression
+                      (arithmetic_operator)
+                      (arithmetic_variable)))
+                  (arithmetic_operator)
+                  (arithmetic_binary_expression
+                    (arithmetic_update_expression
+                      (arithmetic_operator)
+                      (arithmetic_variable))
+                    (arithmetic_operator)
+                    (arithmetic_update_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_unary_expression
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+==================
+arithmetic bases
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((2#101+16#ff+36#Z+64#_+64#@+0xFF+077)) $((2#2)) $((65#1))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_binary_expression
+                    (arithmetic_binary_expression
+                      (arithmetic_binary_expression
+                        (arithmetic_binary_expression
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))
+                          (arithmetic_operator)
+                          (arithmetic_number))
+                        (arithmetic_operator)
+                        (arithmetic_number))
+                      (arithmetic_operator)
+                      (arithmetic_number))
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_source_fragment))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_source_fragment))))))))))
+
+==================
+arithmetic array sources
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((arr[x+y]+=1)) $((++arr[$x])) $((arr[b[2]]++))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_assignment_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_binary_expression
+                          (arithmetic_candidate_variable)
+                          (arithmetic_candidate_operator)
+                          (arithmetic_candidate_variable)))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_update_expression
+                  (arithmetic_operator)
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (parameter_expansion
+                          (variable_name))))))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_update_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_candidate_array_reference
+                          (arithmetic_candidate_variable)
+                          (array_subscript
+                            (subscript_source
+                              (arithmetic_candidate_number)))))))
+                  (arithmetic_operator))))))))))
+
+==================
+nested braces in arithmetic substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((1+${ { printf 2; }; }))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (current_shell_substitution
+                    (list
+                      (and_or
+                        (pipeline
+                          (command
+                            (brace_group
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))))))
+                                (separator
+                                  (separator_op)))))))
+                      (separator
+                        (separator_op)))))))))))))
+
+==================
+extglob inside arithmetic substitution
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+echo $((1+$(echo @(a|b))))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_number)
+                  (arithmetic_operator)
+                  (command_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (extglob_pattern
+                                    (extglob_operator)
+                                    (extglob_alternative
+                                      (literal))
+                                    (extglob_alternative
+                                      (literal))))))))))))))))))))
+
+==================
+nested arithmetic subscript substitution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a[${x}]+b[$(echo 1)]))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (parameter_expansion
+                          (variable_name)))))
+                  (arithmetic_operator)
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (command_substitution
+                          (command_substitution_body
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (literal)))))))))))))))))))))
+
+==================
+arithmetic nested assignment
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a ? b=1 : c=2)) $((a=1,b=2,c))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_conditional_expression
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_assignment_expression
+                    (arithmetic_variable)
+                    (arithmetic_operator)
+                    (arithmetic_number))
+                  (arithmetic_operator)
+                  (arithmetic_assignment_expression
+                    (arithmetic_variable)
+                    (arithmetic_operator)
+                    (arithmetic_number)))))
+            (word
+              (arithmetic_expansion
+                (arithmetic_sequence_expression
+                  (arithmetic_sequence_expression
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number))
+                    (arithmetic_operator)
+                    (arithmetic_assignment_expression
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number)))
+                  (arithmetic_operator)
+                  (arithmetic_variable))))))))))
+
+==================
+arithmetic delimiters precede crossing subscript spellings
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $((a[(]+1))) $((a[)(]+1)); ((a[(]+1)); echo $((a[$((1+2))]+1))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_source_expression
+                  (arithmetic_variable)
+                  (arithmetic_source_fragment)
+                  (parenthesized_arithmetic_source
+                    (arithmetic_source_fragment)
+                    (arithmetic_operator)
+                    (arithmetic_number)))))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (subshell
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)
+                                        (pattern_bracket_source
+                                          (pattern_bracket_members_source
+                                            (pattern_bracket_character_source)
+                                            (pattern_bracket_character_source)))
+                                        (literal)))))))))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (subshell
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (subshell
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal)
+                                  (pattern_bracket_source
+                                    (pattern_bracket_members_source
+                                      (pattern_bracket_character_source)))
+                                  (literal))))))))))))))))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (arithmetic_expansion
+                (arithmetic_binary_expression
+                  (arithmetic_array_reference
+                    (arithmetic_variable)
+                    (array_subscript
+                      (subscript_source
+                        (arithmetic_expansion
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_number))))))
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+==================
+arithmetic source retains ANSI-C and locale quotes around delimiters
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo $(( $'a\'b' + $"1" + $ ))
+for (($'a;b';$"c)d";$'e')); do :; done
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (dollar_single_quoted
+                    (dollar_single_quote_text)
+                    (dollar_single_quote_escape)
+                    (dollar_single_quote_text))
+                  (arithmetic_operator)
+                  (locale_quoted
+                    (double_quote_text))
+                  (arithmetic_operator)
+                  (arithmetic_source_fragment))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_for_clause
+            (for_keyword)
+            (arithmetic_for_open)
+            initializer: (arithmetic_source_expression
+              (dollar_single_quoted
+                (dollar_single_quote_text)))
+            condition: (arithmetic_source_expression
+              (locale_quoted
+                (double_quote_text)))
+            update: (arithmetic_source_expression
+              (dollar_single_quoted
+                (dollar_single_quote_text)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                terminator: (separator
+                  operator: (separator_op)))
+              (done_keyword))))))))
+
+==================
+bracket arithmetic shares expression precedence and permits an empty expression
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: $[1+2*3] $[]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_binary_expression
+                  left: (arithmetic_number)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_binary_expression
+                    left: (arithmetic_number)
+                    operator: (arithmetic_operator)
+                    right: (arithmetic_number)))))
+            argument: (word (arithmetic_expansion))))))))
+
+==================
+bracket arithmetic keeps unmatched parentheses and raw brackets as arithmetic source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: $[(1+2] $[1+2)] $[[1]]
+
+------------------
+
+(program
+  commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command
+    name: (word (literal))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_source_expression
+        (arithmetic_source_fragment) (arithmetic_number) (arithmetic_operator) (arithmetic_number))))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_source_expression
+        (arithmetic_number) (arithmetic_operator) (arithmetic_number) (arithmetic_source_fragment))))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_source_expression
+        (arithmetic_source_fragment) (arithmetic_number) (arithmetic_source_fragment))))))))))
+
+==================
+bracket and parenthesis arithmetic nest with array references
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: $[a[1]+$((2*$[3]))]
+
+------------------
+
+(program
+  commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command
+    name: (word (literal))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_binary_expression
+        left: (arithmetic_array_reference
+          name: (arithmetic_variable)
+          subscript: (array_subscript
+            source: (subscript_source candidate: (arithmetic_candidate_number))))
+        operator: (arithmetic_operator)
+        right: (arithmetic_expansion
+          expression: (arithmetic_binary_expression
+            left: (arithmetic_number)
+            operator: (arithmetic_operator)
+            right: (arithmetic_expansion expression: (arithmetic_number)))))))))))))
+
+==================
+bracket arithmetic quotations protect closing brackets
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: $["1]"+2] $[1\]+2] $[${x:-']'}]
+
+------------------
+
+(program
+  commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command
+    name: (word (literal))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_source_expression
+        (double_quoted (double_quote_text)) (arithmetic_operator) (arithmetic_number))))
+    argument: (word (arithmetic_expansion
+      expression: (arithmetic_source_expression
+        (arithmetic_number) (escaped_character) (arithmetic_operator) (arithmetic_number))))
+    argument: (word (arithmetic_expansion
+      expression: (parameter_expansion
+        parameter: (variable_name)
+        operator: (parameter_value_operator)
+        word: (parameter_word (single_quoted (single_quote_content))))))))))))
+
+==================
+bracket arithmetic requires its closing bracket
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: $[1+2
+
+------------------
+
+
+
+==================
+bracket arithmetic cannot borrow a closing bracket from a quoted string
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: $["1]"
+
+------------------
+
+
+
+==================
+an unfinished numeric spelling is a single source fragment
+:language(bash_extglob)
+:cst
+==================
+echo $((0x$y)) $((0xg))
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:23     commands: list
+0:0  - 0:23       and_or: and_or
+0:0  - 0:23         pipeline: pipeline
+0:0  - 0:23           command: command
+0:0  - 0:23             body: simple_command
+0:0  - 0:4                name: word
+0:0  - 0:4                  literal `echo`
+0:5  - 0:14               argument: word
+0:5  - 0:14                 arithmetic_expansion
+0:5  - 0:6                    "$"
+0:6  - 0:7                    "("
+0:7  - 0:8                    "("
+0:8  - 0:12                   expression: arithmetic_source_expression
+0:8  - 0:10                     arithmetic_source_fragment `0x`
+0:10 - 0:12                     parameter_expansion
+0:10 - 0:11                       "$"
+0:11 - 0:12                       parameter: variable_name `y`
+0:12 - 0:13                   ")"
+0:13 - 0:14                   ")"
+0:15 - 0:23               argument: word
+0:15 - 0:23                 arithmetic_expansion
+0:15 - 0:16                   "$"
+0:16 - 0:17                   "("
+0:17 - 0:18                   "("
+0:18 - 0:21                   expression: arithmetic_source_expression
+0:18 - 0:21                     arithmetic_source_fragment `0xg`
+0:21 - 0:22                   ")"
+0:22 - 0:23                   ")"
+0:23 - 1:0      "\n"
+
+==================
+arithmetic source preserves ANSI-C and locale quotes without evaluating them
+:language(bash_extglob)
+:cst
+==================
+echo $(( $'a\'日' + $"$x" ))
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:29     commands: list
+0:0  - 0:29       and_or: and_or
+0:0  - 0:29         pipeline: pipeline
+0:0  - 0:29           command: command
+0:0  - 0:29             body: simple_command
+0:0  - 0:4                name: word
+0:0  - 0:4                  literal `echo`
+0:5  - 0:29               argument: word
+0:5  - 0:29                 arithmetic_expansion
+0:5  - 0:6                    "$"
+0:6  - 0:7                    "("
+0:7  - 0:8                    "("
+0:9  - 0:26                   expression: arithmetic_source_expression
+0:9  - 0:18                     dollar_single_quoted
+0:9  - 0:10                       "$"
+0:10 - 0:11                       "'"
+0:11 - 0:12                       dollar_single_quote_text `a`
+0:12 - 0:14                       dollar_single_quote_escape `\\'`
+0:14 - 0:17                       dollar_single_quote_text `日`
+0:17 - 0:18                       "'"
+0:19 - 0:20                     arithmetic_operator `+`
+0:21 - 0:26                     locale_quoted
+0:21 - 0:22                       "$"
+0:22 - 0:23                       "\""
+0:23 - 0:25                       parameter_expansion
+0:23 - 0:24                         "$"
+0:24 - 0:25                         parameter: variable_name `x`
+0:25 - 0:26                       "\""
+0:27 - 0:28                   ")"
+0:28 - 0:29                   ")"
+0:29 - 1:0      "\n"
+
+==================
+a dollar separated from arithmetic quoting remains a source fragment
+:language(bash_extglob)
+:cst
+==================
+echo $(( $
+'1' + $ ))
+
+------------------
+
+0:0  - 2:0    program
+0:0  - 1:10     commands: list
+0:0  - 1:10       and_or: and_or
+0:0  - 1:10         pipeline: pipeline
+0:0  - 1:10           command: command
+0:0  - 1:10             body: simple_command
+0:0  - 0:4                name: word
+0:0  - 0:4                  literal `echo`
+0:5  - 1:10               argument: word
+0:5  - 1:10                 arithmetic_expansion
+0:5  - 0:6                    "$"
+0:6  - 0:7                    "("
+0:7  - 0:8                    "("
+0:9  - 1:7                    expression: arithmetic_source_expression
+0:9  - 0:10                     arithmetic_source_fragment `$`
+1:0  - 1:3                      single_quoted
+1:0  - 1:1                        "'"
+1:1  - 1:2                        single_quote_content `1`
+1:2  - 1:3                        "'"
+1:4  - 1:5                      arithmetic_operator `+`
+1:6  - 1:7                      arithmetic_source_fragment `$`
+1:8  - 1:9                    ")"
+1:9  - 1:10                   ")"
+1:10 - 2:0      "\n"

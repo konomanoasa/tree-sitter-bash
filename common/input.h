@@ -82,10 +82,12 @@ static enum SourceResult logical_read(void *payload, int32_t *value) {
   if (native->failed) {
     return SOURCE_FAILURE;
   }
+  bool omitted = false;
   if (input->bounded && native->boundary != NULL) {
     enum SourceResult result =
       native->boundary(native->boundary_payload, input->read_position);
-    if (result != SOURCE_CHARACTER) {
+    omitted = result == SOURCE_OMITTED;
+    if (result != SOURCE_CHARACTER && !omitted) {
       native->failed = result == SOURCE_FAILURE;
       return result;
     }
@@ -111,7 +113,8 @@ static enum SourceResult logical_read(void *payload, int32_t *value) {
     native->characters[native->count++] = native->lexer->lookahead;
     native->lexer->advance(native->lexer, false);
   }
-  *value = native->characters[input->read_position++];
+  *value = omitted ? 0 : native->characters[input->read_position];
+  input->read_position++;
   return SOURCE_CHARACTER;
 }
 
@@ -227,13 +230,26 @@ static inline bool logical_fork(
   if (!source_snapshot_at(&parent->cursor, raw_cut - parent->base, &snapshot)) {
     return false;
   }
-  for (
-    size_t index = inherited_stage_count; index < snapshot.stage_count;
-    index += 1
-  ) {
-    if (snapshot.stages[index].has_pending) {
+  for (size_t index = 0; index < snapshot.stage_count; index += 1) {
+    struct SourceStage *stage = &snapshot.stages[index];
+    if (!stage->has_pending) {
+      continue;
+    }
+    if (index >= inherited_stage_count) {
       source_snapshot_clear(&snapshot);
       return false;
+    }
+    /* A unit the parent already emitted as a character must not reappear. */
+    for (
+      size_t logical = 0; logical < parent->cursor.logical_count; logical += 1
+    ) {
+      if (
+        parent->cursor.logical[logical].origin.character ==
+        stage->pending.origin.character
+      ) {
+        stage->has_pending = false;
+        break;
+      }
     }
   }
   size_t count = inherited_stage_count + suffix_count;

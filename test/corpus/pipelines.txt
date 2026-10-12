@@ -1,0 +1,583 @@
+==================
+time remains a command name after one pipe newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: |
+time x
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))))
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word (literal))))))))
+
+==================
+time remains a command name on the pipe stderr line
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: |& time x
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))))
+        operator: (pipe_and)
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word (literal))))))))
+
+==================
+quoted time remains a command name after a pipe stderr newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: |&
+"time" x
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))))
+        operator: (pipe_and)
+        command: (command
+          body: (simple_command
+            name: (word (double_quoted (double_quote_text)))
+            argument: (word (literal))))))))
+
+==================
+time is reserved after a pipe stderr newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: |&
+time x
+
+------------------
+
+==================
+time is reserved after two pipe newlines
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: |
+
+time x
+
+------------------
+
+==================
+comment line endings count toward the pipe time boundary
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: | # first
+# second
+time x
+
+------------------
+
+==================
+reserved time cannot become a function name after a pipe stderr newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+:error
+==================
+: |&
+time() { :; }
+
+------------------
+
+==================
+Empty negation ends at command separators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+!; ! &
+if !; then :; fi
+echo $(!
+)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (bang)))
+    (separator_op)
+    (and_or
+      (pipeline
+        (bang)))
+    (separator_op)
+    (and_or
+      (pipeline
+        (command
+          (if_clause
+            (if_keyword)
+            (list
+              (and_or
+                (pipeline
+                  (bang)))
+              (separator
+                (separator_op)))
+            (then_keyword)
+            (list
+              (and_or
+                (pipeline
+                  (command
+                    (simple_command
+                      (word
+                        (literal))))))
+              (separator
+                (separator_op)))
+            (fi_keyword)))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (command_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (bang)))))))))))))
+
+==================
+time and pipe stderr
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+time -p ! printf x |& cat
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword )
+          (time_option ))
+        (bang )
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (word
+              (literal ))))
+        (pipe_and )
+        (command
+          (simple_command
+            (word
+              (literal ))))))))
+
+==================
+time repeated prefixes
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+! time ! time -p :
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (bang )
+        (timing
+          (time_keyword ))
+        (bang )
+        (timing
+          (time_keyword )
+          (time_option ))
+        (command
+          (simple_command
+            (word
+              (literal ))))))))
+
+==================
+time empty pipeline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+time; time -p
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword ))))
+    (separator_op )
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword )
+          (time_option ))))))
+
+==================
+time option terminator
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+time -p -- :; time -- :
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword )
+          (time_option )
+          (time_option ))
+        (command
+          (simple_command
+            (word
+              (literal ))))))
+    (separator_op )
+    (and_or
+      (pipeline
+        (timing
+          (time_keyword )
+          (time_option ))
+        (command
+          (simple_command
+            (word
+              (literal ))))))))
+
+==================
+pipeline negation lists and asynchronous terminators
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+! echo a | cat && echo yes || echo no; wait &
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        negation: (bang)
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal)))))
+      operator: (and_if)
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)))))
+      operator: (or_if)
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal))))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))))))
+    terminator: (separator_op)))
+
+==================
+quoted negation and joined substitutions remain pipeline command words
+:language(bash_extglob)
+:cst
+==================
+: | "!" : |& \! : | !(x|y) | !<(:)
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:34     commands: list
+0:0  - 0:34       and_or: and_or
+0:0  - 0:34         pipeline: pipeline
+0:0  - 0:1            command: command
+0:0  - 0:1              body: simple_command
+0:0  - 0:1                name: word
+0:0  - 0:1                  literal `:`
+0:2  - 0:3            "|"
+0:4  - 0:9            command: command
+0:4  - 0:9              body: simple_command
+0:4  - 0:7                name: word
+0:4  - 0:7                  double_quoted
+0:4  - 0:5                    "\""
+0:5  - 0:6                    double_quote_text `!`
+0:6  - 0:7                    "\""
+0:8  - 0:9                argument: word
+0:8  - 0:9                  literal `:`
+0:10 - 0:12           operator: pipe_and `|&`
+0:13 - 0:17           command: command
+0:13 - 0:17             body: simple_command
+0:13 - 0:15               name: word
+0:13 - 0:15                 escaped_character `\\!`
+0:16 - 0:17               argument: word
+0:16 - 0:17                 literal `:`
+0:18 - 0:19           "|"
+0:20 - 0:26           command: command
+0:20 - 0:26             body: simple_command
+0:20 - 0:26               name: word
+0:20 - 0:26                 extglob_pattern
+0:20 - 0:21                   operator: extglob_operator `!`
+0:21 - 0:22                   "("
+0:22 - 0:23                   alternative: extglob_alternative
+0:22 - 0:23                     literal `x`
+0:23 - 0:24                   "|"
+0:24 - 0:25                   alternative: extglob_alternative
+0:24 - 0:25                     literal `y`
+0:25 - 0:26                   ")"
+0:27 - 0:28           "|"
+0:29 - 0:34           command: command
+0:29 - 0:34             body: simple_command
+0:29 - 0:34               name: word
+0:29 - 0:30                 literal `!`
+0:30 - 0:34                 process_substitution
+0:30 - 0:31                   "<"
+0:31 - 0:32                   "("
+0:32 - 0:33                   body: command_substitution_body
+0:32 - 0:33                     list
+0:32 - 0:33                       and_or: and_or
+0:32 - 0:33                         pipeline: pipeline
+0:32 - 0:33                           command: command
+0:32 - 0:33                             body: simple_command
+0:32 - 0:33                               name: word
+0:32 - 0:33                                 literal `:`
+0:33 - 0:34                   ")"
+0:34 - 1:0      "\n"
+
+==================
+command boundaries reject ": | ! :\n"
+:language(bash_extglob)
+:error
+==================
+: | ! :
+
+------------------
+
+
+
+==================
+command boundaries reject ": |& ! :\n"
+:language(bash_extglob)
+:error
+==================
+: |& ! :
+
+------------------
+
+
+
+==================
+command boundaries reject ": | !\n"
+:language(bash_extglob)
+:error
+==================
+: | !
+
+------------------
+
+
+
+==================
+command boundaries reject ": |& !\n"
+:language(bash_extglob)
+:error
+==================
+: |& !
+
+------------------
+
+
+
+==================
+command boundaries reject "! && :\n"
+:language(bash_extglob)
+:error
+==================
+! && :
+
+------------------
+
+
+
+==================
+command boundaries reject "! || :\n"
+:language(bash_extglob)
+:error
+==================
+! || :
+
+------------------
+
+
+
+==================
+command boundaries reject "! | :\n"
+:language(bash_extglob)
+:error
+==================
+! | :
+
+------------------
+
+
+
+==================
+command boundaries reject "!\n&& :\n"
+:language(bash_extglob)
+:error
+==================
+!
+&& :
+
+------------------
+
+
+
+==================
+command boundaries reject "echo $(!)\n"
+:language(bash_extglob)
+:error
+==================
+echo $(!)
+
+------------------
+
+
+
+==================
+command boundaries reject "case x in x) !;; esac\n"
+:language(bash_extglob)
+:error
+==================
+case x in x) !;; esac
+
+------------------
+
+
+
+==================
+command boundaries reject "case x in x) !;& esac\n"
+:language(bash_extglob)
+:error
+==================
+case x in x) !;& esac
+
+------------------
+
+
+
+==================
+command boundaries reject "]]\n"
+:language(bash_extglob)
+:error
+==================
+]]
+
+------------------
+
+
+
+==================
+command boundaries reject "! ]]\n"
+:language(bash_extglob)
+:error
+==================
+! ]]
+
+------------------
+
+
+
+==================
+command boundaries reject ": | ]]\n"
+:language(bash_extglob)
+:error
+==================
+: | ]]
+
+------------------
+
+
+
+==================
+command boundaries reject ": $(]])\n"
+:language(bash_extglob)
+:error
+==================
+: $(]])
+
+------------------

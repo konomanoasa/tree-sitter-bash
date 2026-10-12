@@ -219,6 +219,7 @@ for (const grammar of grammars) {
         { insert: "a{b,c}d", type: "brace_expansion", text: "{b,c}" },
         { insert: "a[bc]d", type: "pattern_bracket_source", text: "[bc]" },
         { insert: "a<(:)d", type: "process_substitution", text: "<(:)" },
+        { insert: "a$[1+2]d", type: "arithmetic_expansion", text: "$[1+2]" },
         { insert: "~user", type: "tilde_expansion", text: "~user" },
       ];
       if (extglob) {
@@ -385,29 +386,6 @@ for (const grammar of grammars) {
         });
       }
 
-      test("quoted parameter dollar quotes preserve source before expansion-time rescanning", () => {
-        const actual = nodes(`: "\${x:-$'\${y}'}" "\${x:-$'a}b'}"\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              [
-                "parameter_expansion",
-                "dollar_single_quoted",
-                "dollar_single_quote_text",
-              ].includes(type),
-            )
-            .map(({ type, text }) => [type, text]),
-          [
-            ["parameter_expansion", `\${x:-$'\${y}'}`],
-            ["dollar_single_quoted", `$'\${y}'`],
-            ["dollar_single_quote_text", `\${y}`],
-            ["parameter_expansion", `\${x:-$'a}b'}`],
-            ["dollar_single_quoted", "$'a}b'"],
-            ["dollar_single_quote_text", "a}b"],
-          ],
-        );
-      });
-
       test("ERE groups and alternatives extend a word starting with closing brackets", () => {
         for (const expression of [
           "]](a)",
@@ -424,24 +402,6 @@ for (const grammar of grammars) {
             [expression],
           );
         }
-      });
-
-      test("an unfinished numeric spelling is a single source fragment", () => {
-        const actual = nodes("echo $((0x$y)) $((0xg))\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "arithmetic_source_fragment")
-            .map(({ text }) => text),
-          ["0x", "0xg"],
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "arithmetic_number").length,
-          0,
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "command_substitution").length,
-          0,
-        );
       });
 
       test("arithmetic source retains every operator without imposing precedence", () => {
@@ -538,68 +498,6 @@ for (const grammar of grammars) {
             .map(({ text }) => text),
           ["\\", "\\", "\\", "\\"],
         );
-      });
-
-      test("arithmetic source preserves ANSI-C and locale quotes without evaluating them", () => {
-        const actual = nodes("echo $(( $'a\\'日' + $\"$x\" ))\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              ["dollar_single_quoted", "locale_quoted"].includes(type),
-            )
-            .map(({ type, text }) => [type, text]),
-          [
-            ["dollar_single_quoted", "$'a\\'日'"],
-            ["locale_quoted", '$"$x"'],
-          ],
-        );
-        assert.ok(
-          actual.some(
-            ({ type, field }) =>
-              type === "arithmetic_source_expression" && field === "expression",
-          ),
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "dollar_single_quote_escape")
-            ?.text,
-          "\\'",
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "parameter_expansion")?.text,
-          "$x",
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "arithmetic_number").length,
-          0,
-        );
-      });
-
-      test("an escaped ANSI-C quote keeps the arithmetic command boundary", () => {
-        const actual = nodes("(( $'a\\'b' )); printf AFTER\n");
-        assert.equal(
-          actual.find(({ type }) => type === "arithmetic_command")?.text,
-          "(( $'a\\'b' ))",
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "dollar_single_quoted")?.text,
-          "$'a\\'b'",
-        );
-        assert.ok(!actual.some(({ type }) => type === "subshell"));
-      });
-
-      test("a dollar separated from arithmetic quoting remains a source fragment", () => {
-        const actual = nodes("echo $(( $\n'1' + $ ))\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "arithmetic_source_fragment")
-            .map(({ text }) => text),
-          ["$", "$"],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "single_quoted")?.text,
-          "'1'",
-        );
-        assert.ok(!actual.some(({ type }) => type === "dollar_single_quoted"));
       });
 
       test("continued arithmetic quote prefixes preserve Unicode source ranges", () => {
@@ -823,129 +721,6 @@ for (const grammar of grammars) {
         });
       }
 
-      test("parameter replacement and substring operands retain separate fields", () => {
-        const actual = nodes(`echo \${x//[a/]/日} \${x:(a?b:c):2}\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ field }) =>
-              ["pattern", "replacement", "offset", "length"].includes(field),
-            )
-            .map(({ field, text }) => [field, text]),
-          [
-            ["pattern", "[a"],
-            ["replacement", "]/日"],
-            ["offset", "(a?b:c)"],
-            ["length", "2"],
-          ],
-        );
-      });
-
-      test("substring operands share arithmetic precedence and conditional fields", () => {
-        const actual = nodes(`: "\${s: (n > 0 ? 1 : 0):2}"\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              [
-                "substring_source",
-                "parenthesized_arithmetic",
-                "arithmetic_conditional_expression",
-                "arithmetic_binary_expression",
-                "arithmetic_variable",
-                "arithmetic_operator",
-                "arithmetic_number",
-              ].includes(type),
-            )
-            .map(({ type, field, text }) => [type, field, text]),
-          [
-            ["substring_source", "offset", " (n > 0 ? 1 : 0)"],
-            ["parenthesized_arithmetic", undefined, "(n > 0 ? 1 : 0)"],
-            [
-              "arithmetic_conditional_expression",
-              "expression",
-              "n > 0 ? 1 : 0",
-            ],
-            ["arithmetic_binary_expression", "condition", "n > 0"],
-            ["arithmetic_variable", "left", "n"],
-            ["arithmetic_operator", "operator", ">"],
-            ["arithmetic_number", "right", "0"],
-            ["arithmetic_operator", "operator", "?"],
-            ["arithmetic_number", "consequence", "1"],
-            ["arithmetic_operator", "operator", ":"],
-            ["arithmetic_number", "alternative", "0"],
-            ["substring_source", "length", "2"],
-            ["arithmetic_number", undefined, "2"],
-          ],
-        );
-      });
-
-      test("substring source keeps incomplete lexemes and each operand's known structure", () => {
-        const actual = nodes(`: \${s:0x$y:2+3*4} \${s:(x y)+08: a["1:2"] }\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) =>
-              [
-                "arithmetic_source_fragment",
-                "parenthesized_arithmetic_source",
-                "arithmetic_binary_expression",
-                "arithmetic_array_reference",
-                "arithmetic_operator",
-              ].includes(type),
-            )
-            .map(({ type, text }) => [type, text]),
-          [
-            ["arithmetic_source_fragment", "0x"],
-            ["arithmetic_binary_expression", "2+3*4"],
-            ["arithmetic_operator", "+"],
-            ["arithmetic_binary_expression", "3*4"],
-            ["arithmetic_operator", "*"],
-            ["parenthesized_arithmetic_source", "(x y)"],
-            ["arithmetic_operator", "+"],
-            ["arithmetic_source_fragment", "08"],
-            ["arithmetic_array_reference", 'a["1:2"]'],
-          ],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "offset" || field === "length")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["offset", "0x$y"],
-            ["length", "2+3*4"],
-            ["offset", "(x y)+08"],
-            ["length", ' a["1:2"] '],
-          ],
-        );
-      });
-
-      test("substring fields distinguish absent operands from whitespace source", () => {
-        const actual = nodes(`: \${x:} \${x::} \${x: \t: \n}\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "offset" || field === "length")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["offset", " \t"],
-            ["length", " \n"],
-          ],
-        );
-      });
-
-      test("substring operands retain source without requiring valid arithmetic", () => {
-        const actual = nodes(`: \${x:1?2} \${x:(1} \${x:1)} \${x:0:1:2}\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "offset" || field === "length")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["offset", "1?2"],
-            ["offset", "(1"],
-            ["offset", "1)"],
-            ["offset", "0"],
-            ["length", "1:2"],
-          ],
-        );
-      });
-
       for (const [source, expected] of [
         [
           "1?2:3:4",
@@ -1017,48 +792,6 @@ for (const grammar of grammars) {
         });
       }
 
-      test("substring boundaries resume outside quoted and nested expansion sources", () => {
-        const actual = nodes(
-          `: "\${x:1?\${n:-2}:$(printf 3):a["1:2"]}" \${x:(\${y:1?2:3:4}):\`printf 2\`}\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "offset" || field === "length")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["offset", `1?\${n:-2}:$(printf 3)`],
-            ["length", 'a["1:2"]'],
-            ["offset", `(\${y:1?2:3:4})`],
-            ["offset", "1?2:3"],
-            ["length", "4"],
-            ["length", "`printf 2`"],
-          ],
-        );
-      });
-
-      test("nested parameter operators preserve each enclosing word boundary", () => {
-        const actual = nodes(
-          `: \${x:-\${y:0:1}:suffix} \${x:-\${y/a/b}/suffix} \${x/\${y:-a\\/b}/"\${z:-c}d"}\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) =>
-              ["word", "pattern", "replacement"].includes(field),
-            )
-            .map(({ field, text }) => [field, text]),
-          [
-            ["word", `\${y:0:1}:suffix`],
-            ["word", `\${y/a/b}/suffix`],
-            ["pattern", "a"],
-            ["replacement", "b"],
-            ["pattern", `\${y:-a\\/b}`],
-            ["word", "a\\/b"],
-            ["replacement", `"\${z:-c}d"`],
-            ["word", "c"],
-          ],
-        );
-      });
-
       test("substring source preserves continued Unicode ranges around its separator", () => {
         const source = `: "\${x:(1?\${n:-2}:3)\\\n:\\\n\${y:-日\\\n本:5}}"\n`;
         const actual = nodes(source);
@@ -1090,72 +823,6 @@ for (const grammar of grammars) {
             ({ type, text }) =>
               type === "double_quote_text" && text === "日\\\n本:5",
           ),
-        );
-      });
-
-      test("array subscripts retain type-neutral source in both expansion contexts", () => {
-        const actual = nodes(`echo \${a[x+y]} $((a[x+y]+1))\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "subscript_source")
-            .map(({ text }) => text),
-          ["x+y", "x+y"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "arithmetic_binary_expression")
-            .map(({ text }) => text),
-          ["a[x+y]+1"],
-        );
-      });
-
-      test("array and substring sources preserve Bash dollar quotes", () => {
-        const actual = nodes(
-          `a[$"key"]=x; echo "\${a[$"key"]}" \${x:$'1':$"2"}\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "locale_quoted")
-            .map(({ text }) => text),
-          ['$"key"', '$"key"', '$"2"'],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "offset" || field === "length")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["offset", "$'1'"],
-            ["length", '$"2"'],
-          ],
-        );
-      });
-
-      test("subscript parentheses distinguish unmatched source from arithmetic candidates", () => {
-        const actual = nodes(
-          `a[(]=x; a[)]+=y; declare -A a=([)(]=z); echo "\${a[(key)]}" $((a[(key)]+1))\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "subscript_text")
-            .map(({ text }) => text),
-          ["(", ")", ")", "("],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "parenthesized_arithmetic_candidate")
-            .map(({ text }) => text),
-          ["(key)", "(key)"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "subscript")
-            .map(({ text }) => text),
-          ["[(]", "[)]", "[)(]", "[(key)]", "[(key)]"],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "arithmetic_binary_expression")
-            ?.text,
-          "a[(key)]+1",
         );
       });
 
@@ -1197,23 +864,6 @@ for (const grammar of grammars) {
             .filter(({ type }) => type === "line_continuation")
             .map(({ text }) => text),
           ["\\"],
-        );
-      });
-
-      test("nested substitutions and coprocess arguments retain unmatched subscript parentheses", () => {
-        const actual = nodes(
-          "a[$(coproc worker b[ ) ]=x c=(1))]=y; echo $(a[(]=x)\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "assignment_word")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["assignment", "a[$(coproc worker b[ ) ]=x c=(1))]=y"],
-            ["argument", "b[ ) ]=x"],
-            ["argument", "c=(1)"],
-            ["assignment", "a[(]=x"],
-          ],
         );
       });
 
@@ -1281,22 +931,6 @@ for (const grammar of grammars) {
         });
       }
 
-      test("unterminated parameter extglobs remain source within their expansion", () => {
-        const actual = nodes(
-          `echo \${x#@(a} \${x:-@(b} \${x/a/@(c}; echo next\n`,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "parameter_expansion")
-            .map(({ text }) => text),
-          [`\${x#@(a}`, `\${x:-@(b}`, `\${x/a/@(c}`],
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "extglob_pattern").length,
-          0,
-        );
-      });
-
       test("brace alternatives retain process substitutions across continuations", () => {
         const source = ": pre{日,<\\\n(printf 'x,}'),>(:)}post\n";
         const actual = nodes(source);
@@ -1336,418 +970,6 @@ for (const grammar of grammars) {
             source,
           );
         }
-      });
-
-      test("brace separators split crossing bracket and extglob source", () => {
-        const actual = nodes(
-          ": {[a,b]} {[a,b],c} {@(a,b)} {@(a,b},c) @({a,b),c}\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_alternative")
-            .map(({ text }) => text),
-          [
-            "[a",
-            "b]",
-            "[a",
-            "b]",
-            "c",
-            "@(a",
-            "b)",
-            "@(a",
-            "b",
-            "a",
-            "b)",
-            "c",
-          ],
-        );
-        assert.deepEqual(
-          actual
-            .filter(
-              ({ type, field }) => type === "word" && field === "argument",
-            )
-            .map(({ text }) => text),
-          ["{[a,b]}", "{[a,b],c}", "{@(a,b)}", "{@(a,b},c)", "@({a,b),c}"],
-        );
-        assert.ok(
-          !actual.some(({ type }) =>
-            ["pattern_bracket_source", "extglob_pattern"].includes(type),
-          ),
-        );
-      });
-
-      test("nested braces retain bracket member range endpoint and class fields", () => {
-        const actual = nodes(
-          ": [{a,b}] @({a,b}) [{a,b}-z] [a-{b,c}] [[:pre{upper,lower}post:]]\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_expansion")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["member", "{a,b}"],
-            [undefined, "{a,b}"],
-            ["start", "{a,b}"],
-            ["end", "{b,c}"],
-            ["content", "{upper,lower}"],
-          ],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "pattern_bracket_range_source")
-            .map(({ text }) => text),
-          ["{a,b}-z", "a-{b,c}"],
-        );
-      });
-
-      test("quotes escapes substitutions and nested braces protect their own separators", () => {
-        const actual = nodes(
-          ': {a,[b\\,c]} {a,@("b,c"|d)} {a,@($(printf x,y)|c)} {a,@({x,y}|z)}\n',
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ['@("b,c"|d)', "@($(printf x,y)|c)", "@({x,y}|z)"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "pattern_bracket_source")
-            .map(({ text }) => text),
-          ["[b\\,c]"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_alternative")
-            .map(({ text }) => text),
-          [
-            "a",
-            "[b\\,c]",
-            "a",
-            '@("b,c"|d)',
-            "a",
-            "@($(printf x,y)|c)",
-            "a",
-            "@({x,y}|z)",
-            "x",
-            "y",
-          ],
-        );
-      });
-
-      test("brace source inside patterns respects the enclosing word mode", () => {
-        const actual = nodes(
-          `x=[{a,b}]; case @({a,b}) in [{a,b}]) :;; esac; [[ x == @({a,b}) ]]; : \${v/@({a,b\\})/x}\n`,
-        );
-        assert.ok(!actual.some(({ type }) => type === "brace_expansion"));
-        assert.equal(
-          actual.filter(({ type }) => type === "extglob_pattern").length,
-          3,
-        );
-      });
-
-      test("brace crossings flatten an extglob while balanced nested groups survive", () => {
-        const actual = nodes(": @(({a,b),c}) @({(a,b},c)) @(({a,b}))\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ["@(({a,b}))"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_expansion")
-            .map(({ text }) => text),
-          ["{a,b),c}", "{(a,b}", "{a,b}"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_group")
-            .map(({ text }) => text),
-          ["({a,b})"],
-        );
-      });
-
-      test("crossing extglobs inside bracket payloads retain brace ownership", () => {
-        const actual = nodes(
-          "a=([@({a,b),c}] [[:@({a,b),c}:]] [[.@({a,b),c}.]] [[=@({a,b),c}=]])\n",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_expansion")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["member", "{a,b),c}"],
-            ["content", "{a,b),c}"],
-            ["value", "{a,b),c}"],
-            ["value", "{a,b),c}"],
-          ],
-        );
-        assert.ok(!actual.some(({ type }) => type === "extglob_pattern"));
-      });
-
-      test("extglob literal runs preserve process substitutions and tilde payload slashes", () => {
-        const actual = nodes(": @(a<(:)|b) ~@(a/b|c)/d {a,@(b<(:)|c)}\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "process_substitution")
-            .map(({ text }) => text),
-          ["<(:)", "<(:)"],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "tilde_expansion")?.text,
-          "~@(a/b|c)",
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ["@(a<(:)|b)", "@(a/b|c)", "@(b<(:)|c)"],
-        );
-      });
-
-      test("brace alternatives retain lexical word extents across pattern boundaries", () => {
-        const actual = nodes(
-          ": @({日,本 c}) {@(a,b},c) next; a=([{a,b c}]); a[b[c d] e] tail\n",
-        );
-        assert.deepEqual(
-          actual.filter(({ type }) => type === "word").map(({ text }) => text),
-          [
-            ":",
-            "@({日,本 c})",
-            "{@(a,b},c)",
-            "next",
-            "[{a,b c}]",
-            "a[b[c d] e]",
-            "tail",
-          ],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_alternative")
-            .map(({ text }) => text),
-          ["日", "本 c", "@(a", "b", "a", "b c"],
-        );
-      });
-
-      test("brace sequences expose endpoints and increments without evaluation", () => {
-        const actual = nodes("echo pre{01..09..2}post {x} {1..x}\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_expansion")
-            .map(({ text }) => text),
-          ["{01..09..2}"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(
-              ({ type }) =>
-                type === "brace_endpoint" || type === "brace_increment",
-            )
-            .map(({ field, text }) => [field, text]),
-          [
-            ["start", "01"],
-            ["end", "09"],
-            ["increment", "2"],
-          ],
-        );
-      });
-
-      test("quoted pattern spelling and parameter values remain literal", () => {
-        const actual = nodes(
-          `echo "@(a|b)" "{a,b}" "\${x:-@(a|b)}" "\${x:-<(echo hi)}"\n`,
-        );
-        assert.equal(
-          actual.filter(({ type }) =>
-            [
-              "extglob_pattern",
-              "brace_expansion",
-              "process_substitution",
-            ].includes(type),
-          ).length,
-          0,
-        );
-      });
-
-      test("tilde classification includes assignment-shaped arguments", () => {
-        const actual = nodes("echo a=~:~/bin ~-2 literal:~\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "tilde_expansion")
-            .map(({ text }) => text),
-          ["~", "~", "~-2"],
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "assignment_word").length,
-          0,
-        );
-      });
-
-      test("extglob lexical boundaries reject a bracket-hidden closing parenthesis", () => {
-        const result = parser.parse("echo @([)])\n", {});
-        assert.equal(result.status, 1);
-      });
-
-      test("case selectors and patterns retain literal brace spelling", () => {
-        const actual = nodes("case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "brace_expansion")
-            .map(({ text }) => text),
-          ["{c,d}"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "extglob_pattern")
-            .map(({ text }) => text),
-          ["@(x|y)"],
-        );
-      });
-
-      test("append assignments retain the same tilde boundary as equals", () => {
-        const actual = nodes("x+=~ a[0]+=~user\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "tilde_expansion")
-            .map(({ text }) => text),
-          ["~", "~user"],
-        );
-      });
-
-      test("ERE hierarchy owns static repetition, intervals and code point leaves", () => {
-        const actual = nodes("[[ x =~ ^(ab|cd)+[[:digit:]a-z]{2,4}?日.$ ]]\n");
-        const texts = (type) =>
-          actual.filter((node) => node.type === type).map(({ text }) => text);
-        assert.deepEqual(texts("ordinary_character"), [
-          "a",
-          "b",
-          "c",
-          "d",
-          "日",
-        ]);
-        assert.deepEqual(texts("ere_dupl_symbol"), ["+", "{2,4}?"]);
-        assert.deepEqual(texts("repetition_modifier"), ["?"]);
-        assert.deepEqual(texts("class_name"), ["digit"]);
-        assert.deepEqual(texts("range_expression"), ["a-z"]);
-        assert.deepEqual(texts("ere_expression"), [
-          "^",
-          "(ab|cd)+",
-          "a",
-          "b",
-          "c",
-          "d",
-          "[[:digit:]a-z]{2,4}?",
-          "日",
-          ".",
-          "$",
-        ]);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "duplication_count")
-            .map(({ field, text }) => [field, text]),
-          [
-            ["minimum", "2"],
-            ["maximum", "4"],
-          ],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "operand")
-            .map(({ text }) => text),
-          [],
-        );
-      });
-
-      test("opaque ERE source and following repetitions are not single atoms", () => {
-        const source = `[[ x =~ "ab"+\${part}+\\.+ ]]\n`;
-        const actual = nodes(source);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "regex_source_expression")
-            .map(({ text }) => text),
-          [`"ab"+\${part}+\\.+`],
-        );
-        assert.equal(
-          actual.filter(({ field }) => field === "operand").length,
-          0,
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "ere_dupl_symbol")
-            .map(({ text }) => text),
-          ["+", "+", "+"],
-        );
-        assert.equal(
-          actual.find(({ type }) => type === "escaped_character")?.text,
-          "\\.",
-        );
-      });
-
-      test("ERE groups, brackets and interval payloads retain embedded Bash source", () => {
-        const actual = nodes(`[[ x =~ (a|\${part})+[a-z\${part}]{\${n}} ]]\n`);
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "ere_expression")
-            .map(({ text }) => text),
-          [`(a|\${part})+`, "a", `[a-z\${part}]{\${n}}`],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "range_expression")
-            .map(({ text }) => text),
-          ["a-z"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "parameter_expansion")
-            .map(({ text }) => text),
-          [`\${part}`, `\${part}`, `\${n}`],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ field }) => field === "minimum")
-            .map(({ type, text }) => [type, text]),
-          [["regex_source_expression", `\${n}`]],
-        );
-        assert.equal(
-          actual.filter(({ type }) => type === "duplication_count").length,
-          0,
-        );
-      });
-
-      test("ERE delimiter probes preserve process substitution payloads", () => {
-        const actual = nodes(
-          '[[ x =~ [a<(printf "]")][[.b>((printf c)).]]{<(printf 1)} ]]\n',
-        );
-        const texts = (type) =>
-          actual.filter((node) => node.type === type).map(({ text }) => text);
-        assert.deepEqual(texts("bracket_expression"), [
-          '[a<(printf "]")]',
-          "[[.b>((printf c)).]]",
-        ]);
-        assert.deepEqual(texts("collating_symbol"), ["[.b>((printf c)).]"]);
-        assert.deepEqual(texts("ere_dupl_symbol"), ["{<(printf 1)}"]);
-        assert.deepEqual(texts("process_substitution"), [
-          '<(printf "]")',
-          ">((printf c))",
-          "<(printf 1)",
-        ]);
-        assert.deepEqual(texts("regex_source_fragment"), []);
-      });
-
-      test("ERE ordinary characters retain individual UTF-8 source ranges", () => {
-        const actual = nodes("[[ x =~ 日本🙂日 ]]\n");
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "ordinary_character")
-            .map(({ start, end, text }) => [start, end, text]),
-          [
-            [8, 11, "日"],
-            [11, 14, "本"],
-            [14, 18, "🙂"],
-            [18, 21, "日"],
-          ],
-        );
       });
 
       test("ERE line continuations retain count, class name and delimiter ranges", () => {
@@ -1799,29 +1021,6 @@ for (const grammar of grammars) {
           );
         });
       }
-
-      test("ERE groups remain structured immediately after opaque source", () => {
-        const actual = nodes(`[[ x =~ "\${p}"(a|b)+\${q}(c) ]]\n`);
-        assert.equal(
-          actual.filter(({ field }) => field === "operand").length,
-          0,
-        );
-        assert.deepEqual(
-          actual
-            .filter(
-              ({ type, text }) =>
-                type === "ere_expression" && text.startsWith("("),
-            )
-            .map(({ text }) => text),
-          ["(a|b)+", "(c)"],
-        );
-        assert.deepEqual(
-          actual
-            .filter(({ type }) => type === "ordinary_character")
-            .map(({ text }) => text),
-          ["a", "b", "c"],
-        );
-      });
 
       for (const endpoint of [
         `\${p}`,
@@ -2486,6 +1685,69 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
+          name: "bracket arithmetic becomes a literal bracket pattern",
+          seed: ": $[1+2]\n",
+          remove: "$",
+          insert: "",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic loses its close and repairs it",
+          seed: ': "$[1+2]"; : after\n',
+          remove: "]",
+          insert: "",
+          valid: false,
+        },
+        {
+          name: "bracket arithmetic keeps unmatched parentheses as source",
+          seed: ": $[(1+2)*3]\n",
+          remove: ")",
+          insert: "",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic changes structure around a nested expansion",
+          seed: ": $[1+$((2*3))]\n",
+          remove: "1+",
+          insert: "1 ",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic changes an inner bracket into its terminator",
+          seed: ': $["1]"+2]\n',
+          remove: '"1]"',
+          insert: "1]",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic changes an array subscript into raw brackets",
+          seed: ": $[a[1]+2]\n",
+          remove: "a",
+          insert: "",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic becomes empty",
+          seed: ": $[1+2]\n",
+          remove: "1+2",
+          insert: "",
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic and substring extents survive nested edits",
+          seed: `: "\${s:$[a[1]+2]:\${n:1:2}}"\n`,
+          remove: "a[1]",
+          insert: `\${v:-3}`,
+          valid: true,
+        },
+        {
+          name: "bracket arithmetic opener gains a line continuation",
+          seed: ": $[1+2]\n",
+          remove: "$[",
+          insert: "$\\\n[",
+          valid: true,
+        },
+        {
           name: "arithmetic update changes from prefix to postfix",
           seed: "echo $((++a+1))\n",
           remove: "++a",
@@ -2788,30 +2050,6 @@ for (const grammar of grammars) {
       assert.equal(repaired.tree, original.tree);
     });
 
-    test("subscript candidates retain arithmetic precedence without resolving array types", () => {
-      const source = `a[x+2*3]=v; : "\${a[(i+1)]}"`;
-      const nodes = parseNodes(parser, source);
-      assert.deepEqual(
-        nodes
-          .filter(({ type }) => type.includes("arithmetic_candidate"))
-          .map(({ type, field, text }) => [type, field, text]),
-        [
-          ["arithmetic_candidate_binary_expression", "candidate", "x+2*3"],
-          ["arithmetic_candidate_variable", "left", "x"],
-          ["arithmetic_candidate_operator", "operator", "+"],
-          ["arithmetic_candidate_binary_expression", "right", "2*3"],
-          ["arithmetic_candidate_number", "left", "2"],
-          ["arithmetic_candidate_operator", "operator", "*"],
-          ["arithmetic_candidate_number", "right", "3"],
-          ["parenthesized_arithmetic_candidate", "candidate", "(i+1)"],
-          ["arithmetic_candidate_binary_expression", "expression", "i+1"],
-          ["arithmetic_candidate_variable", "left", "i"],
-          ["arithmetic_candidate_operator", "operator", "+"],
-          ["arithmetic_candidate_number", "right", "1"],
-        ],
-      );
-    });
-
     test("whole-subscript all-element candidates stay under the neutral source in every context", () => {
       for (const { source, expected } of [
         {
@@ -2921,66 +2159,6 @@ for (const grammar of grammars) {
           original.tree,
         );
       }
-    });
-
-    test("subscript candidates share expansions and retain independently neutral nested subscripts", () => {
-      const source = `: "\${a[b[)]+$(printf 2)+$((1+2))]}"`;
-      const nodes = parseNodes(parser, source);
-      assert.deepEqual(
-        nodes
-          .filter(({ type }) =>
-            [
-              "array_subscript",
-              "arithmetic_candidate_array_reference",
-              "subscript_text",
-              "command_substitution",
-              "arithmetic_expansion",
-              "arithmetic_binary_expression",
-            ].includes(type),
-          )
-          .map(({ type, text }) => [type, text]),
-        [
-          ["array_subscript", "[b[)]+$(printf 2)+$((1+2))]"],
-          ["arithmetic_candidate_array_reference", "b[)]"],
-          ["array_subscript", "[)]"],
-          ["subscript_text", ")"],
-          ["command_substitution", "$(printf 2)"],
-          ["arithmetic_expansion", "$((1+2))"],
-          ["arithmetic_binary_expression", "1+2"],
-        ],
-      );
-    });
-
-    test("incomplete arithmetic retains candidate tokens while blank subscripts have no candidate", () => {
-      const nodes = parseNodes(
-        parser,
-        `: "\${a[x+]}" "\${a[08]}" "\${a[  ]}" "\${a[]}"`,
-      );
-      assert.deepEqual(
-        nodes
-          .filter(({ field }) => field === "candidate")
-          .map(({ type, text }) => [type, text]),
-        [
-          ["arithmetic_candidate_source_expression", "x+"],
-          ["arithmetic_candidate_source_expression", "08"],
-        ],
-      );
-      assert.deepEqual(
-        nodes
-          .filter(({ type }) =>
-            [
-              "arithmetic_candidate_variable",
-              "arithmetic_candidate_operator",
-              "subscript_text",
-            ].includes(type),
-          )
-          .map(({ type, text }) => [type, text]),
-        [
-          ["arithmetic_candidate_variable", "x"],
-          ["arithmetic_candidate_operator", "+"],
-          ["subscript_text", "08"],
-        ],
-      );
     });
 
     test("subscript candidate edits and repairs match fresh parsing", () => {

@@ -382,12 +382,18 @@ fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
   assert!(!tree.root_node().has_error());
   let mut pending = vec![tree.root_node()];
   let mut payloads = Vec::new();
+  let mut continuations = Vec::new();
   while let Some(node) = pending.pop() {
+    if node.kind() == "line_continuation" {
+      assert_eq!(node.child_count(), 0);
+      continuations.push(node.byte_range());
+    }
     if matches!(node.kind(), "collating_symbol" | "equivalence_class") {
       let payload = node.child_by_field_name("element").unwrap();
       assert_eq!(payload.parent(), Some(node));
       let children: Vec<_> = payload
         .children(&mut payload.walk())
+        .filter(|child| child.kind() != "line_continuation")
         .map(|child| child.kind())
         .collect();
       payloads.push((
@@ -404,11 +410,7 @@ fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
     payloads,
     vec![
       ("collating_element_single", "é", vec![]),
-      (
-        "collating_element_multi",
-        "a\\\nb",
-        vec!["line_continuation"]
-      ),
+      ("collating_element_multi", "a\\\nb", vec![]),
       ("collating_element_single", "日", vec![]),
       ("collating_element_multi", "ab", vec![]),
       ("meta_character", "-", vec![]),
@@ -423,6 +425,8 @@ fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
       ),
     ]
   );
+  let continuation = source.find("\\\n").unwrap();
+  assert_eq!(continuations, vec![continuation..continuation + 1]);
   let query =
     Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
       .unwrap();

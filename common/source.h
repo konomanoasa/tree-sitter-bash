@@ -13,6 +13,7 @@
 
 enum SourceResult {
   SOURCE_CHARACTER,
+  SOURCE_OMITTED,
   SOURCE_END,
   SOURCE_FAILURE,
 };
@@ -123,12 +124,101 @@ static inline void source_snapshot_clear(struct SourceSnapshot *snapshot) {
   memset(snapshot, 0, sizeof(*snapshot));
 }
 
+static inline bool source_snapshot_copy(
+  struct SourceSnapshot *copy,
+  const struct SourceSnapshot *source
+) {
+  *copy = *source;
+  copy->stages = NULL;
+  if (source->stage_count == 0) return true;
+  copy->stages = ts_malloc(source->stage_count * sizeof(*copy->stages));
+  if (copy->stages == NULL) return false;
+  memcpy(
+    copy->stages,
+    source->stages,
+    source->stage_count * sizeof(*copy->stages)
+  );
+  return true;
+}
+
 static inline void source_cursor_clear(struct SourceCursor *cursor) {
   ts_free(cursor->initial);
   ts_free(cursor->raw);
   ts_free(cursor->logical);
   ts_free(cursor->removals);
   memset(cursor, 0, sizeof(*cursor));
+}
+
+static inline bool source_snapshot_keep_suffix(
+  struct SourceSnapshot *snapshot,
+  size_t prefix_count
+) {
+  if (prefix_count > snapshot->stage_count) return false;
+  snapshot->stage_count -= prefix_count;
+  if (snapshot->stage_count > 0)
+    memmove(
+      snapshot->stages,
+      snapshot->stages + prefix_count,
+      snapshot->stage_count * sizeof(*snapshot->stages)
+    );
+  return true;
+}
+
+static inline bool source_snapshot_resume_prefix(
+  struct SourceSnapshot *resume,
+  const struct SourceSnapshot *source,
+  size_t count
+) {
+  if (
+    resume->stage_count > (SOURCE_STATE_CAPACITY - 2) / 2 ||
+    count > source->stage_count ||
+    count > (SOURCE_STATE_CAPACITY - 2) / 2 - resume->stage_count
+  )
+    return false;
+  struct SourceStage *stages =
+    ts_realloc(resume->stages, (count + resume->stage_count) * sizeof(*stages));
+  if (stages == NULL) return false;
+  resume->stages = stages;
+  if (resume->stage_count > 0)
+    memmove(stages + count, stages, resume->stage_count * sizeof(*stages));
+  resume->stage_count += count;
+  for (size_t index = 0; index < count; index++) {
+    struct SourceStage stage = source->stages[index];
+    if (stage.has_pending) {
+      if (
+        stage.pending.origin.start < INT64_MIN + source->raw_position ||
+        stage.pending.origin.end > source->raw_position
+      )
+        return false;
+      stage.pending.origin.start = resume->raw_position +
+        (stage.pending.origin.start - source->raw_position);
+      stage.pending.origin.end = resume->raw_position +
+        (stage.pending.origin.end - source->raw_position);
+      stage.pending.origin.character = resume->raw_position +
+        (stage.pending.origin.character - source->raw_position);
+    }
+    resume->stages[index] = stage;
+  }
+  return true;
+}
+
+static inline bool source_newline_at(
+  const struct SourceCursor *cursor,
+  size_t cut,
+  size_t stage_count
+) {
+  if (cut == 0 || cut > cursor->raw_count || cursor->raw[cut - 1] != '\n')
+    return false;
+  for (size_t index = 0; index < cursor->removal_count; index++) {
+    const struct SourceRemoval *removal = &cursor->removals[index];
+    if (
+      removal->kind == SOURCE_REMOVED_CONTINUATION &&
+      removal->stage < stage_count &&
+      removal->origin.end == (int64_t)cut
+    )
+      return false;
+  }
+  return true;
 }
 
 static inline bool source_cursor_init(

@@ -1,0 +1,60 @@
+==================
+groups own nested lists and following redirects
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+{ echo one; echo two; } >out; (echo three) <in
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (brace_group
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op))
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))
+              terminator: (separator
+                operator: (separator_op))))
+          redirect: (io_redirect
+            body: (io_file
+              filename: (word
+                (literal)))))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (subshell
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (literal))))))))
+          redirect: (io_redirect
+            body: (io_file
+              filename: (word
+                (literal)))))))))

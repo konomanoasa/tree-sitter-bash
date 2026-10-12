@@ -801,6 +801,14 @@
       "scanner": "ARITHMETIC_EXPANSION_OPEN"
     },
     {
+      "begin": "_bracket_arithmetic_open",
+      "scanner": "BRACKET_ARITHMETIC_OPEN"
+    },
+    {
+      "begin": "_bracket_arithmetic_close",
+      "scanner": "BRACKET_ARITHMETIC_CLOSE"
+    },
+    {
       "begin": "_numeric_parameter_digit",
       "scanner": "NUMERIC_PARAMETER_DIGIT"
     },

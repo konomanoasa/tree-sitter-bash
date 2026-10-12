@@ -1,0 +1,109 @@
+==================
+comments stop at physical newline
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+# header\
+echo ok # trailing
+
+------------------
+
+(program
+  leading: (comment
+    (comment_text))
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)))))))
+  trailing: (comment
+    (comment_text)))
+
+==================
+comments starting with a function-like word are not function names
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+#x() { :; }
+: $(#(
+:)
+
+------------------
+
+(program
+  leading: (comment
+    (comment_text))
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (comment
+                    (comment_text))
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))))))))))))))))
+
+==================
+a continuation right after the comment marker stays in the comment
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+#\
+x
+echo a #\
+: `#\
+`
+
+------------------
+
+(program
+  (comment
+    (comment_text))
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (literal))))))
+    (comment
+      (comment_text))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (backquote_substitution
+                (backquote_substitution_body
+                  (comment
+                    (comment_text)))))))))))

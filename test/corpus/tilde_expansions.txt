@@ -1,0 +1,122 @@
+==================
+tilde prefixes and assignment arguments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+echo ~+ ~- ~2 ~+2 ~-2 a=~:~/bin a=one:~user/bin
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (tilde_expansion
+                (tilde_user
+                  (literal))))
+            (word
+              (literal)
+              (tilde_expansion)
+              (literal)
+              (tilde_expansion)
+              (literal))
+            (word
+              (literal)
+              (literal)
+              (tilde_expansion
+                (tilde_user
+                  (literal)))
+              (literal))))))))
+
+==================
+tilde classification includes assignment-shaped arguments
+:language(bash_extglob)
+:cst
+==================
+echo a=~:~/bin ~-2 literal:~
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:28     commands: list
+0:0  - 0:28       and_or: and_or
+0:0  - 0:28         pipeline: pipeline
+0:0  - 0:28           command: command
+0:0  - 0:28             body: simple_command
+0:0  - 0:4                name: word
+0:0  - 0:4                  literal `echo`
+0:5  - 0:14               argument: word
+0:5  - 0:7                  literal `a=`
+0:7  - 0:8                  tilde_expansion
+0:7  - 0:8                    "~"
+0:8  - 0:9                  literal `:`
+0:9  - 0:10                 tilde_expansion
+0:9  - 0:10                   "~"
+0:10 - 0:14                 literal `/bin`
+0:15 - 0:18               argument: word
+0:15 - 0:18                 tilde_expansion
+0:15 - 0:16                   "~"
+0:16 - 0:18                   user: tilde_user
+0:16 - 0:18                     literal `-2`
+0:19 - 0:28               argument: word
+0:19 - 0:28                 literal `literal:~`
+0:28 - 1:0      "\n"
+
+==================
+append assignments retain the same tilde boundary as equals
+:language(bash_extglob)
+:cst
+==================
+x+=~ a[0]+=~user
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:16     commands: list
+0:0  - 0:16       and_or: and_or
+0:0  - 0:16         pipeline: pipeline
+0:0  - 0:16           command: command
+0:0  - 0:16             body: simple_command
+0:0  - 0:4                assignment: assignment_word
+0:0  - 0:1                  name: variable_name `x`
+0:1  - 0:3                  operator: assignment_append `+=`
+0:3  - 0:4                  value: assignment_value
+0:3  - 0:4                    tilde_expansion
+0:3  - 0:4                      "~"
+0:5  - 0:16               assignment: assignment_word
+0:5  - 0:6                  name: variable_name `a`
+0:6  - 0:9                  subscript: array_subscript
+0:6  - 0:7                    "["
+0:7  - 0:8                    source: subscript_source
+0:7  - 0:8                      candidate: arithmetic_candidate_number `0`
+0:8  - 0:9                    "]"
+0:9  - 0:11                 operator: assignment_append `+=`
+0:11 - 0:16                 value: assignment_value
+0:11 - 0:16                   tilde_expansion
+0:11 - 0:12                     "~"
+0:12 - 0:16                     user: tilde_user
+0:12 - 0:16                       literal `user`
+0:16 - 1:0      "\n"

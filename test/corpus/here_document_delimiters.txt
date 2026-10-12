@@ -1,0 +1,2690 @@
+==================
+condition in command substitution delimiter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$( [[ x ]] )
+$( [[ x ]] )
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal ))
+            (io_redirect
+              (io_here
+                (dless )
+                (here_end
+                  (word
+                    (command_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (conditional_command
+                                  (conditional_open)
+                                  (word
+                                    (literal))
+                                  (conditional_close)))))))))))))))))
+  (here_document_sequence
+    (here_document_line_end )
+    (here_document
+      (here_document_end
+        (here_document_end_text )))))
+
+==================
+here document delimiter extglob
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+cat <<@(a|b)
+x
+@(a|b)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (here_document_body
+        (here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+here document ANSI-C Unicode delimiter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$'\u0045OF'
+x
+EOF
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+here document ANSI-C hex width
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$'\x454OF'
+x
+E4OF
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+ANSI-C unknown escape delimiter
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$'\q\x'
+x
+\q\x
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+ANSI-C NUL truncates only the quoted segment
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<a$'\0ignored'b
+x
+ab
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (io_redirect
+              (io_here
+                (dless)
+                (here_end
+                  (word
+                    (literal)
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text))
+                    (literal))))))))))
+  (here_document_sequence
+    (here_document_line_end)
+    (here_document
+      (quoted_here_document_body
+        (quoted_here_document_text))
+      (here_document_end
+        (here_document_end_text)))))
+
+==================
+delimiter quotes are removed without parameter expansion
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<"${x:-"a"}"
+$x
+${x:-a}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (double_quote_text))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+delimiter quotes are removed without command execution
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<"$(echo "a")"
+$x
+$(echo a)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (command_substitution
+                        body: (command_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text))))))))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+quotes inside unquoted parameter spelling are retained
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<${x:-"a"}
+$x
+${x:-"a"}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (double_quote_text)))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+quotes inside unquoted substitution spelling are retained
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$(echo "a")
+$x
+$(echo "a")
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (double_quoted
+                                      (double_quote_text)))))))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+empty quoted delimiter ends at empty line
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<''
+body
+
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (single_quoted))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end))))
+
+==================
+quoted parameter with nested blanks
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<"${x:-"a b"}"
+body
+${x:-a b}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (double_quote_text))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+quoted command with nested blanks
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<"$(echo "a b")"
+body
+$(echo a b)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (command_substitution
+                        body: (command_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text))))))))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+unquoted parameter name
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$x
+body
+$x
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (parameter_expansion
+                      parameter: (variable_name)))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+locale quote delimiter prefixes are removed without expanding their contents
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat <<$"EOF" <<[$"x"] <<$"$name"
+$first
+EOF
+$second
+[x]
+$third
+$name
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (locale_quoted
+                      (double_quote_text))))))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (locale_quoted
+                          (double_quote_text))))))))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (locale_quoted
+                      (parameter_expansion
+                        parameter: (variable_name))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+here document delimiter words preserve process substitution source
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat << pre<(printf x)>(:)post
+$v
+pre<(printf x)>(:)post
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal)
+                    (process_substitution
+                      body: (command_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (literal)))))))))
+                    (process_substitution
+                      body: (command_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal)))))))))
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+here document outer quoting controls extglob quote removal
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+cat << @("a b"|c) << ""@("a b"|c)
+$v
+@("a b"|c)
+$w
+@(a b|c)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (extglob_pattern
+                      operator: (extglob_operator)
+                      alternative: (extglob_alternative
+                        (double_quoted
+                          (double_quote_text)))
+                      alternative: (extglob_alternative
+                        (literal)))))))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted)
+                    (extglob_pattern
+                      operator: (extglob_operator)
+                      alternative: (extglob_alternative
+                        (double_quoted
+                          (double_quote_text)))
+                      alternative: (extglob_alternative
+                        (literal))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)))
+      end: (here_document_end
+        (here_document_end_text)))
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+brace substitution delimiter prefixes normalize layout before quote removal
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+cat << ${	:; } << ""${|
+	printf "x"; }
+$v
+${ :; }
+$w
+${|printf x; }
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (current_shell_substitution
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))
+                        terminator: (separator
+                          operator: (separator_op))))))))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted)
+                    (reply_substitution
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                argument: (word
+                                  (double_quoted
+                                    (double_quote_text)))))))
+                        terminator: (separator
+                          operator: (separator_op)))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)))
+      end: (here_document_end
+        (here_document_end_text)))
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+Quoted parameter delimiter with extquote enabled
+:language(bash)
+:language(bash_extglob)
+==================
+: <<"${x:-$'ab'}"
+body
+${x:-ab}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (dollar_single_quoted
+                            (dollar_single_quote_text))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+Quoted parameter delimiter with extquote disabled
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+: <<"${x:-$'ab'}"
+body
+${x:-$'ab'}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (dollar_single_quoted
+                            (dollar_single_quote_text))))))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+here document delimiter: quoted array parameter pattern
+:language(bash_extglob)
+:cst
+==================
+cat << "${x[0]#'"'}"
+$body
+${x[0]#'}"
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:20       and_or: and_or
+0:0  - 0:20         pipeline: pipeline
+0:0  - 0:20           command: command
+0:0  - 0:20             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:20               redirect: io_redirect
+0:4  - 0:20                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:20                   end: here_end
+0:7  - 0:20                     word: word
+0:7  - 0:20                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:19                         parameter_expansion
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "{"
+0:10 - 0:14                           parameter: array_reference
+0:10 - 0:11                             name: variable_name `x`
+0:11 - 0:14                             subscript: array_subscript
+0:11 - 0:12                               "["
+0:12 - 0:13                               source: subscript_source
+0:12 - 0:13                                 candidate: arithmetic_candidate_number `0`
+0:13 - 0:14                               "]"
+0:14 - 0:15                           operator: parameter_pattern_operator `#`
+0:15 - 0:18                           pattern: parameter_pattern
+0:15 - 0:18                             single_quoted
+0:15 - 0:16                               "'"
+0:16 - 0:17                               single_quote_content `\"`
+0:17 - 0:18                               "'"
+0:18 - 0:19                           "}"
+0:19 - 0:20                         "\""
+0:20 - 3:0        separator: here_document_sequence
+0:20 - 1:0          line_end: here_document_line_end
+0:20 - 0:21           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:10             here_document_end_text `${x[0]#'}\"`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: here string within a command substitution
+:language(bash_extglob)
+:cst
+==================
+cat << $(cat <<< x)
+$body
+$(cat <<< x)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:19       and_or: and_or
+0:0  - 0:19         pipeline: pipeline
+0:0  - 0:19           command: command
+0:0  - 0:19             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:19               redirect: io_redirect
+0:4  - 0:19                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:19                   end: here_end
+0:7  - 0:19                     word: word
+0:7  - 0:19                       command_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "("
+0:9  - 0:18                         body: command_substitution_body
+0:9  - 0:18                           list
+0:9  - 0:18                             and_or: and_or
+0:9  - 0:18                               pipeline: pipeline
+0:9  - 0:18                                 command: command
+0:9  - 0:18                                   body: simple_command
+0:9  - 0:12                                     name: word
+0:9  - 0:12                                       literal `cat`
+0:13 - 0:18                                     redirect: io_redirect
+0:13 - 0:18                                       body: io_file
+0:13 - 0:16                                         operator: here_string_operator `<<<`
+0:17 - 0:18                                         filename: word
+0:17 - 0:18                                           literal `x`
+0:18 - 0:19                         ")"
+0:19 - 3:0        separator: here_document_sequence
+0:19 - 1:0          line_end: here_document_line_end
+0:19 - 0:20           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:12             here_document_end_text `$(cat <<< x)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: current shell prefix normalizes horizontal blanks
+:language(bash_extglob)
+:cst
+==================
+cat << ${  	printf "x"; }
+$body
+${ printf "x"; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:25       and_or: and_or
+0:0  - 0:25         pipeline: pipeline
+0:0  - 0:25           command: command
+0:0  - 0:25             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:25               redirect: io_redirect
+0:4  - 0:25                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:25                   end: here_end
+0:7  - 0:25                     word: word
+0:7  - 0:25                       current_shell_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "{"
+0:9  - 0:23                         body: list
+0:12 - 0:22                           and_or: and_or
+0:12 - 0:22                             pipeline: pipeline
+0:12 - 0:22                               command: command
+0:12 - 0:22                                 body: simple_command
+0:12 - 0:18                                   name: word
+0:12 - 0:18                                     literal `printf`
+0:19 - 0:22                                   argument: word
+0:19 - 0:22                                     double_quoted
+0:19 - 0:20                                       "\""
+0:20 - 0:21                                       double_quote_text `x`
+0:21 - 0:22                                       "\""
+0:22 - 0:23                           terminator: separator
+0:22 - 0:23                             operator: separator_op
+0:22 - 0:23                               ";"
+0:24 - 0:25                         "}"
+0:25 - 3:0        separator: here_document_sequence
+0:25 - 1:0          line_end: here_document_line_end
+0:25 - 0:26           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:16             here_document_end_text `${ printf \"x\"; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: current shell prefix normalizes its newline
+:language(bash_extglob)
+:cst
+==================
+cat << ${
+  :; }
+$body
+${ :; }
+printf after
+
+------------------
+
+0:0  - 5:0    program
+0:0  - 4:12     commands: list
+0:0  - 1:6        and_or: and_or
+0:0  - 1:6          pipeline: pipeline
+0:0  - 1:6            command: command
+0:0  - 1:6              body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 1:6                redirect: io_redirect
+0:4  - 1:6                  body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 1:6                    end: here_end
+0:7  - 1:6                      word: word
+0:7  - 1:6                        current_shell_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "{"
+0:9  - 1:4                          body: list
+0:9  - 1:0                            "\n"
+1:2  - 1:3                            and_or: and_or
+1:2  - 1:3                              pipeline: pipeline
+1:2  - 1:3                                command: command
+1:2  - 1:3                                  body: simple_command
+1:2  - 1:3                                    name: word
+1:2  - 1:3                                      literal `:`
+1:3  - 1:4                            terminator: separator
+1:3  - 1:4                              operator: separator_op
+1:3  - 1:4                                ";"
+1:5  - 1:6                          "}"
+1:6  - 4:0        separator: here_document_sequence
+1:6  - 2:0          line_end: here_document_line_end
+1:6  - 1:7            `\n`
+2:0  - 4:0          document: here_document
+2:0  - 3:0            body: here_document_body
+2:0  - 2:5              parameter_expansion
+2:0  - 2:1                "$"
+2:1  - 2:5                parameter: variable_name `body`
+3:0  - 4:0            end: here_document_end
+3:0  - 3:7              here_document_end_text `${ :; }`
+4:0  - 4:12       and_or: and_or
+4:0  - 4:12         pipeline: pipeline
+4:0  - 4:12           command: command
+4:0  - 4:12             body: simple_command
+4:0  - 4:6                name: word
+4:0  - 4:6                  literal `printf`
+4:7  - 4:12               argument: word
+4:7  - 4:12                 literal `after`
+4:12 - 5:0      "\n"
+
+==================
+here document delimiter: reply prefix removes leading command layout
+:language(bash_extglob)
+:cst
+==================
+cat << ${| 	
+ :; }
+$body
+${|:; }
+printf after
+
+------------------
+
+0:0  - 5:0    program
+0:0  - 4:12     commands: list
+0:0  - 1:5        and_or: and_or
+0:0  - 1:5          pipeline: pipeline
+0:0  - 1:5            command: command
+0:0  - 1:5              body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 1:5                redirect: io_redirect
+0:4  - 1:5                  body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 1:5                    end: here_end
+0:7  - 1:5                      word: word
+0:7  - 1:5                        reply_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "{"
+0:9  - 0:10                         "|"
+0:10 - 1:3                          body: list
+0:12 - 1:0                            "\n"
+1:1  - 1:2                            and_or: and_or
+1:1  - 1:2                              pipeline: pipeline
+1:1  - 1:2                                command: command
+1:1  - 1:2                                  body: simple_command
+1:1  - 1:2                                    name: word
+1:1  - 1:2                                      literal `:`
+1:2  - 1:3                            terminator: separator
+1:2  - 1:3                              operator: separator_op
+1:2  - 1:3                                ";"
+1:4  - 1:5                          "}"
+1:5  - 4:0        separator: here_document_sequence
+1:5  - 2:0          line_end: here_document_line_end
+1:5  - 1:6            `\n`
+2:0  - 4:0          document: here_document
+2:0  - 3:0            body: here_document_body
+2:0  - 2:5              parameter_expansion
+2:0  - 2:1                "$"
+2:1  - 2:5                parameter: variable_name `body`
+3:0  - 4:0            end: here_document_end
+3:0  - 3:7              here_document_end_text `${|:; }`
+4:0  - 4:12       and_or: and_or
+4:0  - 4:12         pipeline: pipeline
+4:0  - 4:12           command: command
+4:0  - 4:12             body: simple_command
+4:0  - 4:6                name: word
+4:0  - 4:6                  literal `printf`
+4:7  - 4:12               argument: word
+4:7  - 4:12                 literal `after`
+4:12 - 5:0      "\n"
+
+==================
+here document delimiter: reply prefix normalization precedes quote removal
+:language(bash_extglob)
+:cst
+==================
+cat << ""${| 	printf "x"; }
+$body
+${|printf x; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:27       and_or: and_or
+0:0  - 0:27         pipeline: pipeline
+0:0  - 0:27           command: command
+0:0  - 0:27             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:27               redirect: io_redirect
+0:4  - 0:27                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:27                   end: here_end
+0:7  - 0:27                     word: word
+0:7  - 0:9                        double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:9                          "\""
+0:9  - 0:27                       reply_substitution
+0:9  - 0:10                         "$"
+0:10 - 0:11                         "{"
+0:11 - 0:12                         "|"
+0:12 - 0:25                         body: list
+0:14 - 0:24                           and_or: and_or
+0:14 - 0:24                             pipeline: pipeline
+0:14 - 0:24                               command: command
+0:14 - 0:24                                 body: simple_command
+0:14 - 0:20                                   name: word
+0:14 - 0:20                                     literal `printf`
+0:21 - 0:24                                   argument: word
+0:21 - 0:24                                     double_quoted
+0:21 - 0:22                                       "\""
+0:22 - 0:23                                       double_quote_text `x`
+0:23 - 0:24                                       "\""
+0:24 - 0:25                           terminator: separator
+0:24 - 0:25                             operator: separator_op
+0:24 - 0:25                               ";"
+0:26 - 0:27                         "}"
+0:27 - 3:0        separator: here_document_sequence
+0:27 - 1:0          line_end: here_document_line_end
+0:27 - 0:28           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:14             here_document_end_text `${|printf x; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: double quoted brace prefix preserves nested ANSI-C quotes
+:language(bash_extglob)
+:cst
+==================
+cat << "${	printf $'x'; }"
+$body
+${ printf 'x'; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:26       and_or: and_or
+0:0  - 0:26         pipeline: pipeline
+0:0  - 0:26           command: command
+0:0  - 0:26             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:26               redirect: io_redirect
+0:4  - 0:26                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:26                   end: here_end
+0:7  - 0:26                     word: word
+0:7  - 0:26                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:25                         current_shell_substitution
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "{"
+0:10 - 0:23                           body: list
+0:11 - 0:22                             and_or: and_or
+0:11 - 0:22                               pipeline: pipeline
+0:11 - 0:22                                 command: command
+0:11 - 0:22                                   body: simple_command
+0:11 - 0:17                                     name: word
+0:11 - 0:17                                       literal `printf`
+0:18 - 0:22                                     argument: word
+0:18 - 0:22                                       dollar_single_quoted
+0:18 - 0:19                                         "$"
+0:19 - 0:20                                         "'"
+0:20 - 0:21                                         dollar_single_quote_text `x`
+0:21 - 0:22                                         "'"
+0:22 - 0:23                             terminator: separator
+0:22 - 0:23                               operator: separator_op
+0:22 - 0:23                                 ";"
+0:24 - 0:25                           "}"
+0:25 - 0:26                         "\""
+0:26 - 3:0        separator: here_document_sequence
+0:26 - 1:0          line_end: here_document_line_end
+0:26 - 0:27           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:16             here_document_end_text `${ printf 'x'; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: single quoted brace source retains its blanks
+:language(bash_extglob)
+:cst
+==================
+cat << '${|	 :; }'
+$body
+${|	 :; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:18       and_or: and_or
+0:0  - 0:18         pipeline: pipeline
+0:0  - 0:18           command: command
+0:0  - 0:18             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:18               redirect: io_redirect
+0:4  - 0:18                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:18                   end: here_end
+0:7  - 0:18                     word: word
+0:7  - 0:18                       single_quoted
+0:7  - 0:8                          "'"
+0:8  - 0:17                         single_quote_content `${|\t :; }`
+0:17 - 0:18                         "'"
+0:18 - 3:0        separator: here_document_sequence
+0:18 - 1:0          line_end: here_document_line_end
+0:18 - 0:19           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:9              here_document_end_text `${|\t :; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C quoted brace source retains decoded blanks
+:language(bash_extglob)
+:cst
+==================
+cat << $'${|\t :; }'
+$body
+${|	 :; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:20       and_or: and_or
+0:0  - 0:20         pipeline: pipeline
+0:0  - 0:20           command: command
+0:0  - 0:20             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:20               redirect: io_redirect
+0:4  - 0:20                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:20                   end: here_end
+0:7  - 0:20                     word: word
+0:7  - 0:20                       dollar_single_quoted
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "'"
+0:9  - 0:12                         dollar_single_quote_text `${|`
+0:12 - 0:14                         dollar_single_quote_escape `\\t`
+0:14 - 0:19                         dollar_single_quote_text ` :; }`
+0:19 - 0:20                         "'"
+0:20 - 3:0        separator: here_document_sequence
+0:20 - 1:0          line_end: here_document_line_end
+0:20 - 0:21           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:9              here_document_end_text `${|\t :; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: input process substitution word
+:language(bash_extglob)
+:cst
+==================
+cat << pre<(printf "a b")post
+$body
+pre<(printf "a b")post
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:29       and_or: and_or
+0:0  - 0:29         pipeline: pipeline
+0:0  - 0:29           command: command
+0:0  - 0:29             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:29               redirect: io_redirect
+0:4  - 0:29                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:29                   end: here_end
+0:7  - 0:29                     word: word
+0:7  - 0:10                       literal `pre`
+0:10 - 0:25                       process_substitution
+0:10 - 0:11                         "<"
+0:11 - 0:12                         "("
+0:12 - 0:24                         body: command_substitution_body
+0:12 - 0:24                           list
+0:12 - 0:24                             and_or: and_or
+0:12 - 0:24                               pipeline: pipeline
+0:12 - 0:24                                 command: command
+0:12 - 0:24                                   body: simple_command
+0:12 - 0:18                                     name: word
+0:12 - 0:18                                       literal `printf`
+0:19 - 0:24                                     argument: word
+0:19 - 0:24                                       double_quoted
+0:19 - 0:20                                         "\""
+0:20 - 0:23                                         double_quote_text `a b`
+0:23 - 0:24                                         "\""
+0:24 - 0:25                         ")"
+0:25 - 0:29                       literal `post`
+0:29 - 3:0        separator: here_document_sequence
+0:29 - 1:0          line_end: here_document_line_end
+0:29 - 0:30           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:22             here_document_end_text `pre<(printf \"a b\")post`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: output process substitution word
+:language(bash_extglob)
+:cst
+==================
+cat << >(:)
+$body
+>(:)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:11       and_or: and_or
+0:0  - 0:11         pipeline: pipeline
+0:0  - 0:11           command: command
+0:0  - 0:11             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:11               redirect: io_redirect
+0:4  - 0:11                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:11                   end: here_end
+0:7  - 0:11                     word: word
+0:7  - 0:11                       process_substitution
+0:7  - 0:8                          ">"
+0:8  - 0:9                          "("
+0:9  - 0:10                         body: command_substitution_body
+0:9  - 0:10                           list
+0:9  - 0:10                             and_or: and_or
+0:9  - 0:10                               pipeline: pipeline
+0:9  - 0:10                                 command: command
+0:9  - 0:10                                   body: simple_command
+0:9  - 0:10                                     name: word
+0:9  - 0:10                                       literal `:`
+0:10 - 0:11                         ")"
+0:11 - 3:0        separator: here_document_sequence
+0:11 - 1:0          line_end: here_document_line_end
+0:11 - 0:12           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:4              here_document_end_text `>(:)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: extglob internal quotes and escapes
+:language(bash_extglob)
+:cst
+==================
+cat << @("a b"|c\ d)
+$body
+@("a b"|c\ d)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:20       and_or: and_or
+0:0  - 0:20         pipeline: pipeline
+0:0  - 0:20           command: command
+0:0  - 0:20             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:20               redirect: io_redirect
+0:4  - 0:20                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:20                   end: here_end
+0:7  - 0:20                     word: word
+0:7  - 0:20                       extglob_pattern
+0:7  - 0:8                          operator: extglob_operator `@`
+0:8  - 0:9                          "("
+0:9  - 0:14                         alternative: extglob_alternative
+0:9  - 0:14                           double_quoted
+0:9  - 0:10                             "\""
+0:10 - 0:13                             double_quote_text `a b`
+0:13 - 0:14                             "\""
+0:14 - 0:15                         "|"
+0:15 - 0:19                         alternative: extglob_alternative
+0:15 - 0:16                           literal `c`
+0:16 - 0:18                           escaped_character `\\ `
+0:18 - 0:19                           literal `d`
+0:19 - 0:20                         ")"
+0:20 - 3:0        separator: here_document_sequence
+0:20 - 1:0          line_end: here_document_line_end
+0:20 - 0:21           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:13             here_document_end_text `@(\"a b\"|c\\ d)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: outer quote removes extglob quotes and escapes
+:language(bash_extglob)
+:cst
+==================
+cat << ""@("a b"|c\ d)
+$body
+@(a b|c d)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:22       and_or: and_or
+0:0  - 0:22         pipeline: pipeline
+0:0  - 0:22           command: command
+0:0  - 0:22             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:22               redirect: io_redirect
+0:4  - 0:22                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:22                   end: here_end
+0:7  - 0:22                     word: word
+0:7  - 0:9                        double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:9                          "\""
+0:9  - 0:22                       extglob_pattern
+0:9  - 0:10                         operator: extglob_operator `@`
+0:10 - 0:11                         "("
+0:11 - 0:16                         alternative: extglob_alternative
+0:11 - 0:16                           double_quoted
+0:11 - 0:12                             "\""
+0:12 - 0:15                             double_quote_text `a b`
+0:15 - 0:16                             "\""
+0:16 - 0:17                         "|"
+0:17 - 0:21                         alternative: extglob_alternative
+0:17 - 0:18                           literal `c`
+0:18 - 0:20                           escaped_character `\\ `
+0:20 - 0:21                           literal `d`
+0:21 - 0:22                         ")"
+0:22 - 3:0        separator: here_document_sequence
+0:22 - 1:0          line_end: here_document_line_end
+0:22 - 0:23           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:10             here_document_end_text `@(a b|c d)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: trailing quote applies to earlier command substitution
+:language(bash_extglob)
+:cst
+==================
+cat << $(printf "a b")""
+$body
+$(printf a b)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:24       and_or: and_or
+0:0  - 0:24         pipeline: pipeline
+0:0  - 0:24           command: command
+0:0  - 0:24             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:24               redirect: io_redirect
+0:4  - 0:24                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:24                   end: here_end
+0:7  - 0:24                     word: word
+0:7  - 0:22                       command_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "("
+0:9  - 0:21                         body: command_substitution_body
+0:9  - 0:21                           list
+0:9  - 0:21                             and_or: and_or
+0:9  - 0:21                               pipeline: pipeline
+0:9  - 0:21                                 command: command
+0:9  - 0:21                                   body: simple_command
+0:9  - 0:15                                     name: word
+0:9  - 0:15                                       literal `printf`
+0:16 - 0:21                                     argument: word
+0:16 - 0:21                                       double_quoted
+0:16 - 0:17                                         "\""
+0:17 - 0:20                                         double_quote_text `a b`
+0:20 - 0:21                                         "\""
+0:21 - 0:22                         ")"
+0:22 - 0:24                       double_quoted
+0:22 - 0:23                         "\""
+0:23 - 0:24                         "\""
+0:24 - 3:0        separator: here_document_sequence
+0:24 - 1:0          line_end: here_document_line_end
+0:24 - 0:25           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:13             here_document_end_text `$(printf a b)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: outer quote applies to parameter source
+:language(bash_extglob)
+:cst
+==================
+cat << ""${v:-"a b"}
+$body
+${v:-a b}
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:20       and_or: and_or
+0:0  - 0:20         pipeline: pipeline
+0:0  - 0:20           command: command
+0:0  - 0:20             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:20               redirect: io_redirect
+0:4  - 0:20                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:20                   end: here_end
+0:7  - 0:20                     word: word
+0:7  - 0:9                        double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:9                          "\""
+0:9  - 0:20                       parameter_expansion
+0:9  - 0:10                         "$"
+0:10 - 0:11                         "{"
+0:11 - 0:12                         parameter: variable_name `v`
+0:12 - 0:14                         operator: parameter_value_operator `:-`
+0:14 - 0:19                         word: parameter_word
+0:14 - 0:19                           double_quoted
+0:14 - 0:15                             "\""
+0:15 - 0:18                             double_quote_text `a b`
+0:18 - 0:19                             "\""
+0:19 - 0:20                         "}"
+0:20 - 3:0        separator: here_document_sequence
+0:20 - 1:0          line_end: here_document_line_end
+0:20 - 0:21           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:9              here_document_end_text `${v:-a b}`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: outer quote applies to backquote source
+:language(bash_extglob)
+:cst
+==================
+cat << ""`printf "a b"`
+$body
+`printf a b`
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:23       and_or: and_or
+0:0  - 0:23         pipeline: pipeline
+0:0  - 0:23           command: command
+0:0  - 0:23             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:23               redirect: io_redirect
+0:4  - 0:23                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:23                   end: here_end
+0:7  - 0:23                     word: word
+0:7  - 0:9                        double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:9                          "\""
+0:9  - 0:23                       backquote_substitution
+0:9  - 0:10                         "\`"
+0:10 - 0:22                         body: backquote_substitution_body
+0:10 - 0:22                           list
+0:10 - 0:22                             and_or: and_or
+0:10 - 0:22                               pipeline: pipeline
+0:10 - 0:22                                 command: command
+0:10 - 0:22                                   body: simple_command
+0:10 - 0:16                                     name: word
+0:10 - 0:16                                       literal `printf`
+0:17 - 0:22                                     argument: word
+0:17 - 0:22                                       double_quoted
+0:17 - 0:18                                         "\""
+0:18 - 0:21                                         double_quote_text `a b`
+0:21 - 0:22                                         "\""
+0:22 - 0:23                         "\`"
+0:23 - 3:0        separator: here_document_sequence
+0:23 - 1:0          line_end: here_document_line_end
+0:23 - 0:24           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:12             here_document_end_text `\`printf a b\``
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C quote inside process substitution
+:language(bash_extglob)
+:cst
+==================
+cat << <(printf $'a\tb')
+$body
+<(printf 'a	b')
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:24       and_or: and_or
+0:0  - 0:24         pipeline: pipeline
+0:0  - 0:24           command: command
+0:0  - 0:24             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:24               redirect: io_redirect
+0:4  - 0:24                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:24                   end: here_end
+0:7  - 0:24                     word: word
+0:7  - 0:24                       process_substitution
+0:7  - 0:8                          "<"
+0:8  - 0:9                          "("
+0:9  - 0:23                         body: command_substitution_body
+0:9  - 0:23                           list
+0:9  - 0:23                             and_or: and_or
+0:9  - 0:23                               pipeline: pipeline
+0:9  - 0:23                                 command: command
+0:9  - 0:23                                   body: simple_command
+0:9  - 0:15                                     name: word
+0:9  - 0:15                                       literal `printf`
+0:16 - 0:23                                     argument: word
+0:16 - 0:23                                       dollar_single_quoted
+0:16 - 0:17                                         "$"
+0:17 - 0:18                                         "'"
+0:18 - 0:19                                         dollar_single_quote_text `a`
+0:19 - 0:21                                         dollar_single_quote_escape `\\t`
+0:21 - 0:22                                         dollar_single_quote_text `b`
+0:22 - 0:23                                         "'"
+0:23 - 0:24                         ")"
+0:24 - 3:0        separator: here_document_sequence
+0:24 - 1:0          line_end: here_document_line_end
+0:24 - 0:25           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:15             here_document_end_text `<(printf 'a\tb')`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C apostrophe retains canonical quoting
+:language(bash_extglob)
+:cst
+==================
+cat << @($'a\'b'|c)
+$body
+@('a'\''b'|c)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:19       and_or: and_or
+0:0  - 0:19         pipeline: pipeline
+0:0  - 0:19           command: command
+0:0  - 0:19             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:19               redirect: io_redirect
+0:4  - 0:19                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:19                   end: here_end
+0:7  - 0:19                     word: word
+0:7  - 0:19                       extglob_pattern
+0:7  - 0:8                          operator: extglob_operator `@`
+0:8  - 0:9                          "("
+0:9  - 0:16                         alternative: extglob_alternative
+0:9  - 0:16                           dollar_single_quoted
+0:9  - 0:10                             "$"
+0:10 - 0:11                             "'"
+0:11 - 0:12                             dollar_single_quote_text `a`
+0:12 - 0:14                             dollar_single_quote_escape `\\'`
+0:14 - 0:15                             dollar_single_quote_text `b`
+0:15 - 0:16                             "'"
+0:16 - 0:17                         "|"
+0:17 - 0:18                         alternative: extglob_alternative
+0:17 - 0:18                           literal `c`
+0:18 - 0:19                         ")"
+0:19 - 3:0        separator: here_document_sequence
+0:19 - 1:0          line_end: here_document_line_end
+0:19 - 0:20           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:13             here_document_end_text `@('a'\\''b'|c)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C NUL ends its quoted value
+:language(bash_extglob)
+:cst
+==================
+cat << @($'a\0b'|c)
+$body
+@('a'|c)
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:19       and_or: and_or
+0:0  - 0:19         pipeline: pipeline
+0:0  - 0:19           command: command
+0:0  - 0:19             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:19               redirect: io_redirect
+0:4  - 0:19                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:19                   end: here_end
+0:7  - 0:19                     word: word
+0:7  - 0:19                       extglob_pattern
+0:7  - 0:8                          operator: extglob_operator `@`
+0:8  - 0:9                          "("
+0:9  - 0:16                         alternative: extglob_alternative
+0:9  - 0:16                           dollar_single_quoted
+0:9  - 0:10                             "$"
+0:10 - 0:11                             "'"
+0:11 - 0:12                             dollar_single_quote_text `a`
+0:12 - 0:14                             dollar_single_quote_escape `\\0`
+0:14 - 0:15                             dollar_single_quote_text `b`
+0:15 - 0:16                             "'"
+0:16 - 0:17                         "|"
+0:17 - 0:18                         alternative: extglob_alternative
+0:17 - 0:18                           literal `c`
+0:18 - 0:19                         ")"
+0:19 - 3:0        separator: here_document_sequence
+0:19 - 1:0          line_end: here_document_line_end
+0:19 - 0:20           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:8              here_document_end_text `@('a'|c)`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: locale prefix inside command substitution
+:language(bash_extglob)
+:cst
+==================
+cat << $(printf $"a b")
+$body
+$(printf "a b")
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:23       and_or: and_or
+0:0  - 0:23         pipeline: pipeline
+0:0  - 0:23           command: command
+0:0  - 0:23             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:23               redirect: io_redirect
+0:4  - 0:23                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:23                   end: here_end
+0:7  - 0:23                     word: word
+0:7  - 0:23                       command_substitution
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "("
+0:9  - 0:22                         body: command_substitution_body
+0:9  - 0:22                           list
+0:9  - 0:22                             and_or: and_or
+0:9  - 0:22                               pipeline: pipeline
+0:9  - 0:22                                 command: command
+0:9  - 0:22                                   body: simple_command
+0:9  - 0:15                                     name: word
+0:9  - 0:15                                       literal `printf`
+0:16 - 0:22                                     argument: word
+0:16 - 0:22                                       locale_quoted
+0:16 - 0:17                                         "$"
+0:17 - 0:18                                         "\""
+0:18 - 0:21                                         double_quote_text `a b`
+0:21 - 0:22                                         "\""
+0:22 - 0:23                         ")"
+0:23 - 3:0        separator: here_document_sequence
+0:23 - 1:0          line_end: here_document_line_end
+0:23 - 0:24           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:15             here_document_end_text `$(printf \"a b\")`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C decoding precedes quoted parameter quote removal
+:language(bash_extglob)
+:cst
+==================
+cat << "${v:-$'a\"b'}"
+$body
+${v:-ab}
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:22       and_or: and_or
+0:0  - 0:22         pipeline: pipeline
+0:0  - 0:22           command: command
+0:0  - 0:22             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:22               redirect: io_redirect
+0:4  - 0:22                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:22                   end: here_end
+0:7  - 0:22                     word: word
+0:7  - 0:22                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:21                         parameter_expansion
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "{"
+0:10 - 0:11                           parameter: variable_name `v`
+0:11 - 0:13                           operator: parameter_value_operator `:-`
+0:13 - 0:20                           word: parameter_word
+0:13 - 0:20                             dollar_single_quoted
+0:13 - 0:14                               "$"
+0:14 - 0:15                               "'"
+0:15 - 0:16                               dollar_single_quote_text `a`
+0:16 - 0:18                               dollar_single_quote_escape `\\\"`
+0:18 - 0:19                               dollar_single_quote_text `b`
+0:19 - 0:20                               "'"
+0:20 - 0:21                           "}"
+0:21 - 0:22                         "\""
+0:22 - 3:0        separator: here_document_sequence
+0:22 - 1:0          line_end: here_document_line_end
+0:22 - 0:23           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:8              here_document_end_text `${v:-ab}`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: ANSI-C quote inside a double quoted command substitution
+:language(bash_extglob)
+:cst
+==================
+cat << "$(printf $'a\tb')"
+$body
+$(printf 'a	b')
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:26       and_or: and_or
+0:0  - 0:26         pipeline: pipeline
+0:0  - 0:26           command: command
+0:0  - 0:26             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:26               redirect: io_redirect
+0:4  - 0:26                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:26                   end: here_end
+0:7  - 0:26                     word: word
+0:7  - 0:26                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:25                         command_substitution
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "("
+0:10 - 0:24                           body: command_substitution_body
+0:10 - 0:24                             list
+0:10 - 0:24                               and_or: and_or
+0:10 - 0:24                                 pipeline: pipeline
+0:10 - 0:24                                   command: command
+0:10 - 0:24                                     body: simple_command
+0:10 - 0:16                                       name: word
+0:10 - 0:16                                         literal `printf`
+0:17 - 0:24                                       argument: word
+0:17 - 0:24                                         dollar_single_quoted
+0:17 - 0:18                                           "$"
+0:18 - 0:19                                           "'"
+0:19 - 0:20                                           dollar_single_quote_text `a`
+0:20 - 0:22                                           dollar_single_quote_escape `\\t`
+0:22 - 0:23                                           dollar_single_quote_text `b`
+0:23 - 0:24                                           "'"
+0:24 - 0:25                           ")"
+0:25 - 0:26                         "\""
+0:26 - 3:0        separator: here_document_sequence
+0:26 - 1:0          line_end: here_document_line_end
+0:26 - 0:27           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:15             here_document_end_text `$(printf 'a\tb')`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: backquote preserves nested ANSI-C spelling
+:language(bash_extglob)
+:cst
+==================
+cat << `printf $'a\tb'`
+$body
+`printf $'a\tb'`
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:23       and_or: and_or
+0:0  - 0:23         pipeline: pipeline
+0:0  - 0:23           command: command
+0:0  - 0:23             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:23               redirect: io_redirect
+0:4  - 0:23                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:23                   end: here_end
+0:7  - 0:23                     word: word
+0:7  - 0:23                       backquote_substitution
+0:7  - 0:8                          "\`"
+0:8  - 0:22                         body: backquote_substitution_body
+0:8  - 0:22                           list
+0:8  - 0:22                             and_or: and_or
+0:8  - 0:22                               pipeline: pipeline
+0:8  - 0:22                                 command: command
+0:8  - 0:22                                   body: simple_command
+0:8  - 0:14                                     name: word
+0:8  - 0:14                                       literal `printf`
+0:15 - 0:22                                     argument: word
+0:15 - 0:22                                       dollar_single_quoted
+0:15 - 0:16                                         "$"
+0:16 - 0:17                                         "'"
+0:17 - 0:18                                         dollar_single_quote_text `a`
+0:18 - 0:20                                         dollar_single_quote_escape `\\t`
+0:20 - 0:21                                         dollar_single_quote_text `b`
+0:21 - 0:22                                         "'"
+0:22 - 0:23                         "\`"
+0:23 - 3:0        separator: here_document_sequence
+0:23 - 1:0          line_end: here_document_line_end
+0:23 - 0:24           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: here_document_body
+1:0  - 1:5              parameter_expansion
+1:0  - 1:1                "$"
+1:1  - 1:5                parameter: variable_name `body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:16             here_document_end_text `\`printf $'a\\tb'\``
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: current shell substitution has its own quote context
+:language(bash_extglob)
+:cst
+==================
+cat << "${ printf $'a\tb'; }"
+$body
+${ printf 'a	b'; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:29       and_or: and_or
+0:0  - 0:29         pipeline: pipeline
+0:0  - 0:29           command: command
+0:0  - 0:29             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:29               redirect: io_redirect
+0:4  - 0:29                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:29                   end: here_end
+0:7  - 0:29                     word: word
+0:7  - 0:29                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:28                         current_shell_substitution
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "{"
+0:10 - 0:26                           body: list
+0:11 - 0:25                             and_or: and_or
+0:11 - 0:25                               pipeline: pipeline
+0:11 - 0:25                                 command: command
+0:11 - 0:25                                   body: simple_command
+0:11 - 0:17                                     name: word
+0:11 - 0:17                                       literal `printf`
+0:18 - 0:25                                     argument: word
+0:18 - 0:25                                       dollar_single_quoted
+0:18 - 0:19                                         "$"
+0:19 - 0:20                                         "'"
+0:20 - 0:21                                         dollar_single_quote_text `a`
+0:21 - 0:23                                         dollar_single_quote_escape `\\t`
+0:23 - 0:24                                         dollar_single_quote_text `b`
+0:24 - 0:25                                         "'"
+0:25 - 0:26                             terminator: separator
+0:25 - 0:26                               operator: separator_op
+0:25 - 0:26                                 ";"
+0:27 - 0:28                           "}"
+0:28 - 0:29                         "\""
+0:29 - 3:0        separator: here_document_sequence
+0:29 - 1:0          line_end: here_document_line_end
+0:29 - 0:30           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:18             here_document_end_text `${ printf 'a\tb'; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: reply substitution has its own quote context
+:language(bash_extglob)
+:cst
+==================
+cat << "${|printf $'a\tb'; }"
+$body
+${|printf 'a	b'; }
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:29       and_or: and_or
+0:0  - 0:29         pipeline: pipeline
+0:0  - 0:29           command: command
+0:0  - 0:29             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:29               redirect: io_redirect
+0:4  - 0:29                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:29                   end: here_end
+0:7  - 0:29                     word: word
+0:7  - 0:29                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:28                         reply_substitution
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "{"
+0:10 - 0:11                           "|"
+0:11 - 0:26                           body: list
+0:11 - 0:25                             and_or: and_or
+0:11 - 0:25                               pipeline: pipeline
+0:11 - 0:25                                 command: command
+0:11 - 0:25                                   body: simple_command
+0:11 - 0:17                                     name: word
+0:11 - 0:17                                       literal `printf`
+0:18 - 0:25                                     argument: word
+0:18 - 0:25                                       dollar_single_quoted
+0:18 - 0:19                                         "$"
+0:19 - 0:20                                         "'"
+0:20 - 0:21                                         dollar_single_quote_text `a`
+0:21 - 0:23                                         dollar_single_quote_escape `\\t`
+0:23 - 0:24                                         dollar_single_quote_text `b`
+0:24 - 0:25                                         "'"
+0:25 - 0:26                             terminator: separator
+0:25 - 0:26                               operator: separator_op
+0:25 - 0:26                                 ";"
+0:27 - 0:28                           "}"
+0:28 - 0:29                         "\""
+0:29 - 3:0        separator: here_document_sequence
+0:29 - 1:0          line_end: here_document_line_end
+0:29 - 0:30           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:18             here_document_end_text `${|printf 'a\tb'; }`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: Unicode escape retains its double quoted backslash
+:language(bash_extglob)
+:cst
+==================
+cat << "$(printf '\日')"
+$body
+$(printf '\日')
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:25       and_or: and_or
+0:0  - 0:25         pipeline: pipeline
+0:0  - 0:25           command: command
+0:0  - 0:25             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:25               redirect: io_redirect
+0:4  - 0:25                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:25                   end: here_end
+0:7  - 0:25                     word: word
+0:7  - 0:25                       double_quoted
+0:7  - 0:8                          "\""
+0:8  - 0:24                         command_substitution
+0:8  - 0:9                            "$"
+0:9  - 0:10                           "("
+0:10 - 0:23                           body: command_substitution_body
+0:10 - 0:23                             list
+0:10 - 0:23                               and_or: and_or
+0:10 - 0:23                                 pipeline: pipeline
+0:10 - 0:23                                   command: command
+0:10 - 0:23                                     body: simple_command
+0:10 - 0:16                                       name: word
+0:10 - 0:16                                         literal `printf`
+0:17 - 0:23                                       argument: word
+0:17 - 0:23                                         single_quoted
+0:17 - 0:18                                           "'"
+0:18 - 0:22                                           single_quote_content `\\日`
+0:22 - 0:23                                           "'"
+0:23 - 0:24                           ")"
+0:24 - 0:25                         "\""
+0:25 - 3:0        separator: here_document_sequence
+0:25 - 1:0          line_end: here_document_line_end
+0:25 - 0:26           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:16             here_document_end_text `$(printf '\\日')`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: control escape before the closing quote stays literal
+:language(bash_extglob)
+:cst
+==================
+cat << $'E\c'
+$body
+E\c
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:13       and_or: and_or
+0:0  - 0:13         pipeline: pipeline
+0:0  - 0:13           command: command
+0:0  - 0:13             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:13               redirect: io_redirect
+0:4  - 0:13                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:13                   end: here_end
+0:7  - 0:13                     word: word
+0:7  - 0:13                       dollar_single_quoted
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "'"
+0:9  - 0:10                         dollar_single_quote_text `E`
+0:10 - 0:12                         dollar_single_quote_escape `\\c`
+0:12 - 0:13                         "'"
+0:13 - 3:0        separator: here_document_sequence
+0:13 - 1:0          line_end: here_document_line_end
+0:13 - 0:14           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:3              here_document_end_text `E\\c`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+here document delimiter: control escape of an escaped quote keeps the quote
+:language(bash_extglob)
+:cst
+==================
+cat << $'E\c\''
+$body
+E'
+printf after
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 3:12     commands: list
+0:0  - 0:15       and_or: and_or
+0:0  - 0:15         pipeline: pipeline
+0:0  - 0:15           command: command
+0:0  - 0:15             body: simple_command
+0:0  - 0:3                name: word
+0:0  - 0:3                  literal `cat`
+0:4  - 0:15               redirect: io_redirect
+0:4  - 0:15                 body: io_here
+0:4  - 0:6                    operator: dless `<<`
+0:7  - 0:15                   end: here_end
+0:7  - 0:15                     word: word
+0:7  - 0:15                       dollar_single_quoted
+0:7  - 0:8                          "$"
+0:8  - 0:9                          "'"
+0:9  - 0:10                         dollar_single_quote_text `E`
+0:10 - 0:14                         dollar_single_quote_escape `\\c\\'`
+0:14 - 0:15                         "'"
+0:15 - 3:0        separator: here_document_sequence
+0:15 - 1:0          line_end: here_document_line_end
+0:15 - 0:16           `\n`
+1:0  - 3:0          document: here_document
+1:0  - 2:0            body: quoted_here_document_body
+1:0  - 1:5              quoted_here_document_text `$body`
+2:0  - 3:0            end: here_document_end
+2:0  - 2:3              here_document_end_text `E'`
+3:0  - 3:12       and_or: and_or
+3:0  - 3:12         pipeline: pipeline
+3:0  - 3:12           command: command
+3:0  - 3:12             body: simple_command
+3:0  - 3:6                name: word
+3:0  - 3:6                  literal `printf`
+3:7  - 3:12               argument: word
+3:7  - 3:12                 literal `after`
+3:12 - 4:0      "\n"
+
+==================
+delimiter quoting is local to its word inside quoted command substitution
+:language(bash_extglob)
+:cst
+==================
+: "$(cat << @($'a\tb'|c) << ${v:-$'x'}
+$first
+@('a	b'|c)
+$second
+${v:-'x'}
+)"
+
+------------------
+
+0:0  - 6:0    program
+0:0  - 5:2      commands: list
+0:0  - 5:2        and_or: and_or
+0:0  - 5:2          pipeline: pipeline
+0:0  - 5:2            command: command
+0:0  - 5:2              body: simple_command
+0:0  - 0:1                name: word
+0:0  - 0:1                  literal `:`
+0:2  - 5:2                argument: word
+0:2  - 5:2                  double_quoted
+0:2  - 0:3                    "\""
+0:3  - 5:1                    command_substitution
+0:3  - 0:4                      "$"
+0:4  - 0:5                      "("
+0:5  - 5:0                      body: command_substitution_body
+0:5  - 0:38                       list
+0:5  - 0:38                         and_or: and_or
+0:5  - 0:38                           pipeline: pipeline
+0:5  - 0:38                             command: command
+0:5  - 0:38                               body: simple_command
+0:5  - 0:8                                  name: word
+0:5  - 0:8                                    literal `cat`
+0:9  - 0:24                                 redirect: io_redirect
+0:9  - 0:24                                   body: io_here
+0:9  - 0:11                                     operator: dless `<<`
+0:12 - 0:24                                     end: here_end
+0:12 - 0:24                                       word: word
+0:12 - 0:24                                         extglob_pattern
+0:12 - 0:13                                           operator: extglob_operator `@`
+0:13 - 0:14                                           "("
+0:14 - 0:21                                           alternative: extglob_alternative
+0:14 - 0:21                                             dollar_single_quoted
+0:14 - 0:15                                               "$"
+0:15 - 0:16                                               "'"
+0:16 - 0:17                                               dollar_single_quote_text `a`
+0:17 - 0:19                                               dollar_single_quote_escape `\\t`
+0:19 - 0:20                                               dollar_single_quote_text `b`
+0:20 - 0:21                                               "'"
+0:21 - 0:22                                           "|"
+0:22 - 0:23                                           alternative: extglob_alternative
+0:22 - 0:23                                             literal `c`
+0:23 - 0:24                                           ")"
+0:25 - 0:38                                 redirect: io_redirect
+0:25 - 0:38                                   body: io_here
+0:25 - 0:27                                     operator: dless `<<`
+0:28 - 0:38                                     end: here_end
+0:28 - 0:38                                       word: word
+0:28 - 0:38                                         parameter_expansion
+0:28 - 0:29                                           "$"
+0:29 - 0:30                                           "{"
+0:30 - 0:31                                           parameter: variable_name `v`
+0:31 - 0:33                                           operator: parameter_value_operator `:-`
+0:33 - 0:37                                           word: parameter_word
+0:33 - 0:37                                             dollar_single_quoted
+0:33 - 0:34                                               "$"
+0:34 - 0:35                                               "'"
+0:35 - 0:36                                               dollar_single_quote_text `x`
+0:36 - 0:37                                               "'"
+0:37 - 0:38                                           "}"
+0:38 - 5:0                        here_document_sequence
+0:38 - 1:0                          line_end: here_document_line_end
+0:38 - 0:39                           `\n`
+1:0  - 3:0                          document: here_document
+1:0  - 2:0                            body: here_document_body
+1:0  - 1:6                              parameter_expansion
+1:0  - 1:1                                "$"
+1:1  - 1:6                                parameter: variable_name `first`
+2:0  - 3:0                            end: here_document_end
+2:0  - 2:10                             here_document_end_text `@('a\tb'|c)`
+3:0  - 5:0                          document: here_document
+3:0  - 4:0                            body: here_document_body
+3:0  - 3:7                              parameter_expansion
+3:0  - 3:1                                "$"
+3:1  - 3:7                                parameter: variable_name `second`
+4:0  - 5:0                            end: here_document_end
+4:0  - 4:9                              here_document_end_text `${v:-'x'}`
+5:0  - 5:1                      ")"
+5:1  - 5:2                    "\""
+5:2  - 6:0      "\n"

@@ -71,4 +71,43 @@ function sourceNodes(output, source) {
   });
 }
 
-export { nodeIdentity, parseCst, sourceNodes };
+function namedStructure(output, includeFields) {
+  const depths = [];
+  let result = "";
+  for (const entry of parseCst(output)) {
+    const { field, type } = nodeIdentity(entry);
+    if (type.startsWith('"') || type === "line_continuation") continue;
+    while (depths.at(-1) >= entry.depth) {
+      result += ")";
+      depths.pop();
+    }
+    if (result) result += " ";
+    if (includeFields && field !== undefined) result += `${field}: `;
+    result += `(${type}`;
+    depths.push(entry.depth);
+  }
+  return result + ")".repeat(depths.length);
+}
+
+function cstFingerprint(output) {
+  const structure = [];
+  const continuations = [];
+  const entries = parseCst(output);
+  const rootDepth = entries[0]?.depth;
+  for (const entry of entries) {
+    const { field, type, recovery } = nodeIdentity(entry);
+    if (type === "line_continuation") continuations.push(entry.range);
+    else
+      structure.push([
+        entry.depth - rootDepth,
+        field ?? null,
+        type,
+        recovery,
+        entry.range,
+      ]);
+  }
+  assert.notEqual(structure.length, 0, "CST projection is empty");
+  return JSON.stringify({ structure, continuations });
+}
+
+export { cstFingerprint, namedStructure, nodeIdentity, parseCst, sourceNodes };

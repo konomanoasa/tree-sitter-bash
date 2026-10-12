@@ -1,0 +1,678 @@
+==================
+coproc named compound
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc worker { printf x; } >out
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal ))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))
+            (io_redirect
+              (io_file
+                (word
+                  (literal ))))))))))
+
+==================
+coproc named subshell
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc worker (printf x)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal ))
+            (subshell
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))
+                        (word
+                          (literal ))))))))))))))
+
+==================
+coproc named conditional
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc worker [[ x ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal ))
+            (conditional_command
+              (conditional_open)
+              (word
+                (literal))
+              (conditional_close))))))))
+
+==================
+coproc anonymous
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc { :; }; coproc printf x
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (separator_op )
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (simple_command
+              (word
+                (literal ))
+              (word
+                (literal )))))))))
+
+==================
+coproc source word names
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+coproc wo"$name" { :; }
+coproc a[ 日本 ](:)
+coproc @(a|b) { :; }
+coproc <(:) { :; }
+coproc time { :; }
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal )
+              (double_quoted
+                (parameter_expansion
+                  (variable_name ))))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal )
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source )
+                  (pattern_bracket_character_source )
+                  (pattern_bracket_character_source )
+                  (pattern_bracket_character_source ))))
+            (subshell
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (extglob_pattern
+                (extglob_operator )
+                (extglob_alternative
+                  (literal ))
+                (extglob_alternative
+                  (literal ))))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word
+                              (literal ))))))))))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (literal ))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))))
+
+==================
+coproc assignment arguments
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
+coproc declare a=(1)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (simple_command
+              (word
+                (literal ))
+              (assignment_word
+                (variable_name )
+                (array_assignment
+                  (word
+                    (double_quoted
+                      (double_quote_text )))
+                  (word
+                    (parameter_expansion
+                      (variable_name )))
+                  (word
+                    (command_substitution
+                      (command_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal ))
+                                  (word
+                                    (literal ))))))))))))
+              (assignment_word
+                (variable_name )
+                (assignment_append )
+                (assignment_value
+                  (literal )))
+              (word
+                (literal ))
+              (word
+                (literal ))
+              (assignment_word
+                (variable_name )
+                (assignment_append )
+                (array_assignment
+                  (word
+                    (literal ))))
+              (io_redirect
+                (io_file
+                  (word
+                    (literal ))))
+              (word
+                (literal )))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (simple_command
+              (declaration_name )
+              (assignment_word
+                (variable_name )
+                (array_assignment
+                  (word
+                    (literal )))))))))))
+
+==================
+coproc pending command words
+:language(bash)
+:language(bash_extglob)
+:language(bash_noextquote)
+:language(bash_extglob_noextquote)
+==================
+coproc worker a[ ] x[ ]
+coproc worker a[ ]=v b=(1) tail
+coproc worker x=y do
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword)
+            (simple_command
+              (word
+                (literal))
+              (word
+                (literal)
+                (pattern_bracket_source
+                  (pattern_bracket_members_source
+                    (pattern_bracket_character_source))))
+              (word
+                (literal))
+              (word
+                (literal)))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword)
+            (simple_command
+              (word
+                (literal))
+              (assignment_word
+                (variable_name)
+                (array_subscript
+                  (subscript_source))
+                (assignment_value
+                  (literal)))
+              (assignment_word
+                (variable_name)
+                (array_assignment
+                  (word
+                    (literal))))
+              (word
+                (literal)))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword)
+            (simple_command
+              (word
+                (literal))
+              (assignment_word
+                (variable_name)
+                (assignment_value
+                  (literal)))
+              (word
+                (literal)))))))))
+
+==================
+coproc quoted reserved names
+:language(bash_extglob)
+:language(bash_extglob_noextquote)
+==================
+coproc "do" { :; }
+coproc worker "declare" a=value
+coproc worker !(:)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (word
+              (double_quoted
+                (double_quote_text )))
+            (brace_group
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal ))))))
+                (separator
+                  (separator_op ))))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (simple_command
+              (word
+                (literal ))
+              (word
+                (double_quoted
+                  (double_quote_text )))
+              (word
+                (literal )
+                (literal )))))))
+    (and_or
+      (pipeline
+        (command
+          (coproc
+            (coproc_keyword )
+            (simple_command
+              (word
+                (literal ))
+              (word
+                (extglob_pattern
+                  (extglob_operator )
+                  (extglob_alternative
+                    (literal )))))))))))
+
+==================
+pipeline prefixes and coprocess names own their commands
+:language(bash_extglob)
+:cst
+==================
+time -p ! coproc worker { :; } |& cat
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:37     commands: list
+0:0  - 0:37       and_or: and_or
+0:0  - 0:37         pipeline: pipeline
+0:0  - 0:7            timing: timing
+0:0  - 0:4              time_keyword `time`
+0:5  - 0:7              option: time_option `-p`
+0:8  - 0:9            negation: bang `!`
+0:10 - 0:30           command: command
+0:10 - 0:30             body: coproc
+0:10 - 0:16               coproc_keyword `coproc`
+0:17 - 0:23               name: word
+0:17 - 0:23                 literal `worker`
+0:24 - 0:30               body: brace_group
+0:24 - 0:25                 "{"
+0:25 - 0:28                 body: list
+0:26 - 0:27                   and_or: and_or
+0:26 - 0:27                     pipeline: pipeline
+0:26 - 0:27                       command: command
+0:26 - 0:27                         body: simple_command
+0:26 - 0:27                           name: word
+0:26 - 0:27                             literal `:`
+0:27 - 0:28                   terminator: separator
+0:27 - 0:28                     operator: separator_op
+0:27 - 0:28                       ";"
+0:29 - 0:30                 "}"
+0:31 - 0:33           operator: pipe_and `|&`
+0:34 - 0:37           command: command
+0:34 - 0:37             body: simple_command
+0:34 - 0:37               name: word
+0:34 - 0:37                 literal `cat`
+0:37 - 1:0      "\n"
+
+==================
+coprocess assignment-shaped arguments preserve their argument role: "coproc worker a=(\"x y\" $p $(printf z)) x+=y declare -a b+=(2) >out tail\n"
+:language(bash_extglob)
+:cst
+==================
+coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:71     commands: list
+0:0  - 0:71       and_or: and_or
+0:0  - 0:71         pipeline: pipeline
+0:0  - 0:71           command: command
+0:0  - 0:71             body: coproc
+0:0  - 0:6                coproc_keyword `coproc`
+0:7  - 0:71               body: simple_command
+0:7  - 0:13                 name: word
+0:7  - 0:13                   literal `worker`
+0:14 - 0:38                 argument: assignment_word
+0:14 - 0:15                   name: variable_name `a`
+0:15 - 0:16                   "="
+0:16 - 0:38                   value: array_assignment
+0:16 - 0:17                     "("
+0:17 - 0:22                     element: word
+0:17 - 0:22                       double_quoted
+0:17 - 0:18                         "\""
+0:18 - 0:21                         double_quote_text `x y`
+0:21 - 0:22                         "\""
+0:23 - 0:25                     element: word
+0:23 - 0:25                       parameter_expansion
+0:23 - 0:24                         "$"
+0:24 - 0:25                         parameter: variable_name `p`
+0:26 - 0:37                     element: word
+0:26 - 0:37                       command_substitution
+0:26 - 0:27                         "$"
+0:27 - 0:28                         "("
+0:28 - 0:36                         body: command_substitution_body
+0:28 - 0:36                           list
+0:28 - 0:36                             and_or: and_or
+0:28 - 0:36                               pipeline: pipeline
+0:28 - 0:36                                 command: command
+0:28 - 0:36                                   body: simple_command
+0:28 - 0:34                                     name: word
+0:28 - 0:34                                       literal `printf`
+0:35 - 0:36                                     argument: word
+0:35 - 0:36                                       literal `z`
+0:36 - 0:37                         ")"
+0:37 - 0:38                     ")"
+0:39 - 0:43                 argument: assignment_word
+0:39 - 0:40                   name: variable_name `x`
+0:40 - 0:42                   operator: assignment_append `+=`
+0:42 - 0:43                   value: assignment_value
+0:42 - 0:43                     literal `y`
+0:44 - 0:51                 argument: word
+0:44 - 0:51                   literal `declare`
+0:52 - 0:54                 argument: word
+0:52 - 0:54                   literal `-a`
+0:55 - 0:61                 argument: assignment_word
+0:55 - 0:56                   name: variable_name `b`
+0:56 - 0:58                   operator: assignment_append `+=`
+0:58 - 0:61                   value: array_assignment
+0:58 - 0:59                     "("
+0:59 - 0:60                     element: word
+0:59 - 0:60                       literal `2`
+0:60 - 0:61                     ")"
+0:62 - 0:66                 redirect: io_redirect
+0:62 - 0:66                   body: io_file
+0:62 - 0:63                     ">"
+0:63 - 0:66                     filename: word
+0:63 - 0:66                       literal `out`
+0:67 - 0:71                 argument: word
+0:67 - 0:71                   literal `tail`
+0:71 - 1:0      "\n"
+
+==================
+coprocess assignment-shaped arguments preserve their argument role: "coproc declare a=(1)\n"
+:language(bash_extglob)
+:cst
+==================
+coproc declare a=(1)
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:20     commands: list
+0:0  - 0:20       and_or: and_or
+0:0  - 0:20         pipeline: pipeline
+0:0  - 0:20           command: command
+0:0  - 0:20             body: coproc
+0:0  - 0:6                coproc_keyword `coproc`
+0:7  - 0:20               body: simple_command
+0:7  - 0:14                 name: declaration_name `declare`
+0:15 - 0:20                 assignment: assignment_word
+0:15 - 0:16                   name: variable_name `a`
+0:16 - 0:17                   "="
+0:17 - 0:20                   value: array_assignment
+0:17 - 0:18                     "("
+0:18 - 0:19                     element: word
+0:18 - 0:19                       literal `1`
+0:19 - 0:20                     ")"
+0:20 - 1:0      "\n"
+
+==================
+coprocess array after ordinary argument "coproc worker tail a=(1)\n"
+:language(bash_extglob)
+:error
+==================
+coproc worker tail a=(1)
+
+------------------
+
+
+
+==================
+coprocess array after process substitution "coproc worker <(:) a=(1)\n"
+:language(bash_extglob)
+:error
+==================
+coproc worker <(:) a=(1)
+
+------------------
+
+
+
+==================
+coprocess array after assignment prefix "coproc x=y worker a=(1)\n"
+:language(bash_extglob)
+:error
+==================
+coproc x=y worker a=(1)
+
+------------------
+
+
+
+==================
+coprocess quoted declaration argument "coproc worker \"declare\" a=(1)\n"
+:language(bash_extglob)
+:error
+==================
+coproc worker "declare" a=(1)
+
+------------------
+
+
+
+==================
+coprocess reserved command name "coproc do\n"
+:language(bash_extglob)
+:error
+==================
+coproc do
+
+------------------
+
+
+
+==================
+coprocess reserved first argument "coproc worker do\n"
+:language(bash_extglob)
+:error
+==================
+coproc worker do
+
+------------------
+
+
+
+==================
+coprocess declaration reserved first argument "coproc declare do\n"
+:language(bash_extglob)
+:error
+==================
+coproc declare do
+
+------------------
