@@ -24,7 +24,7 @@ const enumerators = {
 };
 const tokenCount = "TOKEN_COUNT";
 
-// Clangd checks the header preamble without its callers.
+// Standalone checks omit some callers.
 const scannerDiagnosticArguments = ["-Wno-unused-function"];
 
 const warningArguments = ["-Wall", "-Wextra", "-Werror", "-pedantic"];
@@ -196,7 +196,7 @@ function checkDiagnostics(clang, clangd, directory) {
         "-I",
         variant.includeDirectory,
         ...warningArguments,
-        // Standalone checks omit callers of static helpers.
+        // Standalone checks omit some callers.
         ...(source === variant.source
           ? scannerDiagnosticArguments
           : ["-Wno-unused-function", ...variant.contractArguments]),

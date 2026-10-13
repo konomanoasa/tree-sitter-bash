@@ -92,12 +92,10 @@ static enum SourceResult logical_read(void *payload, int32_t *value) {
   if (native->failed) {
     return SOURCE_FAILURE;
   }
-  bool omitted = false;
   if (input->bounded && native->boundary != NULL) {
     enum SourceResult result =
       native->boundary(native->boundary_payload, input->read_position);
-    omitted = result == SOURCE_OMITTED;
-    if (result != SOURCE_CHARACTER && !omitted) {
+    if (result != SOURCE_CHARACTER) {
       native->failed = result == SOURCE_FAILURE;
       return result;
     }
@@ -123,7 +121,7 @@ static enum SourceResult logical_read(void *payload, int32_t *value) {
     native->characters[native->count++] = native->lexer->lookahead;
     native->lexer->advance(native->lexer, false);
   }
-  *value = omitted ? 0 : native->characters[input->read_position];
+  *value = native->characters[input->read_position];
   input->read_position++;
   return SOURCE_CHARACTER;
 }

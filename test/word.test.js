@@ -66,24 +66,39 @@ const cases = [
     pattern: null,
   },
   {
-    name: "parameter value candidate",
+    name: "parameter value",
     source: `: \${x:-@(a|b)}`,
     pattern: "@(a|b)",
+    patternRequiresExtglob: true,
   },
   {
-    name: "parameter removal candidate",
+    name: "parameter removal",
     source: `: \${x#@(a|b)}`,
     pattern: "@(a|b)",
+    patternRequiresExtglob: true,
   },
   {
-    name: "parameter replacement candidate",
+    name: "parameter replacement",
     source: `: \${x/@(a|b)/v}`,
     pattern: "@(a|b)",
+    patternRequiresExtglob: true,
   },
   {
-    name: "parameter replacement value candidate",
+    name: "parameter replacement value",
     source: `: \${x/a/@(a|b)}`,
     pattern: "@(a|b)",
+    patternRequiresExtglob: true,
+  },
+  {
+    name: "parameter value in conditional match operand",
+    source: `[[ a == \${x:-@(a|b)} ]]`,
+    pattern: "@(a|b)",
+  },
+  {
+    name: "parameter value in conditional left operand",
+    source: `[[ \${x:-@(a|b)} == a ]]`,
+    pattern: "@(a|b)",
+    patternRequiresExtglob: true,
   },
   {
     name: "subscript stays unresolved",
@@ -212,6 +227,260 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
+    test("bracket range endpoints keep their classification across word and pattern contexts", () => {
+      for (const [prefix, suffix] of [
+        [": ", ""],
+        ["case x in ", ") :;; esac"],
+        [': "${s#', '}"'],
+        ["[[ x == ", " ]]"],
+        ["[[ x == @(", "|q) ]]"],
+      ]) {
+        for (const [pattern, bracket, ranges, classes] of [
+          ["[A-[:digit:]]", "[A-[:digit:]", ["A-["], []],
+          ["[A-[=Z=]]", "[A-[=Z=]", ["A-["], []],
+          ["[A-[.Z.]]", "[A-[.Z.]]", ["A-[.Z.]"], []],
+          ["[A-[:]", "[A-[:]", ["A-["], []],
+          ["[A-[=]", "[A-[=]", ["A-["], []],
+          ["[A-[.]", "[A-[.]", ["A-["], []],
+          ["[A-[.abc]", "[A-[.abc]", ["A-["], []],
+          ["[A-Z-[:digit:]]", "[A-Z-[:digit:]]", ["A-Z"], ["[:digit:]"]],
+          ["[-[:digit:]]", "[-[:digit:]]", [], ["[:digit:]"]],
+          ["[[.A.]-[:digit:]]", "[[.A.]-[:digit:]", ["[.A.]-["], []],
+          ["[[:digit:]-[]", "[[:digit:]-[]", [], ["[:digit:]"]],
+        ]) {
+          const source = `${prefix}${pattern}${suffix}\necho AFTER\n`;
+          const actual = nodes(source);
+          for (const [type, expected] of [
+            ["pattern_bracket_source", [bracket]],
+            ["pattern_bracket_range_source", ranges],
+            ["pattern_character_class_source", classes],
+          ]) {
+            assert.deepEqual(
+              actual
+                .filter((node) => node.type === type)
+                .map(({ text }) => text),
+              expected,
+              `${type}: ${source}`,
+            );
+          }
+        }
+      }
+    });
+
+    test("bracket range edits invalidate collating boundaries within their source contexts", () => {
+      for (const part of [
+        "[A-[.abc][A-[.def]",
+        '[A-[.abc]"q"[A-[.def]',
+        `[A-[.abc]\${s:-[A-[.Z.]]}[A-[.def]`,
+        "[A-[.abc]$(printf %s [A-[.Z.]])[A-[.def]",
+        "[A-[.abc]`printf %s [A-[.Z.]]`[A-[.def]",
+        "[A-[.abc]\\\n[A-[.def]",
+        "[A-[.abc]\0[A-[.def]",
+        "[A-[.あいう][A-[.def]",
+        `"\${s#[A-[.abc]/[A-[.def]}"`,
+        `${"[A-[.abc]".repeat(128)}[A-[.def]`,
+      ]) {
+        const seed = `: ${part}\necho AFTER\n`;
+        assertEditRoundTrip(parser, {
+          seed,
+          remove: "def",
+          insert: "Z.]",
+          valid: true,
+        });
+      }
+      for (const [seed, remove, insert, valid] of [
+        [": [A-[:digit:]]\n", ":digit:", ".Z.", true],
+        [": [A-[.Z.]A-[.abc]\n", "Z.", "Z", true],
+        [": [A-[.abc]\n", "]", "", true],
+        [': [A-[.abc]"q"[A-[.abc]\n', '"q"', '"q', false],
+        ["[[ x == [A-[.abc] ]]\n", " ]]", "", false],
+        ["[[ x == @(@([A-[.abc]|q)|r) ]]\n", "abc", "Z.]", true],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("declaration brace classification follows the assignment context", () => {
+      for (const name of [
+        "alias",
+        "declare",
+        "typeset",
+        "export",
+        "readonly",
+        "local",
+      ]) {
+        for (const [argument, braces] of [
+          ["x[{0,1}]={a,b}", ["{0,1}", "{a,b}"]],
+          ["x[{0,1}]=({a,b} [2]={c,d})", ["{a,b}"]],
+          [`x=\${v:-{a,b}}`, []],
+          ["x[$(echo {0,1})]={a,b}", ["{0,1}", "{a,b}"]],
+          ["x=$(y={a,b}; echo $y) z={c,d}", ["{c,d}"]],
+        ]) {
+          const source = `${name} ${argument}\nafter={e,f}\n`;
+          assert.deepEqual(
+            nodes(source)
+              .filter(({ type }) => type === "brace_expansion")
+              .map(({ text }) => text),
+            braces,
+            source,
+          );
+        }
+      }
+    });
+
+    test("declaration braces follow edits to command names values and subscript boundaries", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["declare x={a,b}\n", "declare", "printf", true],
+        ["declare x={a,b}\n", ",", "", true],
+        ["declare x={a,b}\n", "{a,b}", '"{a,b}"', true],
+        ["declare x[{0,1}]=v\n", "{0,1}", "0", true],
+        ["declare x[{0,1}]=v\n", "v", "({a,b})", true],
+        ["declare x[{0,1}]=v\n", "{0,1}]=v", "{0]=a,1]=b}", true],
+        ["declare x={a,b}\necho AFTER\n", "{a,b}", `\${bad!word}`, false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("brace suppression follows edits across the parameter syntax boundary", () => {
+      const seed = `echo BEFORE\n: \${x:-{a}{b,c}}{d,e}\necho AFTER\n`;
+      for (const [remove, insert, valid] of [
+        ["{a}", "a}", true],
+        ["{a}", "\\{a}", true],
+        ["{a}", '"{a"}', true],
+        ["{a}", "{あ}\\\n", true],
+        ["}{d,e}", "{d,e}", true],
+        [`\${x:-`, `\${:`, false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+      assertEditRoundTrip(parser, {
+        seed: `: {L,\${x:-{a}<(:){b,c}}}{d,e}\necho AFTER\n`,
+        remove: "<(:)",
+        insert: "<(:",
+        valid: false,
+      });
+      assertEditRoundTrip(parser, {
+        seed: `: {L,\${x:-{a}\${y:-a b}{b,c}}}{d,e}\n`,
+        remove: `\${y:-a b}`,
+        insert: `\${y:-{a b}}`,
+        valid: true,
+      });
+    });
+
+    test("parameter brace suppression stays local across words and nested substitutions", () => {
+      for (const [prefix, suffix] of [
+        [": ", ""],
+        ["declare v=", ""],
+        ["echo $(: ", ")"],
+        ['echo "$(: ', ')"'],
+      ]) {
+        for (const [part, innerBraces] of [
+          [`\${y:-{z}}`, []],
+          [`\${y:-a b}`, []],
+          [`\${y:-a|b}`, []],
+          [`\${y:-\${z:-{a b}}}`, []],
+          ["$((1 + 2))", []],
+          ["$(printf '%s' {i,j})", ["{i,j}"]],
+          ["`printf '%s' {i,j}`", ["{i,j}"]],
+          ["<(printf '%s' {i,j})", ["{i,j}"]],
+          [`\${ printf '%s' {i,j}; }`, ["{i,j}"]],
+        ]) {
+          const source = `${prefix}\${x:-{あ}\\\n${part}{b,c}}{d,e}${suffix}\n: {f,g}\n`;
+          assert.deepEqual(
+            nodes(source)
+              .filter(({ type }) => type === "brace_expansion")
+              .map(({ text }) => text),
+            [...innerBraces, "{d,e}", "{f,g}"],
+            source,
+          );
+        }
+      }
+    });
+
+    test("declaration braces preserve logical source inside coprocesses and substitutions", () => {
+      for (const [prefix, suffix] of [
+        ["", ""],
+        ["coproc ", ""],
+        ["coproc worker ", ""],
+        ["echo $(", ")"],
+        ["echo `", "`"],
+        ['echo "$(', ')"'],
+      ]) {
+        const source = `${prefix}de\\\nclare x[{0,1}]={あ,\\\nい\0}${suffix}\n`;
+        assert.deepEqual(
+          nodes(source)
+            .filter(({ type }) => type === "brace_expansion")
+            .map(({ text }) => text),
+          ["{0,1}", "{あ,\\\nい\0}"],
+          source,
+        );
+      }
+    });
+
+    test("declaration value edits reuse later commands and quoted expansions", () => {
+      const partCount = 64;
+      for (const { source, reuse } of [
+        {
+          source: "declare x=value\n".repeat(partCount),
+          reuse: /reuse_node symbol:_complete_command/,
+        },
+        {
+          source: `declare x="value${"$y-x".repeat(partCount)}"\n`,
+          reuse: /reuse_node symbol:parameter_expansion/,
+        },
+      ]) {
+        const edit = {
+          byte: source.indexOf("value"),
+          deleteBytes: 1,
+          insert: "b",
+        };
+        const fresh = parser.parse(applyEdit(source, edit), {});
+        const incremental = parser.parse(source, {
+          arguments: ["--debug"],
+          edits: [edit],
+        });
+        assert.equal(fresh.status, 0, fresh.output);
+        assert.equal(incremental.status, 0, incremental.output);
+        assert.equal(incremental.tree, fresh.tree);
+        const trace = incremental.debugOutput.split("parse_after_edit").at(-1);
+        assert.notEqual(trace, undefined);
+        assert.match(trace, reuse);
+      }
+    });
+
+    test("array element tilde classification changes with assignment context and repairs", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["a=(x=~:~)\n", "x", "[0]", true],
+        ["a=(x=one:~)\n", "x=one:", "", true],
+        ["a=([0]+=~)\n", "[0]", "x", true],
+        ["a=(x=~)\n", "x=", "x=\\\n", true],
+        ["a=(x=one:~)\n", "one", '"one"', true],
+        ["a=(x=~)\n", "~", `\${v:-~}`, true],
+        ["a=(x=~)\n", "~", "$(printf x=~)", true],
+        ["a=(x=~)\n", "x=", "x={a,b}", true],
+        ["a=(x=~)\necho AFTER\n", ")", "", false],
+        ["a=([0]=~)\necho AFTER\n", "~", '"', false],
+        ...(extglob ? [["a=(x=~)\n", "~", "@(a|b):~", true]] : []),
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("subscripted argument tilde positions follow edits to word boundaries and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["echo x[$(printf 0)]=~:~\necho AFTER\n", "]", "", true],
+        ["echo x[0]=~:~\necho AFTER\n", "[0]", "", true],
+        ["echo x[0]=~:~\necho AFTER\n", "[0]", "[1 + 2]", true],
+        ['echo x["a b"]=~\necho AFTER\n', '"a b"', "a b", true],
+        ["echo x[$(printf 0)]=~\necho AFTER\n", ")", "", false],
+        ["echo x[0]=~\necho AFTER\n", "=", "", true],
+        ["echo x[0]=~\necho AFTER\n", "=", "=\\\n", true],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
     test("undecodable bytes after dollar quote escapes keep words scannable", () => {
       const invalid = Buffer.from([0xff]);
       for (const [prefix, suffix, type] of [
@@ -1920,12 +2189,19 @@ for (const grammar of grammars) {
         "x\\ y",
         "x' y'",
         `x\${y}`,
+        `x[\${y}]`,
         "x$(printf x)",
+        "x$(printf '}')",
         "x$((1+2))",
         "x' } '",
         'x" } "',
         "x`printf x`",
         "x\\}",
+        "x\\",
+        "x\\\\",
+        "x\\\\\\",
+        "x\\*y",
+        "x\\@y",
         "x\\\ny",
       ]) {
         for (const operator of ["@", "*"]) {
@@ -1985,10 +2261,27 @@ for (const grammar of grammars) {
       }
     });
 
+    test("name enumeration operator edits preserve escape boundaries", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${!x\\**}\n`, "**", "*", true],
+        [`: \${!x\\*}\n`, "*", "@", true],
+        [`: \${!x\\\\*}\n`, "\\\\", "\\", true],
+        [`: \${!x\\*}\n`, "*", "*x", false],
+        [`: "\${!x\\@}"\n`, "@", "@*", true],
+        [`: "\${!x\\@}"\n`, "}", "", false],
+        [`: \${!x\\*}\n`, "*", "*\\\n", true],
+        [`: \${!x\\\0*}\n`, "*", "@", true],
+        [`echo \`: \${!x\\\\*}\`\n`, "\\\\", "\\", true],
+        [`cat <<E\n\${!x\\*}\nE\n`, "*", "@", true],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
     test("dollar-prefixed extglobs retain lexical patterns in word contexts", () => {
       for (const operator of ["@", "?", "*", "!", "+"]) {
         const pattern = `${operator}(a|b)`;
-        for (const [name, source, enabled] of [
+        for (const [name, source, enabled, accepted = enabled] of [
           ["argument", `: $${pattern}\n`, extglob],
           ["assignment", `v=$${pattern}\n`, extglob],
           ["case selector", `case $${pattern} in a) :;; esac\n`, extglob],
@@ -1999,17 +2292,33 @@ for (const grammar of grammars) {
           ["brace alternative", `: {x,$${pattern}}\n`, extglob],
           ["conditional pattern", `[[ a == $${pattern} ]]\n`, true],
           ["conditional nested command", `[[ a == $(: $${pattern}) ]]\n`, true],
-          ["parameter value", `: \${v:-$${pattern}}\n`, true],
-          ["parameter pattern", `: \${v#$${pattern}}\n`, true],
+          ["parameter value", `: \${v:-$${pattern}}\n`, extglob, true],
+          ["parameter pattern", `: \${v#$${pattern}}\n`, extglob, true],
         ]) {
           const result = parser.parse(source, {});
           assert.equal(
             result.status,
-            enabled ? 0 : 1,
+            accepted ? 0 : 1,
             `${name}\n${result.output}`,
           );
-          if (!enabled) continue;
+          if (!accepted) continue;
           const nodes = parseNodes(parser, source);
+          if (!enabled) {
+            assert.equal(
+              nodes.some((node) => node.type === "extglob_pattern"),
+              false,
+              name,
+            );
+            assert.equal(
+              nodes.some(
+                (node) =>
+                  node.type === "special_parameter" && node.text === operator,
+              ),
+              operator !== "+",
+              name,
+            );
+            continue;
+          }
           assert.ok(
             nodes.some(
               (node) =>
@@ -2665,7 +2974,11 @@ for (const grammar of grammars) {
         if (!accepted) return;
         const nodes = parseNodes(parser, entry.source);
         const patterns = nodes.filter(({ type }) => type === "extglob_pattern");
-        if (entry.pattern === null) assert.deepEqual(patterns, []);
+        if (
+          entry.pattern === null ||
+          (entry.patternRequiresExtglob && !extglob)
+        )
+          assert.deepEqual(patterns, []);
         else
           assert.ok(
             patterns.some(({ text }) => text === entry.pattern),

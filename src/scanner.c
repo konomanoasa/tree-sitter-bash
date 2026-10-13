@@ -1,5 +1,4 @@
 #define BASH_EXTGLOB 0
-#define BASH_EXTQUOTE 1
 #include "../common/scanner.h"
 
 void *tree_sitter_bash_external_scanner_create(void) {

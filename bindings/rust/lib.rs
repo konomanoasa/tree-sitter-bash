@@ -3,8 +3,6 @@ use tree_sitter_language::LanguageFn;
 unsafe extern "C" {
   fn tree_sitter_bash() -> *const ();
   fn tree_sitter_bash_extglob() -> *const ();
-  fn tree_sitter_bash_noextquote() -> *const ();
-  fn tree_sitter_bash_extglob_noextquote() -> *const ();
 }
 
 pub const LANGUAGE: LanguageFn =
@@ -15,15 +13,5 @@ pub const LANGUAGE_EXTGLOB: LanguageFn =
   unsafe { LanguageFn::from_raw(tree_sitter_bash_extglob) };
 pub const NODE_TYPES_EXTGLOB: &str =
   include_str!("../../bash_extglob/src/node-types.json");
-
-pub const LANGUAGE_NOEXTQUOTE: LanguageFn =
-  unsafe { LanguageFn::from_raw(tree_sitter_bash_noextquote) };
-pub const NODE_TYPES_NOEXTQUOTE: &str =
-  include_str!("../../bash_noextquote/src/node-types.json");
-
-pub const LANGUAGE_EXTGLOB_NOEXTQUOTE: LanguageFn =
-  unsafe { LanguageFn::from_raw(tree_sitter_bash_extglob_noextquote) };
-pub const NODE_TYPES_EXTGLOB_NOEXTQUOTE: &str =
-  include_str!("../../bash_extglob_noextquote/src/node-types.json");
 
 pub const HIGHLIGHTS_QUERY: &str = include_str!("../../queries/highlights.scm");

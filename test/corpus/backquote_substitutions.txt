@@ -2,8 +2,6 @@
 backquote substitution retains nested command source
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo `printf '%s' "$x"`
 
@@ -38,7 +36,6 @@ echo `printf '%s' "$x"`
 ==================
 backquote nesting
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 echo `printf "%s" @(a|b) ${x//a/b}`
 
@@ -87,8 +84,6 @@ echo `printf "%s" @(a|b) ${x//a/b}`
 backquotes join continued lines inside single quotes
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : `printf %s 'a\
 b'`
@@ -119,3 +114,15 @@ b'`
                               (single_quoted
                                 (single_quote_content
                                   (line_continuation))))))))))))))))))
+
+==================
+closing backquote ends arithmetic and quoted source
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+: `$((`))`
+x=`((`))`
+: `for ((`;;)); do :; done`
+
+------------------

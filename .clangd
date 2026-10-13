@@ -8,7 +8,6 @@ CompileFlags:
     - -pedantic
 
 ---
-# Standalone headers are checked without their callers.
 If:
   PathMatch: .*\.h
 CompileFlags:
@@ -17,7 +16,6 @@ CompileFlags:
     - -Wno-unused-function
 
 ---
-# Directly included scanner helpers may be unused in individual tests.
 If:
   PathMatch: test/[^/]*\.c
 CompileFlags:
@@ -29,8 +27,6 @@ If:
   PathMatch:
     - src/.*
     - bash_extglob/src/.*
-    - bash_noextquote/src/.*
-    - bash_extglob_noextquote/src/.*
 CompileFlags:
   Add:
     - -I.
@@ -50,7 +46,6 @@ If:
 CompileFlags:
   Add:
     - -DBASH_EXTGLOB=0
-    - -DBASH_EXTQUOTE=1
 
 ---
 If:
@@ -60,13 +55,10 @@ CompileFlags:
     - -DSCANNER_TEST_ENTRY="../src/scanner.c"
 
 ---
-# Clangd checks included helpers before their callers and can hit its error limit.
 If:
   PathMatch:
     - src/scanner\.c
     - bash_extglob/src/scanner\.c
-    - bash_noextquote/src/scanner\.c
-    - bash_extglob_noextquote/src/scanner\.c
 CompileFlags:
   Add:
     - -Wno-unused-function

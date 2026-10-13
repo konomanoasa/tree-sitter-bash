@@ -2,8 +2,6 @@
 case terminators
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 case x in a) : ;;& b) : ;& c) : ;; esac
 
@@ -61,8 +59,6 @@ case x in a) : ;;& b) : ;& c) : ;; esac
 case patterns and fall through terminators
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
 
@@ -127,7 +123,6 @@ case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
 ==================
 case pattern extglob
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 case x in @(a|b)|!(c)) echo yes;; esac
 
@@ -172,7 +167,6 @@ case x in @(a|b)|!(c)) echo yes;; esac
 ==================
 case words preserve brace literals and assignment-shaped tildes
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 case a=~+ in {a,b}|@(x|y)|a=~+) echo {c,d};; esac
 

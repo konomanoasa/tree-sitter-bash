@@ -1,7 +1,6 @@
 ==================
 time after pipes is a command or function name
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 time -p : | time : |& time() { :; }
 : | "!" : | !(x|y) | !<(:)
@@ -80,8 +79,6 @@ time -p : | time : |& time() { :; }
 function optional parentheses
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 function f { :; }; function g() ( : );
 
@@ -128,8 +125,6 @@ function f { :; }; function g() ( : );
 function broad name
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 a-b() { :; }; @ () { :; }; function @() { :; }
 
@@ -193,8 +188,6 @@ a-b() { :; }; @ () { :; }; function @() { :; }
 function multiline header
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 function f
 { :; } >out
@@ -229,8 +222,6 @@ function f
 function arithmetic body
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 function f ((x++))
 
@@ -254,8 +245,6 @@ function f ((x++))
 function conditional body
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 f() [[ -n "$x" ]]
 
@@ -283,8 +272,6 @@ f() [[ -n "$x" ]]
 function name validity deferred
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 function "f" { :; }
 
@@ -314,8 +301,6 @@ function "f" { :; }
 process substitution function name defers identifier validity
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 <(:)() { :; }
 
@@ -343,7 +328,6 @@ process substitution function name defers identifier validity
 ==================
 process substitution and extglob form one function name
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 <(:)@(a)() { :; }
 
@@ -372,8 +356,6 @@ process substitution and extglob form one function name
 functions own compound bodies and redirects
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 run() { echo "$1"; } >log
 run value
@@ -419,8 +401,6 @@ run value
 assignment subscript parentheses precede function names
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }
 
@@ -481,7 +461,6 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }
 ==================
 Disabled extglob permits an adjacent punctuation function name
 :language(bash)
-:language(bash_noextquote)
 ==================
 @() { :; }
 

@@ -2,8 +2,6 @@
 scalar append
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 x+=one y+=two echo "$x"
 
@@ -36,8 +34,6 @@ x+=one y+=two echo "$x"
 assignments command name arguments and ordered redirects
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 A=one 2>err echo "$A" tail >out
 

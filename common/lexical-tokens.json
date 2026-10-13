@@ -486,10 +486,6 @@
       "scanner": "ARITHMETIC_UPDATE_OPERATOR_BEGIN"
     },
     {
-      "begin": "_assignment_argument_head_begin",
-      "scanner": "ASSIGNMENT_ARGUMENT_HEAD_BEGIN"
-    },
-    {
       "begin": "_brace_endpoint_begin",
       "scanner": "BRACE_ENDPOINT_BEGIN"
     },
@@ -665,6 +661,10 @@
     {
       "begin": "_ere_ordinary_brace",
       "scanner": "ERE_ORDINARY_BRACE"
+    },
+    {
+      "begin": "_raw_command_name_begin",
+      "scanner": "RAW_COMMAND_NAME_BEGIN"
     }
   ],
   "physical": [

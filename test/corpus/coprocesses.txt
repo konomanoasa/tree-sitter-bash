@@ -2,8 +2,6 @@
 coproc named compound
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc worker { printf x; } >out
 
@@ -39,8 +37,6 @@ coproc worker { printf x; } >out
 coproc named subshell
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc worker (printf x)
 
@@ -70,8 +66,6 @@ coproc worker (printf x)
 coproc named conditional
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc worker [[ x ]]
 
@@ -96,8 +90,6 @@ coproc worker [[ x ]]
 coproc anonymous
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc { :; }; coproc printf x
 
@@ -135,7 +127,6 @@ coproc { :; }; coproc printf x
 ==================
 coproc source word names
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 coproc wo"$name" { :; }
 coproc a[ 日本 ](:)
@@ -257,8 +248,6 @@ coproc time { :; }
 coproc assignment arguments
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
 coproc declare a=(1)
@@ -334,8 +323,6 @@ coproc declare a=(1)
 coproc pending command words
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 coproc worker a[ ] x[ ]
 coproc worker a[ ]=v b=(1) tail
@@ -401,7 +388,6 @@ coproc worker x=y do
 ==================
 coproc quoted reserved names
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 coproc "do" { :; }
 coproc worker "declare" a=value
@@ -441,7 +427,6 @@ coproc worker !(:)
                 (double_quoted
                   (double_quote_text )))
               (word
-                (literal )
                 (literal )))))))
     (and_or
       (pipeline
@@ -674,5 +659,68 @@ coprocess declaration reserved first argument "coproc declare do\n"
 :error
 ==================
 coproc declare do
+
+------------------
+
+==================
+coproc simple command before closing reserved words
+:language(bash)
+:language(bash_extglob)
+==================
+{ coproc worker }
+if :; then coproc "$name" fi
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (brace_group
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (coproc
+                      (coproc_keyword)
+                      body: (simple_command
+                        name: (word
+                          (literal))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (if_clause
+            (if_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              terminator: (separator
+                operator: (separator_op)))
+            (then_keyword)
+            consequence: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (coproc
+                      (coproc_keyword)
+                      body: (simple_command
+                        name: (word
+                          (double_quoted
+                            (parameter_expansion
+                              parameter: (variable_name))))))))))
+            (fi_keyword)))))))
+
+==================
+coproc simple command cannot be followed by a non-closing reserved word "coproc worker fi\n"
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+coproc worker fi
 
 ------------------

@@ -2,8 +2,6 @@
 groups own nested lists and following redirects
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 { echo one; echo two; } >out; (echo three) <in
 
@@ -58,3 +56,14 @@ groups own nested lists and following redirects
             body: (io_file
               filename: (word
                 (literal)))))))))
+
+==================
+closing reserved words cannot follow a compound redirection target
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+if :; then { :; } >out fi
+{ ( : ) 2>&1 }
+
+------------------

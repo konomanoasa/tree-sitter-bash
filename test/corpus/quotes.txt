@@ -2,8 +2,6 @@
 single double and dollar single quotes retain source
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo '$x' "a$x\"" $'line\n' \*
 
@@ -37,8 +35,6 @@ echo '$x' "a$x\"" $'line\n' \*
 locale quotation and ANSI-C escapes
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
 
@@ -72,8 +68,6 @@ echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
 ANSI-C control escapes close at the first unescaped quote
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : $'\c' $'\c\'' $'\c\\' $'\cA' $'\c\x'
 

@@ -2,8 +2,6 @@
 here document inside current shell substitution
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo ${ cat <<EOF
 x
@@ -48,8 +46,6 @@ EOF
 here document inside process substitution
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <(cat <<EOF
 x
@@ -94,8 +90,6 @@ EOF
 here document inside brace alternatives
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo {$(cat <<EOF
 x
@@ -144,8 +138,6 @@ EOF
 Array words and conditional here documents protect embedded closing delimiters
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : {a,$(a=(x # ) }
 y [)] [)]=z))}
@@ -247,8 +239,6 @@ x == x ]]; }}
 tab stripping and queued documents retain order
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<-ONE <<'TWO'
 	$x
@@ -297,8 +287,6 @@ TWO
 substitution owns its inner here document
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<OUTER
 $(cat <<INNER
@@ -357,8 +345,6 @@ OUTER
 an active outer document resumes after a quoted backquote here document
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<OUT
 `cat <<-'IN'
@@ -417,8 +403,6 @@ OUT
 nested here document queues preserve body and delimiter source order
 :language(bash)
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
-:language(bash_noextquote)
 :cst
 ==================
 : <<OUT "$(cat <<ONE <<'TWO'
@@ -863,11 +847,10 @@ EOF acceptance does not complete unfinished shell constructs ": ${| cat <<E; if;
 ------------------
 
 ==================
-inherited here document interrupts a parameter name with source fragments
+pending document cannot cross a substitution into a parameter name
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" ${foo\
 body
@@ -876,50 +859,11 @@ bar}
 
 ------------------
 
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (literal))))))))))))))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name
-                  fragment: (lexeme_fragment)
-                  (line_continuation)
-                  (here_document_sequence
-                    document: (here_document
-                      body: (here_document_body
-                        (here_document_text))
-                      end: (here_document_end
-                        (here_document_end_text))))
-                  fragment: (lexeme_fragment))))))))))
-
 ==================
-inherited here document preserves quoted newlines outside its body
+pending document cannot cross a substitution into quoted text
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" "foo
 body
@@ -928,96 +872,22 @@ bar"
 
 ------------------
 
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (literal))))))))))))))
-            argument: (word
-              (double_quoted
-                (double_quote_text
-                  fragment: (lexeme_fragment)
-                  fragment: (lexeme_fragment)
-                  (here_document_sequence
-                    document: (here_document
-                      body: (here_document_body
-                        (here_document_text))
-                      end: (here_document_end
-                        (here_document_end_text))))
-                  fragment: (lexeme_fragment))))))))))
-
 ==================
-inherited here document ending at EOF stays outside a completed parameter name
+pending document cannot cross a substitution before physical EOF
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" $foo\
 body
 
 ------------------
 
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (literal))))))))))))))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name))
-              (line_continuation)
-              (here_document_sequence
-                document: (here_document
-                  body: (here_document_body
-                    (here_document_text)))))))))))
-
 ==================
-function-name lookahead retains two inherited documents in declaration order
+function-name lookahead rejects two unfinished substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 $(cat <<A)$(cat <<B)na\
 one
@@ -1028,46 +898,11 @@ me() { :; }
 
 ------------------
 
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (function_definition
-            name: (function_name
-              fragment: (lexeme_fragment)
-              fragment: (lexeme_fragment)
-              (line_continuation)
-              (here_document_sequence
-                document: (here_document
-                  body: (here_document_body
-                    (here_document_text))
-                  end: (here_document_end
-                    (here_document_end_text)))
-                document: (here_document
-                  body: (here_document_body
-                    (here_document_text))
-                  end: (here_document_end
-                    (here_document_end_text))))
-              fragment: (lexeme_fragment))
-            body: (function_body
-              body: (brace_group
-                body: (list
-                  and_or: (and_or
-                    pipeline: (pipeline
-                      command: (command
-                        body: (simple_command
-                          name: (word
-                            (literal))))))
-                  terminator: (separator
-                    operator: (separator_op)))))))))))
-
 ==================
-physical whitespace interrupted by a document does not expose lexical fragments
+pending document cannot cross a substitution into continued whitespace
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" \
 body
@@ -1076,47 +911,11 @@ E
 
 ------------------
 
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (literal))))))))))))))
-            (line_continuation)
-            (here_document_sequence
-              document: (here_document
-                body: (here_document_body
-                  (here_document_text))
-                end: (here_document_end
-                  (here_document_end_text))))
-            argument: (word
-              (literal))))))))
-
 ==================
-an inherited document suspends the host backquote decoder
+pending document cannot cross a substitution into backquotes
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" `: \
 \$HOME
@@ -1125,58 +924,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (io_redirect
-                                (io_here
-                                  (dless)
-                                  (here_end
-                                    (word
-                                      (literal))))))))))))))
-            (word
-              (backquote_substitution
-                (backquote_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (line_continuation)
-                            (here_document_sequence
-                              (here_document
-                                (here_document_body
-                                  (here_document_escape)
-                                  (here_document_text))
-                                (here_document_end
-                                  (here_document_end_text))))
-                            (word
-                              (literal))))))))))))))))
-
 ==================
-inherited here document splits arithmetic layout
+pending document cannot cross a substitution into arithmetic layout
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" $((1 +
 body
@@ -1185,50 +937,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (io_redirect
-                                (io_here
-                                  (dless)
-                                  (here_end
-                                    (word
-                                      (literal))))))))))))))
-            (word
-              (arithmetic_expansion
-                (arithmetic_binary_expression
-                  (arithmetic_number)
-                  (arithmetic_operator)
-                  (here_document_sequence
-                    (here_document
-                      (here_document_body
-                        (here_document_text))
-                      (here_document_end
-                        (here_document_end_text))))
-                  (arithmetic_number))))))))))
-
 ==================
-inherited here document stays in a word that ends before a blank line
+pending document cannot cross a substitution before a blank line
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" foo\
 body
@@ -1237,47 +950,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (io_redirect
-                                (io_here
-                                  (dless)
-                                  (here_end
-                                    (word
-                                      (literal))))))))))))))
-            (word
-              (literal)
-              (line_continuation)
-              (here_document_sequence
-                (here_document
-                  (here_document_body
-                    (here_document_text))
-                  (here_document_end
-                    (here_document_end_text)))))))))))
-
 ==================
-inherited here document after a terminator trails the list at EOF
+pending document cannot cross a substitution before a list terminator
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)";\
 body
@@ -1285,46 +962,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (io_redirect
-                                (io_here
-                                  (dless)
-                                  (here_end
-                                    (word
-                                      (literal))))))))))))))))))
-    (separator_op))
-  (line_continuation)
-  (here_document_sequence
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
-
 ==================
-inherited here document after trailing layout closes the program
+pending document cannot cross a substitution before trailing layout
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : "$(cat <<E)" \
 body
@@ -1332,45 +974,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (io_redirect
-                                (io_here
-                                  (dless)
-                                  (here_end
-                                    (word
-                                      (literal)))))))))))))))))))
-  (line_continuation)
-  (here_document_sequence
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
-
 ==================
-function-name lookahead starts a later document at the previous terminator
+function-name lookahead rejects adjacent unfinished substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 $(cat <<A)$(cat <<B)\
 one
@@ -1381,46 +989,11 @@ me() { :; }
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (function_definition
-            (function_name
-              (lexeme_fragment)
-              (lexeme_fragment)
-              (line_continuation)
-              (here_document_sequence
-                (here_document
-                  (here_document_body
-                    (here_document_text))
-                  (here_document_end
-                    (here_document_end_text)))
-                (here_document
-                  (here_document_body
-                    (here_document_text))
-                  (here_document_end
-                    (here_document_end_text))))
-              (lexeme_fragment))
-            (function_body
-              (brace_group
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (word
-                            (literal))))))
-                  (separator
-                    (separator_op)))))))))))
-
 ==================
-a substitution closing inside a body leaves its here document without a body
+a substitution cannot close with a pending document inside an outer body
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 cat <<A
 $(cat <<B) x
@@ -1428,47 +1001,10 @@ A
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (io_redirect
-              (io_here
-                (dless)
-                (here_end
-                  (word
-                    (literal))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (here_document_body
-        (command_substitution
-          (command_substitution_body
-            (list
-              (and_or
-                (pipeline
-                  (command
-                    (simple_command
-                      (word
-                        (literal))
-                      (io_redirect
-                        (io_here
-                          (dless)
-                          (here_end
-                            (word
-                              (literal))))))))))))
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
-
 ==================
-a substitution inside an extglob pattern keeps its here document
+a substitution cannot close with a pending document inside an extglob
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : @($(cat <<E))
 x
@@ -1476,50 +1012,10 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (io_redirect
-                                  (io_here
-                                    (dless)
-                                    (here_end
-                                      (word
-                                        (literal)))))))))))))))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))))
-
 ==================
-double quotes inside an extglob pattern resume here document inheritance
+quoting an extglob substitution does not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : @("$(cat <<E)")
 x
@@ -1527,46 +1023,10 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (double_quoted
-                    (command_substitution
-                      (command_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (io_redirect
-                                    (io_here
-                                      (dless)
-                                      (here_end
-                                        (word
-                                          (literal)))))))))))))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
-
 ==================
-a brace expansion crossing an extglob pattern keeps its here document
+brace alternatives do not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : @({a,$(cat <<E)})
 x
@@ -1574,55 +1034,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (literal)
-              (brace_expansion
-                (brace_alternative
-                  (literal))
-                (brace_alternative
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (io_redirect
-                                  (io_here
-                                    (dless)
-                                    (here_end
-                                      (word
-                                        (literal))))))))))))))
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))))
-
 ==================
-a substitution inside a regex group keeps its here document
+regex groups do not permit pending document inheritance
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 [[ x =~ ($(cat <<E)) ]]
 x
@@ -1630,57 +1046,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (regex_source_expression
-                        (command_substitution
-                          (command_substitution_body
-                            (list
-                              (and_or
-                                (pipeline
-                                  (command
-                                    (simple_command
-                                      (word
-                                        (literal))
-                                      (io_redirect
-                                        (io_here
-                                          (dless)
-                                          (here_end
-                                            (word
-                                              (literal))))))))))))))))))
-            (conditional_close)))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))))
-
 ==================
-a substitution inside a conditional pattern group keeps its here document
+conditional patterns do not permit pending document inheritance
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 [[ x == @($(cat <<E)) ]]
 x
@@ -1688,56 +1058,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_match_operator)
-              (conditional_pattern
-                (extglob_pattern
-                  (extglob_operator)
-                  (extglob_alternative
-                    (command_substitution
-                      (command_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (io_redirect
-                                    (io_here
-                                      (dless)
-                                      (here_end
-                                        (word
-                                          (literal))))))))))))))))
-            (conditional_close)))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))))
-
 ==================
-an extglob pattern inside a parameter expansion inherits its here document
+parameter patterns do not permit pending document inheritance
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : ${u#@($(cat <<E))}
 x
@@ -1745,51 +1070,11 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_pattern_operator)
-                (parameter_pattern
-                  (extglob_pattern
-                    (extglob_operator)
-                    (extglob_alternative
-                      (command_substitution
-                        (command_substitution_body
-                          (list
-                            (and_or
-                              (pipeline
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal))
-                                    (io_redirect
-                                      (io_here
-                                        (dless)
-                                        (here_end
-                                          (word
-                                            (literal))))))))))))))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
-
 ==================
-a continued line inside backquotes does not start an inherited body
+backquote continuation does not permit pending document inheritance
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
+:error
 ==================
 : `: $(cat <<E) \
  x`
@@ -1798,52 +1083,62 @@ E
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (backquote_substitution
-                (backquote_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (command_substitution
-                                (command_substitution_body
-                                  (list
-                                    (and_or
-                                      (pipeline
-                                        (command
-                                          (simple_command
-                                            (word
-                                              (literal))
-                                            (io_redirect
-                                              (io_here
-                                                (dless)
-                                                (here_end
-                                                  (word
-                                                    (literal)))))))))))))
-                            (line_continuation)
-                            (word
-                              (literal))))))))))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))))
+==================
+a pending backquote document cannot use physical EOF after its closer
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+x=`cat <<EOF\\`
+------------------
+
+==================
+a backquote closer does not terminate an unfinished document
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+: `cat <<IN
+body
+`
+echo AFTER
+
+------------------
+
+==================
+an outer document end does not finish a nested backquote document
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+cat <<OUT
+`cat <<IN
+body
+`
+OUT
+
+------------------
+
+==================
+a backquote closer does not end a delimiter line
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+: `cat <<E
+body
+E`
+
+------------------
+
+==================
+a document inside a delimiter cannot inherit outer source
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+: <<$(cat <<E)
+body
+E
+
+------------------

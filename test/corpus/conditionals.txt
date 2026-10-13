@@ -2,8 +2,6 @@
 conditional words retain adjacent operators and closing spellings
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ a[k]=~ && -n $x]] && $x]] == "x"=~ ]]
 [[ "x"-eq ]]; [[ x =~ "]]" ]]
@@ -24,7 +22,8 @@ conditional words retain adjacent operators and closing spellings
                   (pattern_bracket_source
                     (pattern_bracket_members_source
                       (pattern_bracket_character_source)))
-                  (literal))
+                  (literal)
+                  (tilde_expansion))
                 (and_if)
                 (conditional_unary_expression
                   (conditional_unary_operator)
@@ -74,8 +73,6 @@ conditional words retain adjacent operators and closing spellings
 conditional punctuation still separates words without blanks
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ x<y && ("x">"y") || x==y ]]
 
@@ -108,7 +105,6 @@ conditional punctuation still separates words without blanks
                         (double_quote_text))))))
               (or_if)
               (word
-                (literal)
                 (literal)))
             (conditional_close)))))))
 
@@ -116,8 +112,6 @@ conditional punctuation still separates words without blanks
 conditional precedence
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ x -eq 2 || ( -n y && -z z ) ]]
 
@@ -155,8 +149,6 @@ conditional precedence
 conditional comparison and pattern
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ $x == @(a|b) && ! -f "$p" ]]
 
@@ -197,8 +189,6 @@ conditional comparison and pattern
 conditional compact ordering
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ x<y && x>z ]]
 
@@ -231,8 +221,6 @@ conditional compact ordering
 conditional line breaks
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[
  -n "$x" &&
@@ -270,8 +258,6 @@ conditional line breaks
 conditional comments
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ # comment
 x ]]
@@ -295,8 +281,6 @@ x ]]
 conditional literal braces
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ x == {a,b} ]]
 
@@ -321,8 +305,6 @@ conditional literal braces
 conditional quoted operators
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ "!" == "-n" ]]
 
@@ -349,8 +331,6 @@ conditional quoted operators
 conditional word argument
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo [[ x ]]
 
@@ -375,8 +355,6 @@ echo [[ x ]]
 conditional simple tests
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 test "$x" = y; [ -n "$x" ]; let "x++"
 
@@ -428,8 +406,6 @@ test "$x" = y; [ -n "$x" ]; let "x++"
 conditional newlines follow negation, groups, and complete terms
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 [[ !
 ( -n a
@@ -467,8 +443,6 @@ b == c
 conditionals preserve condition consequence and alternatives
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
 
@@ -554,65 +528,6 @@ Conditional pattern forces nested extglob with extquote enabled
 [[ a == $(: <<@("${x:-$'ab'}"|c)
 body
 @("${x:-ab}"|c)
-) ]]
-
-------------------
-
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (conditional_command
-            (conditional_open)
-            condition: (conditional_binary_expression
-              left: (word
-                (literal))
-              operator: (conditional_match_operator)
-              right: (conditional_pattern
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (extglob_pattern
-                                        operator: (extglob_operator)
-                                        alternative: (extglob_alternative
-                                          (double_quoted
-                                            (parameter_expansion
-                                              parameter: (variable_name)
-                                              operator: (parameter_value_operator)
-                                              word: (parameter_word
-                                                (dollar_single_quoted
-                                                  (dollar_single_quote_text))))))
-                                        alternative: (extglob_alternative
-                                          (literal))))))))))))
-                    (here_document_sequence
-                      line_end: (here_document_line_end)
-                      document: (here_document
-                        body: (here_document_body
-                          (here_document_text))
-                        end: (here_document_end
-                          (here_document_end_text))))))))
-            (conditional_close)))))))
-
-==================
-Conditional pattern forces nested extglob with extquote disabled
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
-==================
-[[ a == $(: <<@("${x:-$'ab'}"|c)
-body
-@("${x:-$'ab'}"|c)
 ) ]]
 
 ------------------
@@ -852,27 +767,46 @@ conditional precedence owns pattern and regex operands
 0:44 - 1:0      "\n"
 
 ==================
-command boundaries reject "[[ a\n]]\n"
+bare conditions allow a newline before the closing delimiter
+:language(bash)
 :language(bash_extglob)
-:error
 ==================
 [[ a
 ]]
 
 ------------------
 
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (word (literal))
+            (conditional_close)))))))
 
 
 ==================
-command boundaries reject "[[ a # comment\n]]\n"
+bare conditions allow a comment before the closing delimiter
+:language(bash)
 :language(bash_extglob)
-:error
 ==================
 [[ a # comment
 ]]
 
 ------------------
 
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (word (literal))
+            (comment (comment_text))
+            (conditional_close)))))))
 
 
 ==================
@@ -924,39 +858,72 @@ a ]]
 
 
 ==================
-command boundaries reject "[[ ! a\n]]\n"
+negated bare conditions allow a trailing newline
+:language(bash)
 :language(bash_extglob)
-:error
 ==================
 [[ ! a
 ]]
 
 ------------------
 
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_negation
+              (conditional_not)
+              (word (literal)))
+            (conditional_close)))))))
 
 
 ==================
-command boundaries reject "[[ ( a\n) ]]\n"
+grouped bare conditions allow a trailing newline
+:language(bash)
 :language(bash_extglob)
-:error
 ==================
 [[ ( a
 ) ]]
 
 ------------------
 
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_group
+              (word (literal)))
+            (conditional_close)))))))
 
 
 ==================
-command boundaries reject "[[ a\n&& b ]]\n"
+bare conditions allow a newline before a conjunction
+:language(bash)
 :language(bash_extglob)
-:error
 ==================
 [[ a
 && b ]]
 
 ------------------
 
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_and_expression
+              (word (literal))
+              (and_if)
+              (word (literal)))
+            (conditional_close)))))))
 
 
 ==================
@@ -1000,3 +967,47 @@ conditional misplaced operator "[[ x -eq ]]\n"
 [[ x -eq ]]
 
 ------------------
+
+==================
+conditional comments precede conjunctions
+:language(bash)
+:language(bash_extglob)
+==================
+[[ -n a # c
+&& ( b == c )	# d
+
+|| ! d ]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (conditional_command
+            (conditional_open)
+            condition: (conditional_or_expression
+              left: (conditional_and_expression
+                left: (conditional_unary_expression
+                  operator: (conditional_unary_operator)
+                  operand: (word
+                    (literal)))
+                (comment
+                  (comment_text))
+                operator: (and_if)
+                right: (conditional_group
+                  expression: (conditional_binary_expression
+                    left: (word
+                      (literal))
+                    operator: (conditional_match_operator)
+                    right: (conditional_pattern
+                      (literal)))))
+              (comment
+                (comment_text))
+              operator: (or_if)
+              right: (conditional_negation
+                operator: (conditional_not)
+                operand: (word
+                  (literal))))
+            (conditional_close)))))))

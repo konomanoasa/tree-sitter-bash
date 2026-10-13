@@ -2,8 +2,6 @@
 condition in command substitution delimiter
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$( [[ x ]] )
 $( [[ x ]] )
@@ -43,7 +41,6 @@ $( [[ x ]] )
 ==================
 here document delimiter extglob
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 cat <<@(a|b)
 x
@@ -82,8 +79,6 @@ x
 here document ANSI-C Unicode delimiter
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$'\u0045OF'
 x
@@ -119,8 +114,6 @@ EOF
 here document ANSI-C hex width
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$'\x454OF'
 x
@@ -156,8 +149,6 @@ E4OF
 ANSI-C unknown escape delimiter
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$'\q\x'
 x
@@ -193,8 +184,6 @@ x
 ANSI-C NUL truncates only the quoted segment
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<a$'\0ignored'b
 x
@@ -232,8 +221,6 @@ ab
 delimiter quotes are removed without parameter expansion
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<"${x:-"a"}"
 $x
@@ -273,8 +260,6 @@ ${x:-a}
 delimiter quotes are removed without command execution
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<"$(echo "a")"
 $x
@@ -320,8 +305,6 @@ $(echo a)
 quotes inside unquoted parameter spelling are retained
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<${x:-"a"}
 $x
@@ -361,8 +344,6 @@ ${x:-"a"}
 quotes inside unquoted substitution spelling are retained
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$(echo "a")
 $x
@@ -408,8 +389,6 @@ $(echo "a")
 empty quoted delimiter ends at empty line
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<''
 body
@@ -442,8 +421,6 @@ body
 quoted parameter with nested blanks
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<"${x:-"a b"}"
 body
@@ -483,8 +460,6 @@ ${x:-a b}
 quoted command with nested blanks
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<"$(echo "a b")"
 body
@@ -530,8 +505,6 @@ $(echo a b)
 unquoted parameter name
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$x
 body
@@ -566,8 +539,6 @@ $x
 locale quote delimiter prefixes are removed without expanding their contents
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<$"EOF" <<[$"x"] <<$"$name"
 $first
@@ -633,8 +604,6 @@ $name
 here document delimiter words preserve process substitution source
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat << pre<(printf x)>(:)post
 $v
@@ -689,7 +658,6 @@ pre<(printf x)>(:)post
 ==================
 here document outer quoting controls extglob quote removal
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 cat << @("a b"|c) << ""@("a b"|c)
 $v
@@ -750,8 +718,6 @@ $w
 brace substitution delimiter prefixes normalize layout before quote removal
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat << ${	:; } << ""${|
 	printf "x"; }
@@ -826,45 +792,6 @@ Quoted parameter delimiter with extquote enabled
 : <<"${x:-$'ab'}"
 body
 ${x:-ab}
-
-------------------
-
-(program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            redirect: (io_redirect
-              body: (io_here
-                operator: (dless)
-                end: (here_end
-                  word: (word
-                    (double_quoted
-                      (parameter_expansion
-                        parameter: (variable_name)
-                        operator: (parameter_value_operator)
-                        word: (parameter_word
-                          (dollar_single_quoted
-                            (dollar_single_quote_text))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
-
-==================
-Quoted parameter delimiter with extquote disabled
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
-==================
-: <<"${x:-$'ab'}"
-body
-${x:-$'ab'}
 
 ------------------
 

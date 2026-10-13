@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
 import { grammars } from "../scripts/tree-sitter.js";
+import { cstFingerprint } from "./support/cst.js";
 import {
   applyEdit,
   assertEditRoundTrip,
@@ -19,7 +20,83 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
-    test("pipe timing boundaries survive layout edits and nested sources", () => {
+    test("eval and let argument boundaries survive edits and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["eval a=(one two) tail\n", "eval", "let", true],
+        ["let n=(1 + 2)\n", "let", "eval", true],
+        ["eval a=(one)\n", "eval", '"eval"', false],
+        ["let a=(one)\n", "let", "builtin let", false],
+        ["eval a=(one)\n", "eval", "command eval", false],
+        ["eval a=(one)\n", "eval", "ev\\\nal", true],
+        ["le\0t a=(one)\n", "a=", "a+=", true],
+        ["eval a=(one)\n", "a=", "a+=", true],
+        ["eval a=(one)tail next\n", "tail", '"tail"', true],
+        ["eval a=(one)\n", "eval ", ">out eval ", true],
+        ["let a=(one)\n", "let ", "x=1 let ", true],
+        ["eval a=(one)\n", "eval ", "eval >out ", false],
+        ["let a=(one)\n", "let ", "let <(echo x) ", false],
+        ["eval pre<(echo x) a=(one)\n", "pre", "", false],
+        ["eval a=(x#y\n z)\n", "x#y", "#y", true],
+        ["eval a=(# c\n one)\n", "# c", '"# c"', true],
+        ["eval a=({a, b})\n", " b", " # }\n b", true],
+        ["eval a=(x:~user y)\n", " y", " # c\n y", true],
+        ["eval a=(one\\\n two)\n", "\\\n", "\n", true],
+        ["eval a=(日\0本 two)\n", "日", "山", true],
+        ["eval a=($(printf x)) tail\n", "printf x", "eval b=(x)", true],
+        ["eval a=([x]=y)\n", "x", " x + 1 ", true],
+        ["coproc eval a=(one two)\n", "eval", "let", true],
+        ["eval a=(one two)\necho AFTER\n", ")", "", false],
+        ["let a=(one two)\necho AFTER\n", "one", ";", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+    test("special parameter indirection survives target edits and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${!!}\n`, "!!", "!$", true],
+        [`: "\${!ref}"\n`, "ref", "$", true],
+        [`: \${!$:-x}\n`, ":-", "-", true],
+        [`: \${!$@Q}\n`, "@Q", "~~", true],
+        [`: \${!$}\n`, "!$", "!\\\n$", true],
+        [`: \${!\0$}\n`, "}", ":-x}", true],
+        [`: \${!$}\necho AFTER\n`, "}", "", false],
+        [`: \${!$}\necho AFTER\n`, "!$", "!$$", false],
+        [`: \${!$}\necho AFTER\n`, "}", "()}", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+    test("name enumeration prefixes keep stars and switch to indirection at operators", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${!x*y*}\n`, "*y*", ":-y*", true],
+        [`: \${!x[a:b]*}\n`, "[a:b]", "[1]:-", true],
+        [`: \${!-*}\n`, "-", "x", true],
+        [`: "\${!x*!x@}"\n`, "*!x", "~", true],
+        [`: \${!x*y*}\n`, "*y", "\\\n*y", true],
+        [`: \${!x\0*y*}\n`, "*y*", ":-y*", true],
+        [`: \${!x.y*}\n`, "*}", ":-*}", false],
+        [`: "\${!x*!x@}"\n`, "@", "-", false],
+        [`: \${!x*y*}\necho AFTER\n`, "*}", "}", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+    test("case toggle operator and pattern edits match fresh parses and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${x^}\n`, "^", "~", true],
+        [`: "\${x~?}"\n`, "~", "~~", true],
+        [`: \${x~~~}\n`, "~~~", "~", true],
+        [`: \${x~\${p~~}}\n`, "~~", "^^", true],
+        [`: \${x~~[ab]}\n`, "[ab]", "$(printf a)", true],
+        [`: \${x~~}\n`, "~~", "~\\\n~", true],
+        [`: \${x~\0~}\n`, "x", "y", true],
+        [`: \${x~}\necho AFTER\n`, "}", "", false],
+        [`: \${x~$(printf a)}\necho AFTER\n`, "printf a", ";", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+    test("time remains a command after pipe layout edits and in nested sources", () => {
       for (const [seed, remove, insert] of [
         [": |\ntime x\n", "|", "|&"],
         [": |\ntime x\n", "\n", "\n\n"],
@@ -39,15 +116,48 @@ for (const grammar of grammars) {
         [`: \${ echo x |\ntime x; }\n`, "|", "|&"],
         [": `echo x |\ntime x`\n", "|", "|&"],
       ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
-        const edit = {
-          byte: Buffer.byteLength(seed.slice(0, seed.indexOf(remove))),
-          deleteBytes: Buffer.byteLength(remove),
-          insert,
-        };
-        const incremental = parser.parse(seed, { edits: [edit] });
-        assert.equal(incremental.status, 1, incremental.output);
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
       }
+    });
+    test("conditional linebreak edits preserve operands and repair missing syntax", () => {
+      for (const [seed, remove, insert, valid] of [
+        ["[[ a ]]\n", "a ", "a\n", true],
+        ["[[ a\n]]\n", "a\n", "a # comment\n", true],
+        ["[[ ! a ]]\n", "a ", "a\n", true],
+        ["[[ ( a ) ]]\n", "a ", "a\n", true],
+        ["[[ a && b ]]\n", "a ", "a\n", true],
+        ["[[ a || b ]]\n", "b ", "b\n", true],
+        ["[[ a && b == c ]]\n", "a ", "a\n", true],
+        ["[[ a\n&& b ]]\n", "b ", "", false],
+        ["[[ a\n]]\necho AFTER\n", "]]", "", false],
+        ["[[ a == b ]]\n", "== ", "==\n", false],
+        ["[[ a =~ b ]]\n", "=~ ", "=~\n", false],
+        ["[[ -n a ]]\n", "-n ", "-n\n", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+    test("time option lookahead survives edits after the options", () => {
+      const seed = "time -p --:x\n";
+      const edits = [
+        { byte: 12, deleteBytes: 1, insert: "" },
+        { byte: 10, deleteBytes: 0, insert: " " },
+      ];
+      const final = edits.reduce(applyEdit, seed);
+      assert.equal(final, "time -p -- :x");
+      assert.equal(
+        nodes(final).filter(({ type }) => type === "time_option").length,
+        2,
+      );
+      const options = { arguments: ["-c"] };
+      const fresh = parser.parse(final, options);
+      assert.equal(fresh.status, 0, fresh.output);
+      const incremental = parser.parse(seed, { ...options, edits });
+      assert.equal(incremental.status, 0, incremental.output);
+      assert.equal(
+        cstFingerprint(incremental.tree),
+        cstFingerprint(fresh.tree),
+      );
     });
     test("word loop headers remain deterministic and repair across body boundaries", () => {
       for (const [seed, remove, insert, valid] of [
@@ -217,6 +327,12 @@ for (const grammar of grammars) {
           "echo BEFORE\ncoproc C { time echo SAME; }\necho AFTER\n",
           "coproc",
           ") coproc",
+        ],
+        ["echo BEFORE\n{ coproc C }\necho AFTER\n", " }", " x }"],
+        [
+          "echo BEFORE\nif :; then { echo SAME; } >out; fi\necho AFTER\n",
+          "; fi",
+          " fi",
         ],
       ]) {
         assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
@@ -523,6 +639,7 @@ for (const grammar of grammars) {
         "time",
         "function",
         "declare",
+        "alias",
       ]) {
         for (const direction of ["<", ">"]) {
           test(`process substitution joined to ${spelling} is part of the command name (${direction})`, () => {
@@ -1420,6 +1537,34 @@ for (const grammar of grammars) {
           valid: false,
         },
         {
+          name: "declaration changes to alias without losing assignments",
+          seed: "declare a=(one) b+=two\n",
+          remove: "declare",
+          insert: "alias",
+          valid: true,
+        },
+        {
+          name: "alias declaration survives a name continuation",
+          seed: "alias a=(one)\n",
+          remove: "alias",
+          insert: "ali\\\nas",
+          valid: true,
+        },
+        {
+          name: "quoted alias stops recognizing compound assignments",
+          seed: "alias a=(one)\n",
+          remove: "alias",
+          insert: '"alias"',
+          valid: false,
+        },
+        {
+          name: "redirection ends alias compound assignment recognition",
+          seed: "alias a=(one)\n",
+          remove: "alias ",
+          insert: "alias >out ",
+          valid: false,
+        },
+        {
           name: "quoted declaration is repaired",
           seed: "declare a=(one)\n",
           remove: "declare",
@@ -1713,6 +1858,65 @@ for (const grammar of grammars) {
         "p=(a)\\\n",
       ]) {
         assert.equal(parser.parse(source, {}).status, 0, source);
+      }
+    });
+
+    test("repeated arithmetic signs keep their boundaries across contexts and logical layout", () => {
+      for (const [expression, operators] of [
+        ["++1", ["+", "+"]],
+        ["--(x)", ["-", "-"]],
+        ["+++x", ["+", "++"]],
+        ["1++1", ["+", "+"]],
+        ["x++++1", ["++", "+", "+"]],
+        ["++ x", ["++"]],
+        ["++\nx", ["++"]],
+        ["++\\\n1", ["+", "+"]],
+        ["+\\\n+x", ["++"]],
+        ["+\0+1", ["+", "+"]],
+        ["++$x", ["++"]],
+        ["1++x", ["++"]],
+      ]) {
+        for (const source of [
+          `: $(( ${expression} ))\n`,
+          `: $[${expression}]\n`,
+          `(( ${expression} ))\n`,
+          `: "\${a[${expression}]}"\n`,
+          `: "\${x: ${expression}}"\n`,
+          `for (( ${expression};0; )); do :; done\n`,
+        ]) {
+          assert.deepEqual(
+            nodes(source)
+              .filter(
+                ({ type }) =>
+                  type === "arithmetic_operator" ||
+                  type === "arithmetic_candidate_operator",
+              )
+              .map(({ text }) =>
+                text.replaceAll("\\\n", "").replaceAll("\0", ""),
+              ),
+            operators,
+            JSON.stringify(source),
+          );
+        }
+      }
+    });
+
+    test("arithmetic sign edits switch between unary updates and source without stale structure", () => {
+      for (const [remove, insert] of [
+        ["++1", "++x"],
+        ["++x", "++(x)"],
+        ["++x", "+++x"],
+        ["++1", "++$x"],
+        ["1++1", "1++x"],
+        ["x+++1", "1+++1"],
+        ["++1", "++"],
+      ]) {
+        for (const seed of [
+          `: $(( ${remove} ))\necho after\n`,
+          `: "\${a[${remove}]}"\necho after\n`,
+        ]) {
+          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+        }
       }
     });
 

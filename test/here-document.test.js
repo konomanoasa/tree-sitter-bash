@@ -12,134 +12,112 @@ const delimiterCases = [
   {
     name: "delimiter-quoted-value",
     word: `"\${x:-$'ab'}"`,
-    disabled: `\${x:-$'ab'}`,
-    enabled: `\${x:-ab}`,
+    end: `\${x:-ab}`,
   },
   {
     name: "delimiter-unquoted-value",
     word: `\${x:-$'ab'}`,
-    disabled: `\${x:-'ab'}`,
-    enabled: `\${x:-'ab'}`,
+    end: `\${x:-'ab'}`,
   },
   {
     name: "delimiter-quoted-pattern",
     word: `"\${x#$'ab'}"`,
-    disabled: `\${x#'ab'}`,
-    enabled: `\${x#'ab'}`,
+    end: `\${x#'ab'}`,
   },
   {
     name: "delimiter-quoted-subscript",
     word: `"\${a[$'ab']}"`,
-    disabled: `\${a[$'ab']}`,
-    enabled: `\${a[ab]}`,
+    end: `\${a[ab]}`,
   },
   {
     name: "delimiter-quoted-substring",
     word: `"\${x:$'0'}"`,
-    disabled: `\${x:$'0'}`,
-    enabled: `\${x:0}`,
+    end: `\${x:0}`,
   },
   {
     name: "delimiter-nested-pattern",
     word: `"\${x:-\${y#$'ab'}}"`,
-    disabled: `\${x:-\${y#'ab'}}`,
-    enabled: `\${x:-\${y#'ab'}}`,
+    end: `\${x:-\${y#'ab'}}`,
   },
   {
     name: "delimiter-nested-value",
     word: `"\${x#\${y:-$'ab'}}"`,
-    disabled: `\${x#\${y:-$'ab'}}`,
-    enabled: `\${x#\${y:-ab}}`,
+    end: `\${x#\${y:-ab}}`,
   },
   {
     name: "delimiter-replacement",
     word: `"\${x/a/$'ab'}"`,
-    disabled: `\${x/a/'ab'}`,
-    enabled: `\${x/a/'ab'}`,
+    end: `\${x/a/'ab'}`,
   },
   {
     name: "delimiter-locale-value",
     word: `"\${x:-$"ab"}"`,
-    disabled: `\${x:-$ab}`,
-    enabled: `\${x:-ab}`,
+    end: `\${x:-ab}`,
   },
   {
     name: "delimiter-locale-subscript",
     word: `"\${a[$"ab"]}"`,
-    disabled: `\${a[$ab]}`,
-    enabled: `\${a[ab]}`,
+    end: `\${a[ab]}`,
   },
   {
     name: "delimiter-ansi-inner-quote",
     word: `"\${x:-$'a\\"b'}"`,
-    disabled: `\${x:-$'a"b'}`,
-    enabled: `\${x:-ab}`,
+    end: `\${x:-ab}`,
   },
   {
     name: "delimiter-ansi-inner-escape",
     word: `"\${x:-$'a\\tb'}"`,
-    disabled: `\${x:-$'a\\tb'}`,
-    enabled: `\${x:-a\tb}`,
+    end: `\${x:-a\tb}`,
   },
   {
     name: "delimiter-ansi-backslash",
     word: `"\${x:-$'a\\\\b'}"`,
-    disabled: `\${x:-$'a\\b'}`,
-    enabled: `\${x:-a\\b}`,
+    end: `\${x:-a\\b}`,
   },
   {
     name: "delimiter-ansi-brace",
     word: `"\${x:-$'a}b'}"`,
-    disabled: `\${x:-$'a}b'}`,
-    enabled: `\${x:-a}b}`,
+    end: `\${x:-a}b}`,
   },
   {
     name: "delimiter-ordinary-ansi",
     word: "$'ab'",
-    disabled: "ab",
-    enabled: "ab",
+    end: "ab",
   },
   {
     name: "delimiter-ordinary-locale",
     word: '$"ab"',
-    disabled: "ab",
-    enabled: "ab",
+    end: "ab",
   },
   {
     name: "delimiter-pid-parameter-before-single-quote",
     word: "$$'a'",
-    disabled: "$$a",
-    enabled: "$$a",
+    end: "$$a",
   },
   {
     name: "delimiter-pid-parameter-before-double-quote",
     word: '$$"a"',
-    disabled: "$$a",
-    enabled: "$$a",
+    end: "$$a",
   },
   {
     name: "delimiter-pid-parameter-before-brace",
     word: "$${",
-    disabled: "$${",
-    enabled: "$${",
+    end: "$${",
   },
   {
     name: "delimiter-quoted-pid-parameter-before-single-quote",
     word: `"\${v:-$$'a'}"`,
-    disabled: `\${v:-$$'a'}`,
-    enabled: `\${v:-$$'a'}`,
+    end: `\${v:-$$'a'}`,
   },
   {
     name: "delimiter-nested-command",
     word: `"$(printf \${x:-$'ab'})"`,
-    disabled: `$(printf \${x:-$'ab'})`,
-    enabled: `$(printf \${x:-ab})`,
+    end: `$(printf \${x:-ab})`,
   },
   {
     name: "delimiter-combined-conditions",
     word: `@("\${x:-$'ab'}"|c)`,
-    disabled: `@("\${x:-$'ab'}"|c)`,
-    enabled: `@("\${x:-ab}"|c)`,
+    end: `@("\${x:-ab}"|c)`,
     extglob: true,
   },
 ];
@@ -153,252 +131,81 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
-    test("here document input ownership survives edits and suspension", () => {
+    test("local here document source ownership survives edits and suspension", () => {
       const fixtures = [
-        {
-          name: "backquote_owner",
-          source:
-            "printf '[%s][%s]\\n' \"$(cat <<E)\" `printf %s\\\n\\$HOME\nE\n value`\n",
-        },
-        {
-          name: "outer_backquote_1",
-          source:
-            "printf '%s\\n' `printf '[%s][%s]\\\\n' \"\\$(cat <<E)\" \\`printf %s\\\\\n\\\\\\$HOME\nE\n value\\``\n",
-        },
-        {
-          name: "body_nested_heredoc",
-          source:
-            "printf '[%s][%s]\\n' \"$(cat <<E)\" `printf %s\\\n$(cat <<INNER\n\\$HOME\nINNER\n)\nE\n value`\n",
-        },
-        {
-          name: "outer_body_substitution",
-          source:
-            "cat <<OUT\n$(printf '[%s][%s]\\n' \"$(cat <<E)\" `printf %s\\\n\\$proto_value\nE\n value`)\nOUT\n",
-        },
-        {
-          name: "outer_body_continued",
-          source:
-            "cat <<OUT\n$(printf '[%s][%s]\\n' \"$(cat <<E)\" `printf %s\\\\\n\\$proto_value\nE\n value`)\nOUT\n",
-        },
-        {
-          name: "mixed_owners",
-          source:
-            "printf '[%s][%s]\\n' \"$(cat <<A)\" `printf '[%s][%s]' \"$(cat <<B)\" val\\\n\\$HOME\nA\n\\\\\\$HOME\nB\nue`\n",
-        },
-        {
-          name: "ordinary_escape",
-          source: "cat <<E\n\\$HOME\nE\n",
-        },
-        {
-          name: "ordinary_backquote",
-          source: "printf '[%s]\\n' `cat <<E\n\\\\\\$HOME\nE\n`\n",
-        },
+        "cat <<E\n\\$HOME\nE\n",
+        "printf %s `cat <<E\n\\\\\\$HOME\nE\n`\n",
+        "cat <<OUT\n$(cat <<IN\n\\$HOME\nIN\n)\nOUT\n",
+        ': <<OUT "$(cat <<IN\n\\$HOME\nIN\n)"\n$HOME\nOUT\n',
+        "cat <<OUT\n`cat <<-'IN'\n\t$HOME\n\tIN\n`\nOUT\n",
       ];
-      for (const fixture of fixtures) {
-        for (const [remove, insert] of [
-          ["HOME", "other"],
-          ["proto_value", "other_name"],
+      for (const seed of fixtures) {
+        assertEditRoundTrip(parser, {
+          seed,
+          remove: "HOME",
+          insert: "other",
+          valid: true,
+        });
+      }
+    });
+    test("moving a substitution close before its body rejects and repairs locally", () => {
+      for (const [open, close] of [
+        ["$(", ")"],
+        ["`", "`"],
+        ["<(", ")"],
+        [">(", ")"],
+        ["${ ", "}"],
+        ["${| ", "}"],
+      ]) {
+        for (const [before, after] of [
+          ["echo BEFORE\n: ", "\necho AFTER\n"],
+          ["cat <<OUT\n$(: ", ")\nOUT\necho AFTER\n"],
         ]) {
-          if (!fixture.source.includes(remove)) continue;
+          const body = "cat <<E\nbody\nE\n";
+          const seed = `${before}${open}${body}${close}${after}`;
           assertEditRoundTrip(parser, {
-            seed: fixture.source,
-            remove,
-            insert,
-            valid: true,
+            seed,
+            remove: body + close,
+            insert: `cat <<E${close === "}" ? "; " : ""}${close}\nbody\nE\n`,
+            valid: false,
+          });
+          assertEditRoundTrip(parser, {
+            seed,
+            remove: "\nE\n",
+            insert: "\nOTHER\n",
+            valid: false,
           });
         }
       }
     });
-    test("inherited documents preserve interrupted lexemes through edits", () => {
-      const prefix = ': "$(cat <<E)" ';
-      for (const suffix of [
-        "$foo\\\nbody\nE\nbar\n",
-        `\${foo\\\nbody\nE\nbar}\n`,
-        '"$foo\\\nbody\nE\nbar"\n',
-        "foo\\\nbody\nE\nbar\n",
-        "'foo\nbody\nE\nbar'\n",
-        "$'foo\nbody\nE\nbar'\n",
-        '"foo\nbody\nE\nbar"\n',
-        "$\\\nbody\nE\nfoobar\n",
-      ]) {
-        const seed = prefix + suffix;
-        for (const [remove, insert] of [
-          ["body", '"$x)'],
-          ["foo", "other"],
-          ["bar", "tail"],
-        ]) {
-          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
-        }
-      }
-    });
-    test("inherited documents attach to layout when the interrupted word ends", () => {
-      const seeds = [
-        {
-          seed: ': "$(cat <<E)" $((1 +\nbody\nE\n 2))\n',
-          edits: [[" 2", " 3"]],
-        },
-        {
-          seed: ': "$(cat <<E)" $((1 + 2\nbody\nE\n))\n',
-          edits: [[" 2", " 3"]],
-        },
-        { seed: "(( $(cat <<E) +\nbody\nE\n 1 ))\n", edits: [[" 1", " 2"]] },
-        {
-          seed: "for ((i=$(cat <<E);\n1\nE\n i<2; i++)); do :; done\n",
-          edits: [["i<2", "i<3"]],
-        },
-        { seed: ': "$(cat <<E)" $[1 +\nbody\nE\n 2]\n', edits: [[" 2", " 3"]] },
-        {
-          seed: `: "$(cat <<E)" \${a[0 +\nbody\nE\n 1]}\n`,
-          edits: [[" 1", " 2"]],
-        },
-        {
-          seed: `: "$(cat <<E)" \${x:1 +\nbody\nE\n 1:2}\n`,
-          edits: [[":2", ":3"]],
-        },
-        {
-          seed: ': "$(cat <<E)" foo\\\nbody\nE\n\n',
-          edits: [["foo", "other"]],
-        },
-        {
-          seed: ': "$(cat <<E)" foo\\\nbody\nE\n;\n',
-          edits: [["foo", "other"]],
-        },
-        {
-          seed: ': "$(cat <<E)" $foo\\\nbody\nE\n \n',
-          edits: [["foo", "other"]],
-        },
-        { seed: "x=$(cat <<E)\\\nbody\nE\n\n", edits: [["x=", "y="]] },
-        { seed: "x=$(cat <<E)\\\nbody\nE\n", edits: [["x=", "y="]] },
-        { seed: ': "$(cat <<E)";\\\nbody\nE\n', edits: [[";", " &"]] },
-        { seed: ': "$(cat <<E)" &\\\nbody\nE\n\n', edits: [[" &", ";"]] },
-        { seed: ': "$(cat <<E)" \\\nbody\nE\n', edits: [[" \\", "  \\"]] },
-        { seed: ': "$(cat <<E)" \\\nbody\nE\n\n', edits: [[" \\", "  \\"]] },
-        {
-          seed: "case $(cat <<E)\\\nbody\nE\n\nin body) :;; esac\n",
-          edits: [["body)", "x)"]],
-        },
-        {
-          seed: "$(cat <<A)$(cat <<B)\\\none\nA\ntwo\nB\nme() { :; }\n",
-          edits: [
-            ["me", "name"],
-            ["two", "2"],
-          ],
-        },
-        {
-          seed: "$(cat <<A)\\\n$(cat <<B)na\\\none\nA\ntwo\nB\nme() { :; }\n",
-          edits: [["me", "name"]],
-        },
-        { seed: "cat <<A\n$(cat <<B) x\nA\n", edits: [[" x", " y"]] },
-        { seed: "cat <<A\nx $(cat <<B)\nA\n", edits: [["x ", "y "]] },
-        { seed: "cat <<A\n$(cat <<B)x\\\ny\nA\n", edits: [["y", "z"]] },
-        { seed: `cat <<A\n\${ cat <<B; }\nA\n`, edits: [["cat", "tac"]] },
-        {
-          seed: "cat <<A\n$(x=$(cat <<B)\nbody\nB\n)\nA\n",
-          edits: [["x=", "y="]],
-        },
-      ];
-      for (const { seed, edits } of seeds) {
-        for (const [remove, insert] of [...edits, ["body", '"$x)']]) {
-          if (!seed.includes(remove)) continue;
-          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
-        }
-      }
-    });
-    test("function-name heredocs preserve discovery positions across edits", () => {
-      for (const seed of [
-        "$(cat <<A)$(cat <<B)na\\\none\nA\ntwo\nB\nme() { :; }\n",
-        "$(cat <<A)na\\\none\nA\n$(cat <<B)me\\\ntwo\nB\nend() { :; }\n",
-        "'pre\n'$(cat <<E)na\\\nbody\nE\nme() { :; }\n",
-        '"$(cat <<E)na\\\nbody\nE\nme"() { :; }\n',
-      ]) {
-        assertEditRoundTrip(parser, {
-          seed,
-          remove: "na",
-          insert: "name",
-          valid: true,
-        });
-        assertEditRoundTrip(parser, {
-          seed,
-          remove: "cat",
-          insert: "printf",
-          valid: true,
-        });
-      }
-    });
-    for (const { name, seed, remove, insert } of [
-      {
-        name: "space",
-        seed: 'echo BEFORE\n: "$(cat <<E)" \\\nbody\nE\n word\necho AFTER\n',
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "variable",
-        seed: 'echo BEFORE\n: "$(cat <<E)" $foo\\\nbody\nE\nbar\necho AFTER\n',
-        remove: "bar",
-        insert: ") bar",
-      },
-      {
-        name: "parameter",
-        seed: `echo BEFORE\n: "$(cat <<E)" \${foo\\\nbody\nE\nbar}\necho AFTER\n`,
-        remove: "bar",
-        insert: ") bar",
-      },
-      {
-        name: "backquote",
-        seed: 'echo BEFORE\n: "$(cat <<E)" `: \\\n\\$HOME\nE\n word`\necho AFTER\n',
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "function",
-        seed: "echo BEFORE\n$(cat <<E)na\\\nbody\nE\nme() { :; }\necho AFTER\n",
-        remove: "me()",
-        insert: ") me()",
-      },
-      {
-        name: "multiple",
-        seed: "echo BEFORE\n: \"$(cat <<A)$(cat <<'B')\" \\\nfi\nA\n$HOME\nB\n word\necho AFTER\n",
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "quoted-empty",
-        seed: "echo BEFORE\n: \"$(cat <<'')\" \\\nfi\n\n word\necho AFTER\n",
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "stripped",
-        seed: 'echo BEFORE\n: "$(cat <<-E)" \\\n\tfi\n\tE\n word\necho AFTER\n',
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "nested",
-        seed: "echo BEFORE\ncat <<OUT\n$( : \"$(cat <<A)$(cat <<'B')\" \\\nfi\nA\n$HOME\nB\n word\n)\nOUT\necho AFTER\n",
-        remove: " word",
-        insert: "|& |& word",
-      },
-      {
-        name: "nested-body",
-        seed: 'echo BEFORE\n: "$(cat <<E)" \\\n$(cat <<IN\ninner\nIN\n)\nE\n word\necho AFTER\n',
-        remove: " word",
-        insert: ") word",
-      },
-      {
-        name: "unclosed-quote",
-        seed: 'echo BEFORE\n: "$(cat <<E)" \\\n$(printf x)\nE\n word\necho AFTER\n',
-        remove: "$(printf x)",
-        insert: '$(printf "x)',
-      },
-    ]) {
-      test(`inherited document recovery repairs ${name}`, () => {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
-      });
-    }
     const extglob = grammar.name.includes("extglob");
     const nodes = (source) => parseNodes(parser, source);
+    test("stripped tabs on a final line without a newline end an empty delimiter", () => {
+      const seed = "cat <<-''\n\tx\n\t\t";
+      assert.deepEqual(
+        nodes(seed)
+          .filter(({ type }) =>
+            ["quoted_here_document_body", "here_document_end"].includes(type),
+          )
+          .map(({ type, text }) => [type, text]),
+        [
+          ["quoted_here_document_body", "x\n"],
+          ["here_document_end", "\t\t"],
+        ],
+      );
+      assertEditRoundTrip(parser, {
+        seed,
+        remove: "\t\t",
+        insert: "\t\t\n",
+        valid: true,
+      });
+      assertEditRoundTrip(parser, {
+        seed,
+        remove: "\n\t\t",
+        insert: "\n",
+        valid: true,
+      });
+    });
     if (grammar.name === "bash_extglob") {
       test("here document Unicode delimiters use UTF-8 independently of locale", () => {
         const source = ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n";
@@ -659,34 +466,6 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "an extglob group stops a substitution from inheriting its body",
-          seed: ": a$(cat <<E)\nx\nE\n",
-          remove: "a$(cat <<E)",
-          insert: "@(a$(cat <<E))",
-          valid: true,
-        },
-        {
-          name: "a regex group stops a substitution from inheriting its body",
-          seed: "[[ x =~ a$(cat <<E) ]]\nx\nE\n",
-          remove: "a$(cat <<E)",
-          insert: "(a$(cat <<E))",
-          valid: true,
-        },
-        {
-          name: "double quotes inside an extglob group resume inheritance",
-          seed: ": @($(cat <<E))\nx\nE\n",
-          remove: "$(cat <<E)",
-          insert: '"$(cat <<E)"',
-          valid: true,
-        },
-        {
-          name: "backquotes join a continued line after an inherited document",
-          seed: ": `: $(cat <<E) x`\nx\nE\n",
-          remove: ") x",
-          insert: ") \\\n x",
-          valid: true,
-        },
-        {
           name: "an ANSI-C delimiter escape changes without changing its value",
           seed: "cat << @($'a\\tb'|c)\n$x\n@('a\tb'|c)\n",
           remove: "\\t",
@@ -846,8 +625,7 @@ for (const grammar of grammars) {
     }
 
     test("delimiter quote removal retains the newline in a parameter dollar quote", () => {
-      const extquote = !grammar.name.includes("noextquote");
-      const end = extquote ? `\${x:-ab}` : `\${x:-$'ab'}`;
+      const end = `\${x:-ab}`;
       for (const [prefix, suffix] of [
         ["", ""],
         [": $(", ")\n"],
@@ -871,8 +649,8 @@ for (const grammar of grammars) {
       }
     });
 
-    test("pending document limits are local to a parsing context and reset after reading", () => {
-      for (const count of [15, 16, 17]) {
+    test("more than sixteen pending documents keep declaration order and input ownership", () => {
+      for (const count of [16, 17, 32]) {
         const declarations = " <<E".repeat(count);
         const terminators = "E\n".repeat(count);
         const local = `:${declarations}\n${terminators}`;
@@ -882,13 +660,28 @@ for (const grammar of grammars) {
           `: <<OUT\n$(${local})\nOUT\n`,
           `${": <<E; ".repeat(count)}\n${terminators}`,
         ]) {
-          assert.equal(
-            parser.parse(source, {}).status,
-            count > 16 ? 1 : 0,
-            source,
-          );
+          assert.equal(parser.parse(source, {}).status, 0, source);
         }
-        const source = `${": $(: <<E); ".repeat(count)}\n${terminators}`;
+        const bodies = Array.from(
+          { length: count },
+          (_, index) => `body ${index}\n`,
+        );
+        const actual = nodes(
+          `:${declarations}\n${bodies.map((body) => `${body}E\n`).join("")}`,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_body")
+            .map(({ text }) => text),
+          bodies,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          Array(count).fill("E"),
+        );
+        const source = ": $(: <<E\nE\n); ".repeat(count);
         assert.equal(parser.parse(source, {}).status, 0, source);
         assert.equal(parser.parse(": <<E\nE\n".repeat(count), {}).status, 0);
       }
@@ -898,17 +691,17 @@ for (const grammar of grammars) {
       assert.equal(parser.parse(nested, {}).status, 0, nested);
       assert.equal(
         parser.parse(`:${outer}; { : <<IN; }\n${ends}IN\n`, {}).status,
-        1,
+        0,
       );
       assertEditRoundTrip(parser, {
         seed: `:${outer}\n${ends}`,
-        remove: ":",
-        insert: ": <<EXCESS",
-        valid: false,
+        remove: "\n",
+        insert: " <<OUT\nOUT\n",
+        valid: true,
       });
     });
 
-    test("substitution boundaries preserve declarations and accept warning-only omissions", () => {
+    test("substitution boundaries reject pending documents and recover after completion", () => {
       for (const [name, prefix, closer] of [
         ["command", ": $(cat <<E", ")"],
         ["quoted command", ': "$(cat <<E', ')"'],
@@ -927,9 +720,8 @@ for (const grammar of grammars) {
         const complete = `${prefix}${completion}${closer}\n`;
         const options = { arguments: ["-c"] };
         const fresh = parser.parse(incomplete, options);
-        assert.equal(fresh.status, 0, name);
-        assert.equal(parser.parse(`${incomplete}E\n`, options).status, 0, name);
-        assert.match(fresh.tree, /body: io_here/);
+        assert.equal(fresh.status, 1, name);
+        assert.equal(parser.parse(`${incomplete}E\n`, options).status, 1, name);
         assert.ok(!fresh.tree.includes("here_document_end"));
         const original = parser.parse(complete, options);
         assert.equal(original.status, 0, `${name}\n${original.output}`);
@@ -944,8 +736,7 @@ for (const grammar of grammars) {
           insert: "",
         };
         const broken = parser.parse(complete, { ...options, edits: [remove] });
-        assert.equal(broken.status, 0, `${name}\n${broken.output}`);
-        assert.equal(broken.tree, fresh.tree);
+        assert.equal(broken.status, 1, `${name}\n${broken.output}`);
         for (const [source, edits] of [
           [incomplete, [insert]],
           [complete, [remove, insert]],
@@ -960,7 +751,6 @@ for (const grammar of grammars) {
     });
 
     test("undecodable delimiter bytes are rejected and repaired without losing body bytes", () => {
-      const extquote = !grammar.name.includes("noextquote");
       for (const byte of [0xff, 0x80, 0xe3]) {
         const invalid = Buffer.from([byte]);
         for (const [open, close, endOpen, endClose] of [
@@ -972,12 +762,7 @@ for (const grammar of grammars) {
           ["$(echo ", ")", "$(echo ", ")"],
           ["`echo ", "`", "`echo ", "`"],
           ['"${x:-', '}"', "${x:-", "}"],
-          [
-            "\"${x:-$'",
-            "'}\"",
-            extquote ? "${x:-" : "${x:-$'",
-            extquote ? "}" : "'}",
-          ],
+          ["\"${x:-$'", "'}\"", "${x:-", "}"],
         ]) {
           const prefix = Buffer.from(`cat <<${open}`);
           const suffix = Buffer.concat([
@@ -1065,12 +850,11 @@ for (const grammar of grammars) {
       }
     });
 
-    test("a backslash before EOF or the closing backquote stays in the delimiter", () => {
+    test("a backslash before physical EOF stays in the delimiter", () => {
       for (const [source, delimiter] of [
         ["cat <<EOF\\", "EOF\\"],
         ["cat <<\\", "\\"],
         ["cat <<'EOF'\\", "'EOF'\\"],
-        ["x=`cat <<EOF\\\\`", "EOF\\\\"],
       ]) {
         assert.deepEqual(
           nodes(source)
@@ -1097,39 +881,15 @@ for (const grammar of grammars) {
           names: ["cat"],
         },
         {
-          source: ': <<OUT "$(cat <<IN)"\n$x\nOUT\n',
-          bodies: ["$x\nOUT\n"],
-          ends: [],
+          source: ': <<OUT "$(cat <<IN\ninner\nIN\n)"\n$x\n',
+          bodies: ["inner\n", "$x\n"],
+          ends: ["IN"],
           names: [":", "cat"],
         },
         {
-          source: ': <<OUT "`cat <<IN`"\n$x\nOUT\n',
-          bodies: ["$x\n"],
-          ends: ["OUT"],
-          names: [":", "cat"],
-        },
-        {
-          source: `: <<OUT "\${ cat <<IN; }"\n$x\nOUT\n`,
-          bodies: ["$x\nOUT\n"],
-          ends: [],
-          names: [":", "cat"],
-        },
-        {
-          source: `: <<OUT "\${| cat <<IN; }"\n$x\nOUT\n`,
-          bodies: ["$x\nOUT\n"],
-          ends: [],
-          names: [":", "cat"],
-        },
-        {
-          source: ": `cat <<IN\nbody\n`\necho AFTER\n",
-          bodies: ["body\n"],
-          ends: [],
-          names: [":", "cat", "echo"],
-        },
-        {
-          source: "cat <<OUT\n`cat <<IN\nbody\n`\nOUT\n",
-          bodies: ["`cat <<IN\nbody\n`\n", "body\n"],
-          ends: ["OUT"],
+          source: "cat <<OUT\n`cat <<IN\nbody\nIN\n`\n",
+          bodies: ["`cat <<IN\nbody\nIN\n`\n", "body\n"],
+          ends: ["IN"],
           names: ["cat", "cat"],
         },
       ]) {
@@ -1173,13 +933,7 @@ for (const grammar of grammars) {
         ["continuation", "cat <<EOF \\\n", "\nbody\nEOF\n"],
         ["following command", "cat <<EOF; echo after", "\nbody\nEOF\n"],
         ["multiple", "cat <<FIRST <<SECOND", "\nFIRST\nSECOND\n"],
-        [
-          "extquote delimiter",
-          `cat <<"\${x:-$'ab'}"`,
-          grammar.name.includes("noextquote")
-            ? `\nbody\n\${x:-$'ab'}\n`
-            : `\nbody\n\${x:-ab}\n`,
-        ],
+        ["extquote delimiter", `cat <<"\${x:-$'ab'}"`, `\nbody\n\${x:-ab}\n`],
       ]) {
         const source = header + ending;
         const options = { arguments: ["-c"] };
@@ -1280,8 +1034,7 @@ for (const grammar of grammars) {
 
     for (const entry of delimiterCases) {
       test(entry.name, () => {
-        const extquote = !grammar.name.includes("noextquote");
-        const end = extquote ? entry.enabled : entry.disabled;
+        const end = entry.end;
         const source = `: <<${entry.word}\n$body\n${end}\n`;
         if (entry.extglob && !extglob) {
           assert.equal(parser.parse(source, {}).status, 1);

@@ -108,11 +108,10 @@ const PATTERN_PRECEDENCE = {
   specialElement: 4,
 };
 
-const lexical = ($, begin, fragments = $._fragmented_lexeme) =>
-  seq(
-    begin,
-    choice(repeat1(sourceToken($, begin, "lexical", "piece")), fragments),
-  );
+const lexical = ($, begin) =>
+  seq(begin, repeat1(sourceToken($, begin, "lexical", "piece")));
+
+const lexeme = (begin) => ($) => lexical($, $[begin]);
 
 const wholeLexical = ($, begin, decorate = (source) => source) =>
   seq(optional(begin), decorate(sourceToken($, begin, "lexical", "whole")));
@@ -239,9 +238,7 @@ const PHYSICAL_RULES = {
 const physicalSource = ($, token, decorate = (character) => character) =>
   seq(
     token,
-    repeat(
-      choice(sourceToken($, token, "physical", "prefix"), inheritedDocument($)),
-    ),
+    repeat(sourceToken($, token, "physical", "prefix")),
     decorate(sourceToken($, token, "physical", "character")),
   );
 const physical = ($, token, spelling, fieldName) => {
@@ -339,40 +336,24 @@ const parameterPatternSpecialSources = ($) => [
 
 const tildeExpansion = ($, start, user, end) =>
   prec.right(seq(physical($, start, "~"), optional(field("user", user)), end));
-const startedWord = (part, tilde, start) =>
-  seq(start, choice(seq(tilde, repeat(part)), repeat1(part)));
+const startedWord = (prefix, part, tilde, start) =>
+  choice(seq(start, choice(tilde, part)), seq(prefix, part));
 
-const sourceWord = (
-  $,
-  part,
-  assignmentPart,
-  tilde,
-  start = $._word_start,
-  braces = false,
-) =>
-  seq(
-    choice(
-      startedWord(
-        part,
-        tilde,
-        braces ? seq(start, $._brace_word_start) : start,
-      ),
-      seq(
-        $._assignment_argument_start,
-        ...(braces ? [$._brace_word_start] : []),
-        alias($._assignment_argument_head, $.literal),
-        repeat(
-          choice(
-            alias($._assignment_tilde_expansion, $.tilde_expansion),
-            assignmentPart,
-          ),
+const sourceWord = ($, prefix, braces = false) =>
+  choice(
+    seq(prefix, ...(braces ? [$._brace_word_end] : [])),
+    seq(
+      $._assignment_argument_start,
+      ...(braces ? [$._brace_word_start] : []),
+      repeat1(
+        choice(
+          alias($._assignment_tilde_expansion, $.tilde_expansion),
+          $._assignment_word_part,
         ),
       ),
+      braces ? $._brace_word_end : $._assignment_argument_end,
     ),
-    ...(braces ? [$._brace_word_end] : []),
   );
-const braceWord = ($, part, assignmentPart, tilde, start) =>
-  sourceWord($, part, assignmentPart, tilde, start, true);
 const wordSeparator = ($, marker) => seq(marker, optional($._blank));
 
 const arithmeticBoundaryLayout = ($, boundary) =>
@@ -520,7 +501,7 @@ const arithmeticRules = (prefix = "arithmetic") => {
         $[fragment],
         alias($._arithmetic_source_operator_lexeme, $[`${prefix}_operator`]),
         $[`${group}_source`],
-        ...(candidate ? [$.array_subscript] : []),
+        ...(candidate ? [$.array_subscript, $.brace_expansion] : []),
         ...quotedLiterals($),
         $.escaped_character,
         ...quotedExpansionParts($),
@@ -629,7 +610,6 @@ const separatorOperatorLayout = ($, operator) =>
 
 const newlineListElements = ($) => [
   $.here_document_sequence,
-  inheritedDocument($),
   $._layout_newline,
   $._blank_line,
   $._comment_line,
@@ -643,9 +623,6 @@ const boundaryLineComment = ($, comment) =>
 const trailingComment = ($) =>
   seq($._trailing_comment_boundary, optional($._horizontal_layout), $.comment);
 
-const inheritedDocument = ($) =>
-  alias($._inherited_here_document_sequence, $.here_document_sequence);
-
 const quotedExpansionParts = ($) => [
   $.current_shell_substitution,
   $.reply_substitution,
@@ -658,32 +635,21 @@ const doubleQuotedPart = ($) =>
   choice(
     $.double_quote_text,
     $.double_quote_escape,
-    inheritedDocument($),
     ...quotedExpansionParts($),
   );
 const singleQuoted = ($, opener) =>
   seq(
     physical($, opener, "'"),
-    repeat(choice($.single_quote_content, inheritedDocument($))),
+    optional($.single_quote_content),
     physical($, $._sq_close, "'"),
   );
-const doubleQuoted = ($, opener) =>
-  seq(
-    physical($, opener, '"'),
-    repeat(doubleQuotedPart($)),
-    physical($, $._dq_close, '"'),
-  );
+const doubleQuoted = ($) =>
+  seq($._double_quoted_prefix, physical($, $._dq_close, '"'));
 const dollarSingleQuoted = ($, dollar) =>
   seq(
     physical($, dollar, "$"),
     physical($, $._dollar_sq_open, "'"),
-    repeat(
-      choice(
-        $.dollar_single_quote_text,
-        $.dollar_single_quote_escape,
-        inheritedDocument($),
-      ),
-    ),
+    repeat(choice($.dollar_single_quote_text, $.dollar_single_quote_escape)),
     physical($, $._dollar_sq_close, "'"),
   );
 const hereDocumentRedirect = ($, operator, end) =>
@@ -931,17 +897,10 @@ const conditionalThenBranch = ($, header, tail) =>
   );
 
 const conditionalOperand = ($, name, boundary = []) =>
-  choice(
-    seq(
-      field(name, $._conditional_bare_expression),
-      ...boundary,
-      optional($._horizontal_layout),
-    ),
-    seq(
-      field(name, $._conditional_complete_expression),
-      ...boundary,
-      optional($._linebreak_layout),
-    ),
+  seq(
+    field(name, $._conditional_expression),
+    ...boundary,
+    optional($._linebreak_layout),
   );
 
 const conditionalJunction = ($, precedence, boundary, operator, right) =>
@@ -976,8 +935,7 @@ const ifClause = ($) =>
     ),
   );
 
-const loopClause = ($, keyword) =>
-  seq(keyword, $._loop_condition, field("body", $.do_group));
+const loopClause = ($, header) => seq(header, field("body", $.do_group));
 
 const separatedForHeader = ($) =>
   seq(
@@ -1002,14 +960,13 @@ const commandRedirectContinuations = ($) => [
   seq($._redirect_separator, field("redirect", $.io_redirect)),
 ];
 
-const assignmentWord = ($, value) =>
+const assignmentWord = ($, value, declaration = false) =>
   prec.dynamic(
     ASSIGNMENT_WORD_PRECEDENCE,
     prec.right(
       seq(
-        field("name", alias($._assignment_name_lexeme, $.variable_name)),
-        optional(field("subscript", $.array_subscript)),
-        field("operator", $._assignment_operator),
+        ...(declaration ? [$._declaration_assignment_start] : []),
+        $._assignment_header,
         optional(field("value", value)),
       ),
     ),
@@ -1019,7 +976,7 @@ const declarationSuffix = (
   $,
   assignmentField,
   continuation,
-  assignment = $.assignment_word,
+  assignment = alias($._declaration_assignment_word, $.assignment_word),
 ) =>
   choice(
     seq(
@@ -1031,13 +988,7 @@ const declarationSuffix = (
           optional($._cmd_suffix),
         ),
         seq(
-          choice(
-            seq(
-              $._declaration_assignment_start,
-              field(assignmentField, assignment),
-            ),
-            field("argument", $.word),
-          ),
+          choice(field(assignmentField, assignment), field("argument", $.word)),
           optional(continuation),
         ),
       ),
@@ -1117,12 +1068,7 @@ const patternInitialBracketRange = ($, endpoint) =>
     alias($._pattern_initial_right_bracket, $.pattern_bracket_character_source),
   );
 
-export default function defineGrammar(name, { extglob, extquote }) {
-  if (typeof extglob !== "boolean" || typeof extquote !== "boolean") {
-    throw new Error(
-      "Bash grammars require fixed extglob and extquote conditions.",
-    );
-  }
+export default function defineGrammar(name) {
   return grammar({
     name,
 
@@ -1324,11 +1270,6 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._assignment_bracket_fallback_end,
         $._parameter_bracket_fallback_end,
         $._here_document_sequence_begin,
-        $._inherited_here_document_begin,
-        $._fragmented_lexeme_begin,
-        $._fragmented_lexeme_end,
-        $.lexeme_fragment,
-        $._layout_fragment,
         $._parameter_hyphen_begin,
         $._parameter_question_begin,
         $._arithmetic_blank_begin,
@@ -1378,7 +1319,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._arithmetic_power_operator_boundary,
         $._arithmetic_comma_operator_boundary,
         $._arithmetic_update_operator_boundary,
-        $._assignment_argument_head_begin,
+        $._assignment_argument_end,
         $._brace_endpoint_begin,
         $._brace_increment_begin,
         $._brace_separator_begin,
@@ -1396,6 +1337,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._here_string_begin,
         $._explicit_fname_begin,
         $._coproc_name_start,
+        $._coproc_bare_command_start,
         $._time_option_begin,
         $._io_variable_open,
         $._io_variable_close,
@@ -1480,6 +1422,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
         $._brace_word_start,
         $._brace_word_end,
         $._empty_time_keyword_begin,
+        $._raw_command_name_begin,
+        $._raw_argument_start,
+        $._raw_layout_start,
         ...sourceExternals($),
       ];
       const names = new Set();
@@ -1502,7 +1447,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
       [$._term],
       [$._compound_list],
       [$.list],
-      [$._conditional_bare_expression, $.conditional_binary_expression],
+      [$._conditional_expression, $.conditional_binary_expression],
       [$._sequential_newline_separator, $._linebreak],
       [$._complete_command],
     ],
@@ -1524,41 +1469,41 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _unmatchable: () => token(seq(/[\s\S]/, /[^\s\S]/)),
 
-      _arithmetic_unary_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_unary_operator_begin),
+      _arithmetic_unary_operator_lexeme: lexeme(
+        "_arithmetic_unary_operator_begin",
+      ),
 
-      _and_if_lexeme: ($) => lexical($, $._and_if_begin),
+      _and_if_lexeme: lexeme("_and_if_begin"),
 
-      _or_if_lexeme: ($) => lexical($, $._or_if_begin),
+      _or_if_lexeme: lexeme("_or_if_begin"),
 
       ...keywordRules(),
 
-      _dsemi_lexeme: ($) => lexical($, $._dsemi_begin),
+      _dsemi_lexeme: lexeme("_dsemi_begin"),
 
-      _semi_and_lexeme: ($) => lexical($, $._semi_and_begin),
+      _semi_and_lexeme: lexeme("_semi_and_begin"),
 
-      _dgreat_lexeme: ($) => lexical($, $._dgreat_begin),
+      _dgreat_lexeme: lexeme("_dgreat_begin"),
 
-      _dless_operator_lexeme: ($) => lexical($, $._dless_operator_begin),
+      _dless_operator_lexeme: lexeme("_dless_operator_begin"),
 
-      _dlessdash_operator_lexeme: ($) =>
-        lexical($, $._dlessdash_operator_begin),
+      _dlessdash_operator_lexeme: lexeme("_dlessdash_operator_begin"),
 
-      _quoted_here_document_end_text_lexeme: ($) =>
-        lexical($, $._quoted_here_document_end_text_begin),
+      _quoted_here_document_end_text_lexeme: lexeme(
+        "_quoted_here_document_end_text_begin",
+      ),
 
-      _quoted_here_document_text_lexeme: ($) =>
-        lexical($, $._quoted_here_document_text_begin),
+      _quoted_here_document_text_lexeme: lexeme(
+        "_quoted_here_document_text_begin",
+      ),
 
-      _assignment_name_lexeme: ($) => lexical($, $._assignment_name_begin),
+      _assignment_name_lexeme: lexeme("_assignment_name_begin"),
 
-      _special_parameter_hash_lexeme: ($) =>
-        lexical($, $._special_parameter_hash_begin),
-      _parameter_hyphen_lexeme: ($) => lexical($, $._parameter_hyphen_begin),
-      _parameter_question_lexeme: ($) =>
-        lexical($, $._parameter_question_begin),
+      _special_parameter_hash_lexeme: lexeme("_special_parameter_hash_begin"),
+      _parameter_hyphen_lexeme: lexeme("_parameter_hyphen_begin"),
+      _parameter_question_lexeme: lexeme("_parameter_question_begin"),
 
-      _special_parameter_lexeme: ($) => lexical($, $._special_parameter_begin),
+      _special_parameter_lexeme: lexeme("_special_parameter_begin"),
 
       _parameter_value_operator_lexeme: ($) =>
         choice(
@@ -1579,14 +1524,17 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      _arithmetic_question_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_question_operator_begin),
+      _arithmetic_question_operator_lexeme: lexeme(
+        "_arithmetic_question_operator_begin",
+      ),
 
-      _arithmetic_colon_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_colon_operator_begin),
+      _arithmetic_colon_operator_lexeme: lexeme(
+        "_arithmetic_colon_operator_begin",
+      ),
 
-      _arithmetic_assignment_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_assignment_operator_begin),
+      _arithmetic_assignment_operator_lexeme: lexeme(
+        "_arithmetic_assignment_operator_begin",
+      ),
 
       list: ($) =>
         seq(
@@ -1665,8 +1613,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           field("timing", alias($._empty_timing, $.timing)),
         ),
       timing: ($) => seq($._time_keyword_source, optional($._timing_options)),
-      _empty_time_keyword_lexeme: ($) =>
-        lexical($, $._empty_time_keyword_begin),
+      _empty_time_keyword_lexeme: lexeme("_empty_time_keyword_begin"),
       _empty_timing: ($) =>
         seq(
           wholeSource(
@@ -1695,10 +1642,10 @@ export default function defineGrammar(name, { extglob, extquote }) {
             ),
           ),
         ),
-      time_option: ($) => lexical($, $._time_option_begin),
-      _time_end: ($) => lexical($, $._time_end_begin),
+      time_option: lexeme("_time_option_begin"),
+      _time_end: lexeme("_time_end_begin"),
 
-      pipe_and: ($) => lexical($, $._pipe_and_begin),
+      pipe_and: lexeme("_pipe_and_begin"),
 
       _pipe_sequence: ($) =>
         seq(
@@ -1743,9 +1690,11 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _coproc_simple_command: ($) =>
         choice(
+          $._raw_command,
           $._prefixed_command,
           $._declaration_command,
           seq($._command_name, optional($._coproc_command_suffix)),
+          seq($._coproc_bare_command_start, $._command_name),
         ),
 
       _coproc_command_suffix: ($) =>
@@ -1842,8 +1791,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _and_if: ($) => alias($._and_if_lexeme, $.and_if),
       _or_if: ($) => alias($._or_if_lexeme, $.or_if),
-      bang: ($) => lexical($, $._bang_begin),
-      _empty_bang_lexeme: ($) => lexical($, $._empty_bang_begin),
+      bang: lexeme("_bang_begin"),
+      _empty_bang_lexeme: lexeme("_empty_bang_begin"),
       _empty_bang: ($) =>
         wholeSource($, $._empty_bang_begin, $._empty_bang_lexeme, $.bang),
       function_definition: ($) =>
@@ -1881,12 +1830,12 @@ export default function defineGrammar(name, { extglob, extquote }) {
           optional($._horizontal_layout),
           physical($, $._punct_right_parenthesis, ")"),
         ),
-      _explicit_function_name: ($) => lexical($, $._explicit_fname_begin),
+      _explicit_function_name: lexeme("_explicit_fname_begin"),
 
       function_body: ($) => $._redirectable_compound_command,
 
-      function_name: ($) => lexical($, $._fname_begin),
-      name: ($) => lexical($, $._name_begin),
+      function_name: lexeme("_fname_begin"),
+      name: lexeme("_name_begin"),
       _compound_command: ($) =>
         choice(
           $.brace_group,
@@ -1992,9 +1941,15 @@ export default function defineGrammar(name, { extglob, extquote }) {
       _loop_condition: ($) =>
         seq(compoundListField($, "condition"), optional($._closing_layout)),
 
-      while_clause: ($) => loopClause($, $._while_keyword_source),
+      _while_clause_header: ($) =>
+        seq($._while_keyword_source, $._loop_condition),
 
-      until_clause: ($) => loopClause($, $._until_keyword_source),
+      _until_clause_header: ($) =>
+        seq($._until_keyword_source, $._loop_condition),
+
+      while_clause: ($) => loopClause($, $._while_clause_header),
+
+      until_clause: ($) => loopClause($, $._until_clause_header),
 
       _case_selector_header: ($) =>
         seq(
@@ -2075,7 +2030,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
             ),
           ),
         ),
-      dsemi_and: ($) => lexical($, $._dsemi_and_begin),
+      dsemi_and: lexeme("_dsemi_and_begin"),
       _dsemi: ($) => alias($._dsemi_lexeme, $.dsemi),
       _semi_and: ($) => alias($._semi_and_lexeme, $.semi_and),
       simple_command: ($) => choice($._prefixed_command, $._named_command),
@@ -2116,17 +2071,44 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $,
           "assignment",
           $._scalar_declaration_suffix,
-          alias($._scalar_assignment_word, $.assignment_word),
+          alias($._scalar_declaration_assignment_word, $.assignment_word),
         ),
       _named_command: ($) =>
         choice(
           seq($._command_name, optional($._cmd_suffix)),
           $._declaration_command,
+          $._raw_command,
+        ),
+      _raw_command: ($) =>
+        seq(
+          field("name", alias($._raw_command_word, $.word)),
+          optional($._raw_command_suffix),
+        ),
+      _raw_command_word: ($) => alias($._raw_command_name, $.literal),
+      _raw_command_name: lexeme("_raw_command_name_begin"),
+      _raw_command_suffix: ($) =>
+        choice(
+          seq(
+            $._word_separator,
+            choice(
+              seq(
+                $._declaration_end,
+                field("argument", $.word),
+                optional($._cmd_suffix),
+              ),
+              seq(
+                $._raw_argument_start,
+                field("argument", $.word),
+                optional($._raw_command_suffix),
+              ),
+            ),
+          ),
+          ...redirectedSuffixes($),
         ),
       _command_name: ($) => field("name", alias($._command_word, $.word)),
       _declaration_command: ($) =>
         seq(field("name", $.declaration_name), optional($._declaration_suffix)),
-      declaration_name: ($) => lexical($, $._declaration_name_begin),
+      declaration_name: lexeme("_declaration_name_begin"),
       _declaration_suffix: ($) =>
         declarationSuffix($, "assignment", $._declaration_suffix),
 
@@ -2177,7 +2159,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           optional(field("subscript", $.array_subscript)),
           physical($, $._io_variable_close, "}"),
         ),
-      io_number: ($) => lexical($, $._io_number_begin),
+      io_number: lexeme("_io_number_begin"),
       _io_file_prefix: ($) =>
         seq(
           choice(
@@ -2213,14 +2195,14 @@ export default function defineGrammar(name, { extglob, extquote }) {
       _filename: ($) => $.word,
       _numeric_filename: ($) => alias($.io_number, $.literal),
 
-      andgreat: ($) => lexical($, $._andgreat_begin),
-      anddgreat: ($) => lexical($, $._anddgreat_begin),
-      here_string_operator: ($) => lexical($, $._here_string_begin),
-      lessand: ($) => lexical($, $._lessand_begin),
-      greatand: ($) => lexical($, $._greatand_begin),
+      andgreat: lexeme("_andgreat_begin"),
+      anddgreat: lexeme("_anddgreat_begin"),
+      here_string_operator: lexeme("_here_string_begin"),
+      lessand: lexeme("_lessand_begin"),
+      greatand: lexeme("_greatand_begin"),
       _dgreat: ($) => alias($._dgreat_lexeme, $.dgreat),
-      lessgreat: ($) => lexical($, $._lessgreat_begin),
-      clobber: ($) => lexical($, $._clobber_begin),
+      lessgreat: lexeme("_lessgreat_begin"),
+      clobber: lexeme("_clobber_begin"),
       io_here: ($) =>
         choice(
           hereDocumentRedirect(
@@ -2244,32 +2226,17 @@ export default function defineGrammar(name, { extglob, extquote }) {
           repeat1($._pattern_word_part),
           $._brace_word_end,
         ),
-      _fragmented_lexeme: ($) =>
-        seq(
-          $._fragmented_lexeme_begin,
-          repeat1(
-            choice(field("fragment", $.lexeme_fragment), inheritedDocument($)),
-          ),
-          $._fragmented_lexeme_end,
-        ),
-      _fragmented_layout: ($) =>
-        seq(
-          $._fragmented_lexeme_begin,
-          repeat1(choice($._layout_fragment, inheritedDocument($))),
-          $._fragmented_lexeme_end,
-        ),
-      _inherited_here_document_sequence: ($) =>
-        seq(
-          $._inherited_here_document_begin,
-          repeat1(field("document", $.here_document)),
-          $._here_document_sequence_end,
-        ),
-      here_document_sequence: ($) =>
+      _here_document_sequence_header: ($) =>
         seq(
           $._here_document_sequence_begin,
           optional($._closing_layout),
           optional(boundaryLineComment($, field("comment", $.comment))),
           field("line_end", $.here_document_line_end),
+        ),
+
+      here_document_sequence: ($) =>
+        seq(
+          $._here_document_sequence_header,
           repeat1(field("document", $.here_document)),
           $._here_document_sequence_end,
         ),
@@ -2313,11 +2280,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._here_document_end_commit,
         ),
 
-      _here_document_end_line_end: ($) =>
-        lexical($, $._here_document_end_line_end_begin),
+      _here_document_end_line_end: lexeme("_here_document_end_line_end_begin"),
 
-      here_document_end_text: ($) =>
-        lexical($, $._here_document_end_text_begin),
+      here_document_end_text: lexeme("_here_document_end_text_begin"),
 
       here_document_body: ($) =>
         repeat1(
@@ -2328,9 +2293,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
             $._newline,
           ),
         ),
-      here_document_text: ($) => lexical($, $._here_document_text_begin),
+      here_document_text: lexeme("_here_document_text_begin"),
 
-      here_document_escape: ($) => lexical($, $._here_document_escape_begin),
+      here_document_escape: lexeme("_here_document_escape_begin"),
       quoted_here_document_body: ($) =>
         repeat1(
           choice(
@@ -2341,12 +2306,23 @@ export default function defineGrammar(name, { extglob, extquote }) {
             $._newline,
           ),
         ),
+      _assignment_header: ($) =>
+        seq(
+          field("name", alias($._assignment_name_lexeme, $.variable_name)),
+          optional(field("subscript", $.array_subscript)),
+          field("operator", $._assignment_operator),
+        ),
+
       assignment_word: ($) =>
         assignmentWord($, choice($.assignment_value, $.array_assignment)),
       _scalar_assignment_word: ($) => assignmentWord($, $.assignment_value),
+      _declaration_assignment_word: ($) =>
+        assignmentWord($, choice($.assignment_value, $.array_assignment), true),
+      _scalar_declaration_assignment_word: ($) =>
+        assignmentWord($, $.assignment_value, true),
       _assignment_operator: ($) =>
         choice(physical($, $._punct_equals, "="), $.assignment_append),
-      assignment_append: ($) => lexical($, $._assignment_append_begin),
+      assignment_append: lexeme("_assignment_append_begin"),
       array_assignment: ($) =>
         seq(
           physical($, $._array_assignment_open, "("),
@@ -2377,13 +2353,13 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
           physical($, $._array_assignment_close, ")"),
         ),
-      _array_word: ($) =>
-        braceWord(
-          $,
+      _array_word: ($) => seq($._array_word_prefix, $._brace_word_end),
+      _array_word_prefix: ($) =>
+        startedWord(
+          $._array_word_prefix,
           $._pattern_word_part,
-          $._assignment_word_part,
           $.tilde_expansion,
-          $._array_word_start,
+          seq($._array_word_start, $._brace_word_start),
         ),
       array_element_assignment: ($) =>
         prec.right(
@@ -2395,7 +2371,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      variable_name: ($) => lexical($, $._variable_name_begin),
+      variable_name: lexeme("_variable_name_begin"),
       assignment_value: ($) => prec.right($._assignment_source_word),
 
       _assignment_source_word: ($) =>
@@ -2408,6 +2384,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _assignment_word_part: ($) =>
         choice(
+          $._raw_layout,
           $._assignment_bracket_fallback,
           $.pattern_bracket_source,
           alias($._assignment_literal, $.literal),
@@ -2421,44 +2398,38 @@ export default function defineGrammar(name, { extglob, extquote }) {
       word: ($) => $._source_word,
 
       _source_word: ($) =>
-        choice(
-          $._plain_word,
-          braceWord(
-            $,
-            $._pattern_word_part,
-            $._assignment_word_part,
-            $.tilde_expansion,
-            $._word_start,
-          ),
+        choice($._plain_word, sourceWord($, $._word_prefix, true)),
+      _word_prefix: ($) =>
+        startedWord(
+          $._word_prefix,
+          $._pattern_word_part,
+          $.tilde_expansion,
+          seq($._word_start, $._brace_word_start),
         ),
-      _coproc_name_word: ($) =>
-        seq(
-          startedWord(
-            $._pattern_word_part,
-            $.tilde_expansion,
-            seq($._coproc_name_start, $._brace_word_start),
-          ),
-          $._brace_word_end,
+      _coproc_name_word: ($) => seq($._coproc_name_prefix, $._brace_word_end),
+      _coproc_name_prefix: ($) =>
+        startedWord(
+          $._coproc_name_prefix,
+          $._pattern_word_part,
+          $.tilde_expansion,
+          seq($._coproc_name_start, $._brace_word_start),
         ),
       _command_word: ($) =>
-        choice(
-          $._plain_word,
-          braceWord(
-            $,
-            $._pattern_word_part,
-            $._assignment_word_part,
-            $.tilde_expansion,
-            $._command_word_start,
-          ),
+        choice($._plain_word, sourceWord($, $._command_word_prefix, true)),
+      _command_word_prefix: ($) =>
+        startedWord(
+          $._command_word_prefix,
+          $._pattern_word_part,
+          $.tilde_expansion,
+          seq($._command_word_start, $._brace_word_start),
         ),
-      _case_word: ($) =>
-        prec.right(
-          sourceWord(
-            $,
-            $._pattern_word_part,
-            $._assignment_word_part,
-            alias($._case_tilde_expansion, $.tilde_expansion),
-          ),
+      _case_word: ($) => prec.right(sourceWord($, $._case_word_prefix)),
+      _case_word_prefix: ($) =>
+        startedWord(
+          $._case_word_prefix,
+          $._pattern_word_part,
+          alias($._case_tilde_expansion, $.tilde_expansion),
+          $._word_start,
         ),
       _case_tilde_expansion: ($) =>
         tildeExpansion(
@@ -2468,8 +2439,6 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._word_tilde_end,
         ),
       _case_tilde_user: ($) => repeat1($._pattern_word_part),
-      _assignment_argument_head: ($) =>
-        lexical($, $._assignment_argument_head_begin),
 
       tilde_expansion: ($) =>
         tildeExpansion($, $._word_tilde_start, $.tilde_user, $._word_tilde_end),
@@ -2491,8 +2460,14 @@ export default function defineGrammar(name, { extglob, extquote }) {
       tilde_user: ($) => repeat1($._pattern_word_part),
       _assignment_tilde_user: ($) => repeat1($._assignment_word_part),
       _parameter_tilde_user: ($) => repeat1($._parameter_pattern_part),
+      _raw_layout: ($) =>
+        seq(
+          $._raw_layout_start,
+          choice($._blank, $._newline, seq($.comment, $._newline)),
+        ),
       _pattern_word_part: ($) =>
         choice(
+          $._raw_layout,
           $._word_bracket_fallback,
           $.pattern_bracket_source,
           $.literal,
@@ -2501,16 +2476,15 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._word_structured_part,
         ),
 
-      _word_structured_part: ($) =>
-        choice(...structuredSourceParts($), inheritedDocument($)),
+      _word_structured_part: ($) => choice(...structuredSourceParts($)),
 
       _plain_word: ($) =>
         wholeSource($, $._plain_word_begin, $._plain_word_lexeme, $.literal),
-      _plain_word_lexeme: ($) => lexical($, $._plain_word_begin),
-      literal: ($) => lexical($, $._literal_begin),
+      _plain_word_lexeme: lexeme("_plain_word_begin"),
+      literal: lexeme("_literal_begin"),
 
       ...physicalRules(),
-      _word_fallback_literal: ($) => lexical($, $._word_fallback_literal_begin),
+      _word_fallback_literal: lexeme("_word_fallback_literal_begin"),
       _word_bracket_fallback: ($) =>
         bracketFallback(
           $,
@@ -2519,8 +2493,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $.pattern_bracket_source,
           $._word_bracket_fallback_end,
         ),
-      _assignment_fallback_literal: ($) =>
-        lexical($, $._assignment_fallback_literal_begin),
+      _assignment_fallback_literal: lexeme(
+        "_assignment_fallback_literal_begin",
+      ),
       _assignment_bracket_fallback: ($) =>
         bracketFallback(
           $,
@@ -2529,8 +2504,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $.pattern_bracket_source,
           $._assignment_bracket_fallback_end,
         ),
-      _parameter_fallback_literal: ($) =>
-        lexical($, $._parameter_fallback_literal_begin),
+      _parameter_fallback_literal: lexeme("_parameter_fallback_literal_begin"),
       _parameter_bracket_fallback: ($) =>
         bracketFallback(
           $,
@@ -2543,8 +2517,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._parameter_bracket_fallback_end,
         ),
 
-      pattern_star_source: ($) => lexical($, $._pattern_star_begin),
-      pattern_question_source: ($) => lexical($, $._pattern_question_begin),
+      pattern_star_source: lexeme("_pattern_star_begin"),
+      pattern_question_source: lexeme("_pattern_question_begin"),
       pattern_bracket_source: ($) =>
         patternBracketExpression(
           $,
@@ -2638,20 +2612,22 @@ export default function defineGrammar(name, { extglob, extquote }) {
           parameterPatternCollatingSymbolSource($),
         ),
 
-      pattern_bracket_character_source: ($) =>
-        lexical($, $._pattern_bracket_character_begin),
-      _parameter_pattern_bracket_character: ($) =>
-        lexical($, $._parameter_pattern_bracket_character_begin),
+      pattern_bracket_character_source: lexeme(
+        "_pattern_bracket_character_begin",
+      ),
+      _parameter_pattern_bracket_character: lexeme(
+        "_parameter_pattern_bracket_character_begin",
+      ),
       _pattern_operator_bracket_character: ($) =>
         choice(
           alias($.pattern_star_source, $.pattern_bracket_character_source),
           alias($.pattern_question_source, $.pattern_bracket_character_source),
         ),
 
-      pattern_bracket_range_operator_source: ($) =>
-        lexical($, $._pattern_bracket_range_operator_begin),
-      pattern_bracket_hyphen_source: ($) =>
-        lexical($, $._pattern_bracket_hyphen_begin),
+      pattern_bracket_range_operator_source: lexeme(
+        "_pattern_bracket_range_operator_begin",
+      ),
+      pattern_bracket_hyphen_source: lexeme("_pattern_bracket_hyphen_begin"),
       pattern_character_class_source: ($) =>
         patternCharacterClassSource(
           $,
@@ -2667,10 +2643,12 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      pattern_character_class_content_source: ($) =>
-        lexical($, $._pattern_class_content_begin),
-      _parameter_pattern_character_class_content_source: ($) =>
-        lexical($, $._parameter_pattern_class_content_begin),
+      pattern_character_class_content_source: lexeme(
+        "_pattern_class_content_begin",
+      ),
+      _parameter_pattern_character_class_content_source: lexeme(
+        "_parameter_pattern_class_content_begin",
+      ),
 
       pattern_collating_symbol_source: ($) =>
         patternSpecialClassSource(
@@ -2689,10 +2667,12 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      pattern_collating_symbol_character_source: ($) =>
-        lexical($, $._pattern_collating_character_begin),
-      _parameter_pattern_collating_symbol_character_source: ($) =>
-        lexical($, $._parameter_pattern_collating_character_begin),
+      pattern_collating_symbol_character_source: lexeme(
+        "_pattern_collating_character_begin",
+      ),
+      _parameter_pattern_collating_symbol_character_source: lexeme(
+        "_parameter_pattern_collating_character_begin",
+      ),
 
       pattern_equivalence_class_source: ($) =>
         patternSpecialClassSource(
@@ -2711,24 +2691,31 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      pattern_equivalence_class_character_source: ($) =>
-        lexical($, $._pattern_equivalence_character_begin),
-      _parameter_pattern_equivalence_class_character_source: ($) =>
-        lexical($, $._parameter_pattern_equivalence_character_begin),
+      pattern_equivalence_class_character_source: lexeme(
+        "_pattern_equivalence_character_begin",
+      ),
+      _parameter_pattern_equivalence_class_character_source: lexeme(
+        "_parameter_pattern_equivalence_character_begin",
+      ),
 
-      escaped_character: ($) => lexical($, $._escaped_character_begin),
+      escaped_character: lexeme("_escaped_character_begin"),
       single_quoted: ($) => singleQuoted($, $._sq_open),
-      single_quote_content: ($) => lexical($, $._single_quote_content_begin),
-      double_quoted: ($) => doubleQuoted($, $._dq_open),
+      single_quote_content: lexeme("_single_quote_content_begin"),
+      _double_quoted_prefix: ($) =>
+        choice(
+          physical($, $._dq_open, '"'),
+          seq($._double_quoted_prefix, doubleQuotedPart($)),
+        ),
+      double_quoted: ($) => doubleQuoted($),
       locale_quoted: ($) =>
-        seq(physical($, $._dollar_dq_dollar, "$"), doubleQuoted($, $._dq_open)),
+        seq(physical($, $._dollar_dq_dollar, "$"), doubleQuoted($)),
       process_substitution: ($) =>
         processSubstitution($, $._process_in_start, $._process_out_start),
       current_shell_substitution: ($) =>
         braceSubstitution($, $._dollar_expansion_start, $._current_shell_open),
       reply_substitution: ($) =>
         braceSubstitution($, $._dollar_expansion_start, $._reply_open),
-      extglob_operator: ($) => lexical($, $._extglob_operator_begin),
+      extglob_operator: lexeme("_extglob_operator_begin"),
       extglob_pattern: ($) => extglobPattern($),
       extglob_group: ($) => seq(...extglobAlternatives($)),
       extglob_alternative: ($) =>
@@ -2743,10 +2730,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
             $._word_structured_part,
           ),
         ),
-      _extglob_text: ($) => lexical($, $._extglob_text_begin),
+      _extglob_text: lexeme("_extglob_text_begin"),
       array_subscript: ($) => arraySubscript($, $._subscript_open),
-      subscript_all_elements_candidate: ($) =>
-        lexical($, $._subscript_all_elements_begin),
+      subscript_all_elements_candidate: lexeme("_subscript_all_elements_begin"),
       subscript_source: ($) =>
         seq(
           choice(
@@ -2785,6 +2771,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
       _brace_parts: ($) =>
         repeat1(
           choice(
+            $._raw_layout,
             $._brace_literal_group,
             $._word_bracket_fallback,
             alias($._brace_text, $.literal),
@@ -2794,7 +2781,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
             $.pattern_bracket_source,
           ),
         ),
-      _brace_text: ($) => lexical($, $._brace_text_begin),
+      _brace_text: lexeme("_brace_text_begin"),
       _brace_literal_group: ($) =>
         seq(
           alias($._brace_literal_open_physical, $.literal),
@@ -2814,18 +2801,16 @@ export default function defineGrammar(name, { extglob, extquote }) {
             ),
           ),
         ),
-      brace_endpoint: ($) => lexical($, $._brace_endpoint_begin),
-      brace_increment: ($) => lexical($, $._brace_increment_begin),
-      _brace_separator: ($) => lexical($, $._brace_separator_begin),
+      brace_endpoint: lexeme("_brace_endpoint_begin"),
+      brace_increment: lexeme("_brace_increment_begin"),
+      _brace_separator: lexeme("_brace_separator_begin"),
 
-      double_quote_text: ($) => lexical($, $._double_quote_text_begin),
+      double_quote_text: lexeme("_double_quote_text_begin"),
 
-      double_quote_escape: ($) => lexical($, $._double_quote_escape_begin),
+      double_quote_escape: lexeme("_double_quote_escape_begin"),
       dollar_single_quoted: ($) => dollarSingleQuoted($, $._dollar_sq_dollar),
-      dollar_single_quote_text: ($) =>
-        lexical($, $._dollar_single_quote_text_begin),
-      dollar_single_quote_escape: ($) =>
-        lexical($, $._dollar_single_quote_escape_begin),
+      dollar_single_quote_text: lexeme("_dollar_single_quote_text_begin"),
+      dollar_single_quote_escape: lexeme("_dollar_single_quote_escape_begin"),
 
       _braced_parameter_start: ($) =>
         dollarExpansionStart($, $._parameter_open, "{"),
@@ -2892,10 +2877,10 @@ export default function defineGrammar(name, { extglob, extquote }) {
           alias($._parameter_hyphen_lexeme, $.special_parameter),
           alias($._parameter_question_lexeme, $.special_parameter),
         ),
-      _unbraced_positional_parameter: ($) =>
-        lexical($, $._unbraced_positional_parameter_begin),
-      positional_parameter: ($) =>
-        lexical($, $._braced_positional_parameter_begin),
+      _unbraced_positional_parameter: lexeme(
+        "_unbraced_positional_parameter_begin",
+      ),
+      positional_parameter: lexeme("_braced_positional_parameter_begin"),
       _unclassified_numeric_parameter_source: ($) =>
         seq(
           $._braced_parameter_number_start,
@@ -2904,26 +2889,23 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
         ),
 
-      parameter_substring_operator: ($) =>
-        lexical($, $._parameter_substring_begin),
-      parameter_replacement_operator: ($) =>
-        lexical($, $._parameter_replace_begin),
-      parameter_case_operator: ($) => lexical($, $._parameter_case_begin),
-      _arithmetic_comma_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_comma_operator_begin),
-      _arithmetic_update_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_update_operator_begin),
-      _parameter_transform_lexeme: ($) =>
-        lexical($, $._parameter_transform_begin),
-      _substring_separator_lexeme: ($) =>
-        lexical($, $._substring_separator_begin),
-      _replacement_separator_lexeme: ($) =>
-        lexical($, $._replacement_separator_begin),
-      parameter_indirection_operator: ($) =>
-        lexical($, $._parameter_indirection_begin),
-      parameter_names_operator: ($) => lexical($, $._parameter_names_begin),
-      _parameter_names_indirection_operator: ($) =>
-        lexical($, $._parameter_names_indirection_begin),
+      parameter_substring_operator: lexeme("_parameter_substring_begin"),
+      parameter_replacement_operator: lexeme("_parameter_replace_begin"),
+      parameter_case_operator: lexeme("_parameter_case_begin"),
+      _arithmetic_comma_operator_lexeme: lexeme(
+        "_arithmetic_comma_operator_begin",
+      ),
+      _arithmetic_update_operator_lexeme: lexeme(
+        "_arithmetic_update_operator_begin",
+      ),
+      _parameter_transform_lexeme: lexeme("_parameter_transform_begin"),
+      _substring_separator_lexeme: lexeme("_substring_separator_begin"),
+      _replacement_separator_lexeme: lexeme("_replacement_separator_begin"),
+      parameter_indirection_operator: lexeme("_parameter_indirection_begin"),
+      parameter_names_operator: lexeme("_parameter_names_begin"),
+      _parameter_names_indirection_operator: lexeme(
+        "_parameter_names_indirection_begin",
+      ),
       parameter_name_prefix: ($) =>
         repeat1(
           choice(
@@ -2933,7 +2915,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
             ...quotedExpansionParts($),
           ),
         ),
-      _parameter_names_text: ($) => lexical($, $._parameter_names_text_begin),
+      _parameter_names_text: lexeme("_parameter_names_text_begin"),
       parameter_substring: ($) =>
         seq(
           field("operator", $.parameter_substring_operator),
@@ -2981,10 +2963,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
           ),
           field("transformation", $.parameter_transformation_code),
         ),
-      parameter_transformation_code: ($) =>
-        lexical($, $._parameter_transform_code_begin),
-      parameter_length_operator: ($) =>
-        lexical($, $._parameter_length_operator_begin),
+      parameter_transformation_code: lexeme("_parameter_transform_code_begin"),
+      parameter_length_operator: lexeme("_parameter_length_operator_begin"),
       _parameter_value_operator: ($) =>
         wholeSource(
           $,
@@ -3029,11 +3009,13 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
       _parameter_pattern_literal: ($) => prec.right(parameterPlainChunk($)),
 
-      _double_quoted_parameter_text: ($) =>
-        lexical($, $._double_quoted_parameter_text_begin),
+      _double_quoted_parameter_text: lexeme(
+        "_double_quoted_parameter_text_begin",
+      ),
 
-      _double_quoted_parameter_escape: ($) =>
-        lexical($, $._double_quoted_parameter_escape_begin),
+      _double_quoted_parameter_escape: lexeme(
+        "_double_quoted_parameter_escape_begin",
+      ),
       _command_substitution_prefix: ($) =>
         seq($._command_substitution_start, $._command_substitution_body_begin),
       command_substitution: ($) =>
@@ -3068,22 +3050,13 @@ export default function defineGrammar(name, { extglob, extquote }) {
           conditionalOperand($, "condition"),
           alias($._conditional_close, $.conditional_close),
         ),
-      _conditional_open: ($) => lexical($, $._conditional_open_begin),
-      _conditional_close: ($) => lexical($, $._conditional_close_begin),
+      _conditional_open: lexeme("_conditional_open_begin"),
+      _conditional_close: lexeme("_conditional_close_begin"),
       _conditional_word: ($) =>
         seq($._conditional_word_start, $._case_word, $._conditional_word_end),
-      _conditional_bare_expression: ($) =>
+      _conditional_expression: ($) =>
         choice(
           alias($._conditional_word, $.word),
-          alias($._conditional_bare_negation, $.conditional_negation),
-          alias(
-            $._conditional_bare_and_expression,
-            $.conditional_and_expression,
-          ),
-          alias($._conditional_bare_or_expression, $.conditional_or_expression),
-        ),
-      _conditional_complete_expression: ($) =>
-        choice(
           $.conditional_unary_expression,
           $.conditional_binary_expression,
           $.conditional_negation,
@@ -3097,7 +3070,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._horizontal_layout,
           field("operand", alias($._conditional_word, $.word)),
         ),
-      conditional_unary_operator: ($) => lexical($, $._conditional_unary_begin),
+      conditional_unary_operator: lexeme("_conditional_unary_begin"),
       conditional_binary_expression: ($) =>
         seq(
           field("left", alias($._conditional_word, $.word)),
@@ -3120,10 +3093,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
             ),
           ),
         ),
-      conditional_binary_operator: ($) =>
-        lexical($, $._conditional_binary_begin),
-      conditional_match_operator: ($) => lexical($, $._conditional_match_begin),
-      conditional_regex_operator: ($) => lexical($, $._conditional_regex_begin),
+      conditional_binary_operator: lexeme("_conditional_binary_begin"),
+      conditional_match_operator: lexeme("_conditional_match_begin"),
+      conditional_regex_operator: lexeme("_conditional_regex_begin"),
       conditional_pattern: ($) =>
         seq(
           $._conditional_pattern_start,
@@ -3131,10 +3103,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
           $._conditional_word_end,
         ),
       conditional_negation: ($) =>
-        conditionalNegation($, $._conditional_complete_expression),
-      _conditional_bare_negation: ($) =>
-        conditionalNegation($, $._conditional_bare_expression),
-      conditional_not: ($) => lexical($, $._conditional_not_begin),
+        conditionalNegation($, $._conditional_expression),
+      conditional_not: lexeme("_conditional_not_begin"),
       conditional_group: ($) =>
         seq(
           physical($, $._punct_left_parenthesis, "("),
@@ -3148,15 +3118,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           2,
           $._conditional_and_boundary,
           $._and_if,
-          $._conditional_complete_expression,
-        ),
-      _conditional_bare_and_expression: ($) =>
-        conditionalJunction(
-          $,
-          2,
-          $._conditional_and_boundary,
-          $._and_if,
-          $._conditional_bare_expression,
+          $._conditional_expression,
         ),
       conditional_or_expression: ($) =>
         conditionalJunction(
@@ -3164,15 +3126,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           1,
           $._conditional_or_boundary,
           $._or_if,
-          $._conditional_complete_expression,
-        ),
-      _conditional_bare_or_expression: ($) =>
-        conditionalJunction(
-          $,
-          1,
-          $._conditional_or_boundary,
-          $._or_if,
-          $._conditional_bare_expression,
+          $._conditional_expression,
         ),
       regex_operand: ($) =>
         seq(
@@ -3271,8 +3225,8 @@ export default function defineGrammar(name, { extglob, extquote }) {
             optional(field("modifier", $.repetition_modifier)),
           ),
         ),
-      repetition_modifier: ($) => lexical($, $._ere_modifier_begin),
-      duplication_count: ($) => lexical($, $._ere_count_begin),
+      repetition_modifier: lexeme("_ere_modifier_begin"),
+      duplication_count: lexeme("_ere_count_begin"),
       _ere_count_source: ($) =>
         prec.right(
           1,
@@ -3307,7 +3261,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
             repeat(choice(...regexSourceParts($), $.ere_dupl_symbol)),
           ),
         ),
-      regex_source_fragment: ($) => lexical($, $._ere_fragment_begin),
+      regex_source_fragment: lexeme("_ere_fragment_begin"),
       bracket_expression: ($) =>
         seq(
           physical($, $._ere_bracket_open, "["),
@@ -3394,7 +3348,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           physical($, $._ere_colon, ":"),
           physical($, $._ere_compound_close, "]"),
         ),
-      class_name: ($) => lexical($, $._ere_class_name_begin),
+      class_name: lexeme("_ere_class_name_begin"),
       _ere_class_source: ($) =>
         prec.right(
           1,
@@ -3437,7 +3391,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
       ...ereCompoundRules("compound"),
       ...ereCompoundRules("equivalence"),
-      meta_character: ($) => lexical($, $._ere_meta_character_begin),
+      meta_character: lexeme("_ere_meta_character_begin"),
       _regex_bash_part: ($) =>
         choice(
           ...quotedLiterals($),
@@ -3484,7 +3438,7 @@ export default function defineGrammar(name, { extglob, extquote }) {
           optional($._horizontal_layout),
           field("body", choice($.do_group, $.brace_group)),
         ),
-      _for_arithmetic_open_lexeme: ($) => lexical($, $._for_arithmetic_open),
+      _for_arithmetic_open_lexeme: lexeme("_for_arithmetic_open"),
       _for_expression: ($) =>
         seq(
           choice(
@@ -3528,8 +3482,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
         ),
       _arithmetic_subscript: ($) =>
         arraySubscript($, $._arithmetic_subscript_open),
-      _arithmetic_source_operator_lexeme: ($) =>
-        lexical($, $._arithmetic_source_operator_begin),
+      _arithmetic_source_operator_lexeme: lexeme(
+        "_arithmetic_source_operator_begin",
+      ),
       ...Object.fromEntries(
         ARITHMETIC_BINARY_LEVELS.map((level) => [
           `_arithmetic_${level}_operator_lexeme`,
@@ -3540,16 +3495,11 @@ export default function defineGrammar(name, { extglob, extquote }) {
       ...arithmeticRules("arithmetic_candidate"),
 
       _arithmetic_layout: ($) =>
-        repeat1(
-          choice(
-            lexical($, $._arithmetic_blank_begin, $._fragmented_layout),
-            $._newline,
-            inheritedDocument($),
-          ),
-        ),
+        repeat1(choice(lexical($, $._arithmetic_blank_begin), $._newline)),
 
-      _pattern_initial_right_bracket: ($) =>
-        lexical($, $._pattern_initial_right_bracket_begin),
+      _pattern_initial_right_bracket: lexeme(
+        "_pattern_initial_right_bracket_begin",
+      ),
 
       _newline_list: ($) =>
         prec.right(repeat1(choice(...newlineListElements($)))),
@@ -3578,24 +3528,16 @@ export default function defineGrammar(name, { extglob, extquote }) {
       _redirect_separator: ($) => wordSeparator($, $._redirect_separator_begin),
 
       _free_trailing_layout: ($) =>
-        prec.right(
-          1,
-          choice(
-            seq($._closing_layout, optional(inheritedDocument($))),
-            trailingComment($),
-          ),
-        ),
+        prec.right(1, choice($._closing_layout, trailingComment($))),
 
       comment: ($) => $.comment_text,
-      comment_text: ($) => lexical($, $._comment_text_begin),
+      comment_text: lexeme("_comment_text_begin"),
 
       _comment_line_end: ($) => physical($, $._comment_line_end_begin, "\n"),
 
-      _pre_newline_blank: ($) =>
-        lexical($, $._pre_newline_blank_begin, $._fragmented_layout),
+      _pre_newline_blank: lexeme("_pre_newline_blank_begin"),
 
-      here_document_line_end: ($) =>
-        lexical($, $._here_document_line_end_begin),
+      here_document_line_end: lexeme("_here_document_line_end_begin"),
 
       _comment_line: ($) =>
         seq(boundaryLineComment($, $.comment), $._comment_line_end),
@@ -3604,9 +3546,9 @@ export default function defineGrammar(name, { extglob, extquote }) {
 
       _layout_newline: ($) => physical($, $._logical_newline_begin, "\n"),
 
-      _newline: ($) => lexical($, $._newline_begin, $._fragmented_layout),
+      _newline: lexeme("_newline_begin"),
 
-      _blank: ($) => lexical($, $._logical_blank_begin, $._fragmented_layout),
+      _blank: lexeme("_logical_blank_begin"),
     },
   });
 }

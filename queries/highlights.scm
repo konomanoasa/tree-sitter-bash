@@ -1,80 +1,20 @@
 [
-  (literal
-    !fragment)
-  (pattern_star_source
-    !fragment)
-  (pattern_question_source
-    !fragment)
-  (pattern_bracket_character_source
-    !fragment)
-  (pattern_bracket_hyphen_source
-    !fragment)
-  (pattern_bracket_range_operator_source
-    !fragment)
-  (pattern_bracket_negation_source
-    !fragment)
-  (pattern_character_class_content_source
-    !fragment)
-  (pattern_collating_symbol_character_source
-    !fragment)
-  (pattern_equivalence_class_character_source
-    !fragment)
-  (single_quote_content
-    !fragment)
-  (double_quote_text
-    !fragment)
-  (dollar_single_quote_text
-    !fragment)
-  (here_document_text
-    !fragment)
-  (quoted_here_document_text
-    !fragment)
+  (literal)
+  (pattern_star_source)
+  (pattern_question_source)
+  (pattern_bracket_character_source)
+  (pattern_bracket_hyphen_source)
+  (pattern_bracket_range_operator_source)
+  (pattern_bracket_negation_source)
+  (pattern_character_class_content_source)
+  (pattern_collating_symbol_character_source)
+  (pattern_equivalence_class_character_source)
+  (single_quote_content)
+  (double_quote_text)
+  (dollar_single_quote_text)
+  (here_document_text)
+  (quoted_here_document_text)
 ] @string
-
-(literal
-  fragment: (lexeme_fragment) @string)
-
-(pattern_star_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_question_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_bracket_character_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_bracket_hyphen_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_bracket_range_operator_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_bracket_negation_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_character_class_content_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_collating_symbol_character_source
-  fragment: (lexeme_fragment) @string)
-
-(pattern_equivalence_class_character_source
-  fragment: (lexeme_fragment) @string)
-
-(single_quote_content
-  fragment: (lexeme_fragment) @string)
-
-(double_quote_text
-  fragment: (lexeme_fragment) @string)
-
-(dollar_single_quote_text
-  fragment: (lexeme_fragment) @string)
-
-(here_document_text
-  fragment: (lexeme_fragment) @string)
-
-(quoted_here_document_text
-  fragment: (lexeme_fragment) @string)
 
 (pattern_bracket_source
   [
@@ -104,236 +44,68 @@
   ] @string)
 
 [
-  (escaped_character
-    !fragment)
-  (double_quote_escape
-    !fragment)
-  (dollar_single_quote_escape
-    !fragment)
-  (here_document_escape
-    !fragment)
+  (escaped_character)
+  (double_quote_escape)
+  (dollar_single_quote_escape)
+  (here_document_escape)
 ] @string.escape
 
-(escaped_character
-  fragment: (lexeme_fragment) @string.escape)
-
-(double_quote_escape
-  fragment: (lexeme_fragment) @string.escape)
-
-(dollar_single_quote_escape
-  fragment: (lexeme_fragment) @string.escape)
-
-(here_document_escape
-  fragment: (lexeme_fragment) @string.escape)
-
-(comment_text
-  !fragment) @comment
-
-(comment_text
-  fragment: (lexeme_fragment) @comment)
+(comment_text) @comment
 
 [
-  (arithmetic_number
-    !fragment)
-  (io_number
-    !fragment)
+  (arithmetic_number)
+  (io_number)
 ] @number
 
-(arithmetic_number
-  fragment: (lexeme_fragment) @number)
-
-(io_number
-  fragment: (lexeme_fragment) @number)
-
 [
-  (arithmetic_variable
-    !fragment)
-  (variable_name
-    !fragment)
-  (name
-    !fragment)
+  (arithmetic_variable)
+  (variable_name)
+  (name)
 ] @variable
 
-(arithmetic_variable
-  fragment: (lexeme_fragment) @variable)
+(positional_parameter) @variable.parameter
 
-(variable_name
-  fragment: (lexeme_fragment) @variable)
+(special_parameter) @variable.builtin
 
-(name
-  fragment: (lexeme_fragment) @variable)
-
-(positional_parameter
-  !fragment) @variable.parameter
-
-(positional_parameter
-  fragment: (lexeme_fragment) @variable.parameter)
-
-(special_parameter
-  !fragment) @variable.builtin
-
-(special_parameter
-  fragment: (lexeme_fragment) @variable.builtin)
-
-(function_name
-  !fragment) @function
-
-(function_name
-  fragment: (lexeme_fragment) @function)
+(function_name) @function
 
 [
-  (if_keyword
-    !fragment)
-  (then_keyword
-    !fragment)
-  (elif_keyword
-    !fragment)
-  (else_keyword
-    !fragment)
-  (fi_keyword
-    !fragment)
-  (for_keyword
-    !fragment)
-  (in_keyword
-    !fragment)
-  (do_keyword
-    !fragment)
-  (done_keyword
-    !fragment)
-  (case_keyword
-    !fragment)
-  (esac_keyword
-    !fragment)
-  (while_keyword
-    !fragment)
-  (until_keyword
-    !fragment)
+  (if_keyword)
+  (then_keyword)
+  (elif_keyword)
+  (else_keyword)
+  (fi_keyword)
+  (for_keyword)
+  (in_keyword)
+  (do_keyword)
+  (done_keyword)
+  (case_keyword)
+  (esac_keyword)
+  (while_keyword)
+  (until_keyword)
 ] @keyword
 
-(if_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(then_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(elif_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(else_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(fi_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(for_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(in_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(do_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(done_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(case_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(esac_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(while_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(until_keyword
-  fragment: (lexeme_fragment) @keyword)
-
 [
-  (arithmetic_operator
-    !fragment)
-  (parameter_length_operator
-    !fragment)
-  (parameter_value_operator
-    !fragment)
-  (parameter_pattern_operator
-    !fragment)
-  (and_if
-    !fragment)
-  (or_if
-    !fragment)
-  (bang
-    !fragment)
-  (dsemi
-    !fragment)
-  (semi_and
-    !fragment)
+  (arithmetic_operator)
+  (parameter_length_operator)
+  (parameter_value_operator)
+  (parameter_pattern_operator)
+  (and_if)
+  (or_if)
+  (bang)
+  (dsemi)
+  (semi_and)
 ] @operator
 
-(arithmetic_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_length_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_value_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_pattern_operator
-  fragment: (lexeme_fragment) @operator)
-
-(and_if
-  fragment: (lexeme_fragment) @operator)
-
-(or_if
-  fragment: (lexeme_fragment) @operator)
-
-(bang
-  fragment: (lexeme_fragment) @operator)
-
-(dsemi
-  fragment: (lexeme_fragment) @operator)
-
-(semi_and
-  fragment: (lexeme_fragment) @operator)
-
 [
-  (lessand
-    !fragment)
-  (greatand
-    !fragment)
-  (dgreat
-    !fragment)
-  (lessgreat
-    !fragment)
-  (clobber
-    !fragment)
-  (dless
-    !fragment)
-  (dlessdash
-    !fragment)
+  (lessand)
+  (greatand)
+  (dgreat)
+  (lessgreat)
+  (clobber)
+  (dless)
+  (dlessdash)
 ] @operator
-
-(lessand
-  fragment: (lexeme_fragment) @operator)
-
-(greatand
-  fragment: (lexeme_fragment) @operator)
-
-(dgreat
-  fragment: (lexeme_fragment) @operator)
-
-(lessgreat
-  fragment: (lexeme_fragment) @operator)
-
-(clobber
-  fragment: (lexeme_fragment) @operator)
-
-(dless
-  fragment: (lexeme_fragment) @operator)
-
-(dlessdash
-  fragment: (lexeme_fragment) @operator)
 
 (io_file
   operator: [
@@ -465,66 +237,36 @@
 (tilde_expansion
   user: (tilde_user
     [
-      (literal
-        !fragment)
-      (pattern_star_source
-        !fragment)
-      (pattern_question_source
-        !fragment)
+      (literal)
+      (pattern_star_source)
+      (pattern_question_source)
     ] @string.special.path))
-
-(tilde_expansion
-  user: (tilde_user
-    (literal
-      fragment: (lexeme_fragment) @string.special.path)))
-
-(tilde_expansion
-  user: (tilde_user
-    (pattern_star_source
-      fragment: (lexeme_fragment) @string.special.path)))
-
-(tilde_expansion
-  user: (tilde_user
-    (pattern_question_source
-      fragment: (lexeme_fragment) @string.special.path)))
 
 (tilde_user
   (pattern_bracket_source
     [
       "[" @string.special.path
       "]" @string.special.path
-      (pattern_bracket_negation_source
-        !fragment) @string.special.path
+      (pattern_bracket_negation_source) @string.special.path
     ]))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_negation_source
-      fragment: (lexeme_fragment) @string.special.path)))
 
 (tilde_user
   (pattern_bracket_source
     (pattern_bracket_members_source
       [
-        (pattern_bracket_character_source
-          !fragment) @string.special.path
-        (pattern_bracket_hyphen_source
-          !fragment) @string.special.path
+        (pattern_bracket_character_source) @string.special.path
+        (pattern_bracket_hyphen_source) @string.special.path
         (pattern_bracket_range_source
           [
-            (pattern_bracket_character_source
-              !fragment) @string.special.path
-            (pattern_bracket_hyphen_source
-              !fragment) @string.special.path
-            (pattern_bracket_range_operator_source
-              !fragment) @string.special.path
+            (pattern_bracket_character_source) @string.special.path
+            (pattern_bracket_hyphen_source) @string.special.path
+            (pattern_bracket_range_operator_source) @string.special.path
             (pattern_collating_symbol_source
               [
                 "["
                 "."
                 "]"
-                (pattern_collating_symbol_character_source
-                  !fragment)
+                (pattern_collating_symbol_character_source)
               ] @string.special.path)
           ])
         (pattern_character_class_source
@@ -532,150 +274,46 @@
             "["
             ":"
             "]"
-            (pattern_character_class_content_source
-              !fragment)
+            (pattern_character_class_content_source)
           ] @string.special.path)
         (pattern_collating_symbol_source
           [
             "["
             "."
             "]"
-            (pattern_collating_symbol_character_source
-              !fragment)
+            (pattern_collating_symbol_character_source)
           ] @string.special.path)
         (pattern_equivalence_class_source
           [
             "["
             "="
             "]"
-            (pattern_equivalence_class_character_source
-              !fragment)
+            (pattern_equivalence_class_character_source)
           ] @string.special.path)
       ])))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_character_source
-        fragment: (lexeme_fragment) @string.special.path))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_hyphen_source
-        fragment: (lexeme_fragment) @string.special.path))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @string.special.path)))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @string.special.path)))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_range_operator_source
-          fragment: (lexeme_fragment) @string.special.path)))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @string.special.path))))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_character_class_source
-        (pattern_character_class_content_source
-          fragment: (lexeme_fragment) @string.special.path)))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_collating_symbol_source
-        (pattern_collating_symbol_character_source
-          fragment: (lexeme_fragment) @string.special.path)))))
-
-(tilde_user
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_equivalence_class_source
-        (pattern_equivalence_class_character_source
-          fragment: (lexeme_fragment) @string.special.path)))))
 
 (here_end
   word: (word
     [
-      (literal
-        !fragment)
-      (pattern_star_source
-        !fragment)
-      (pattern_question_source
-        !fragment)
+      (literal)
+      (pattern_star_source)
+      (pattern_question_source)
     ] @label))
 
 (here_end
   word: (word
-    (literal
-      fragment: (lexeme_fragment) @label)))
-
-(here_end
-  word: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @label)))
-
-(here_end
-  word: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @label)))
-
-(here_end
-  word: (word
     (single_quoted
-      (single_quote_content
-        !fragment) @label)))
-
-(here_end
-  word: (word
-    (single_quoted
-      (single_quote_content
-        fragment: (lexeme_fragment) @label))))
+      (single_quote_content) @label)))
 
 (here_end
   word: (word
     (double_quoted
-      (double_quote_text
-        !fragment) @label)))
-
-(here_end
-  word: (word
-    (double_quoted
-      (double_quote_text
-        fragment: (lexeme_fragment) @label))))
+      (double_quote_text) @label)))
 
 (here_end
   word: (word
     (dollar_single_quoted
-      (dollar_single_quote_text
-        !fragment) @label)))
-
-(here_end
-  word: (word
-    (dollar_single_quoted
-      (dollar_single_quote_text
-        fragment: (lexeme_fragment) @label))))
+      (dollar_single_quote_text) @label)))
 
 (here_end
   word: (word
@@ -683,65 +321,46 @@
       [
         "[" @label
         "]" @label
-        (pattern_bracket_negation_source
-          !fragment) @label
+        (pattern_bracket_negation_source) @label
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @label
-            (pattern_bracket_hyphen_source
-              !fragment) @label
+            (pattern_bracket_character_source) @label
+            (pattern_bracket_hyphen_source) @label
             (single_quoted
-              (single_quote_content
-                !fragment) @label)
+              (single_quote_content) @label)
             (double_quoted
-              (double_quote_text
-                !fragment) @label)
+              (double_quote_text) @label)
             (locale_quoted
-              (double_quote_text
-                !fragment) @label)
+              (double_quote_text) @label)
             (dollar_single_quoted
-              (dollar_single_quote_text
-                !fragment) @label)
+              (dollar_single_quote_text) @label)
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @label
-                (pattern_bracket_hyphen_source
-                  !fragment) @label
+                (pattern_bracket_character_source) @label
+                (pattern_bracket_hyphen_source) @label
                 (single_quoted
-                  (single_quote_content
-                    !fragment) @label)
+                  (single_quote_content) @label)
                 (double_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (locale_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (dollar_single_quoted
-                  (dollar_single_quote_text
-                    !fragment) @label)
-                (pattern_bracket_range_operator_source
-                  !fragment) @label
+                  (dollar_single_quote_text) @label)
+                (pattern_bracket_range_operator_source) @label
                 (pattern_collating_symbol_source
                   [
                     "[" @label
                     "." @label
                     "]" @label
-                    (pattern_collating_symbol_character_source
-                      !fragment) @label
+                    (pattern_collating_symbol_character_source) @label
                     (single_quoted
-                      (single_quote_content
-                        !fragment) @label)
+                      (single_quote_content) @label)
                     (double_quoted
-                      (double_quote_text
-                        !fragment) @label)
+                      (double_quote_text) @label)
                     (locale_quoted
-                      (double_quote_text
-                        !fragment) @label)
+                      (double_quote_text) @label)
                     (dollar_single_quoted
-                      (dollar_single_quote_text
-                        !fragment) @label)
+                      (dollar_single_quote_text) @label)
                   ])
               ])
             (pattern_character_class_source
@@ -749,594 +368,131 @@
                 "[" @label
                 ":" @label
                 "]" @label
-                (pattern_character_class_content_source
-                  !fragment) @label
+                (pattern_character_class_content_source) @label
                 (single_quoted
-                  (single_quote_content
-                    !fragment) @label)
+                  (single_quote_content) @label)
                 (double_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (locale_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (dollar_single_quoted
-                  (dollar_single_quote_text
-                    !fragment) @label)
+                  (dollar_single_quote_text) @label)
               ])
             (pattern_collating_symbol_source
               [
                 "[" @label
                 "." @label
                 "]" @label
-                (pattern_collating_symbol_character_source
-                  !fragment) @label
+                (pattern_collating_symbol_character_source) @label
                 (single_quoted
-                  (single_quote_content
-                    !fragment) @label)
+                  (single_quote_content) @label)
                 (double_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (locale_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (dollar_single_quoted
-                  (dollar_single_quote_text
-                    !fragment) @label)
+                  (dollar_single_quote_text) @label)
               ])
             (pattern_equivalence_class_source
               [
                 "[" @label
                 "=" @label
                 "]" @label
-                (pattern_equivalence_class_character_source
-                  !fragment) @label
+                (pattern_equivalence_class_character_source) @label
                 (single_quoted
-                  (single_quote_content
-                    !fragment) @label)
+                  (single_quote_content) @label)
                 (double_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (locale_quoted
-                  (double_quote_text
-                    !fragment) @label)
+                  (double_quote_text) @label)
                 (dollar_single_quoted
-                  (dollar_single_quote_text
-                    !fragment) @label)
+                  (dollar_single_quote_text) @label)
               ])
           ])
       ])))
 
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @label))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @label)))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @label)))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (single_quoted
-          (single_quote_content
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (double_quoted
-          (double_quote_text
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (locale_quoted
-          (double_quote_text
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (dollar_single_quoted
-          (dollar_single_quote_text
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (single_quoted
-            (single_quote_content
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (double_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (locale_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (dollar_single_quoted
-            (dollar_single_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (single_quoted
-              (single_quote_content
-                fragment: (lexeme_fragment) @label))))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (double_quoted
-              (double_quote_text
-                fragment: (lexeme_fragment) @label))))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (locale_quoted
-              (double_quote_text
-                fragment: (lexeme_fragment) @label))))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (dollar_single_quoted
-              (dollar_single_quote_text
-                fragment: (lexeme_fragment) @label))))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (single_quoted
-            (single_quote_content
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (double_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (locale_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (dollar_single_quoted
-            (dollar_single_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (single_quoted
-            (single_quote_content
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (double_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (locale_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (dollar_single_quoted
-            (dollar_single_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @label))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (single_quoted
-            (single_quote_content
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (double_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (locale_quoted
-            (double_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_end
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (dollar_single_quoted
-            (dollar_single_quote_text
-              fragment: (lexeme_fragment) @label)))))))
-
-(here_document_end_text
-  !fragment) @label
-
-(here_document_end_text
-  fragment: (lexeme_fragment) @label)
+(here_document_end_text) @label
 
 (simple_command
   name: (word
-    (literal
-      !fragment) @function.call))
-
-(simple_command
-  name: (word
-    (literal
-      fragment: (lexeme_fragment) @function.call)))
+    (literal) @function.call))
 
 (parameter_pattern
   [
-    (literal
-      !fragment) @string.regexp
-    (pattern_star_source
-      !fragment) @character.special
-    (pattern_question_source
-      !fragment) @character.special
+    (literal) @string.regexp
+    (pattern_star_source) @character.special
+    (pattern_question_source) @character.special
   ])
-
-(parameter_pattern
-  (literal
-    fragment: (lexeme_fragment) @string.regexp))
-
-(parameter_pattern
-  (pattern_star_source
-    fragment: (lexeme_fragment) @character.special))
-
-(parameter_pattern
-  (pattern_question_source
-    fragment: (lexeme_fragment) @character.special))
 
 (conditional_pattern
   [
-    (literal
-      !fragment) @string.regexp
-    (pattern_star_source
-      !fragment) @character.special
-    (pattern_question_source
-      !fragment) @character.special
+    (literal) @string.regexp
+    (pattern_star_source) @character.special
+    (pattern_question_source) @character.special
   ])
-
-(conditional_pattern
-  (literal
-    fragment: (lexeme_fragment) @string.regexp))
-
-(conditional_pattern
-  (pattern_star_source
-    fragment: (lexeme_fragment) @character.special))
-
-(conditional_pattern
-  (pattern_question_source
-    fragment: (lexeme_fragment) @character.special))
 
 (extglob_alternative
   [
-    (literal
-      !fragment) @string.regexp
-    (pattern_star_source
-      !fragment) @character.special
-    (pattern_question_source
-      !fragment) @character.special
+    (literal) @string.regexp
+    (pattern_star_source) @character.special
+    (pattern_question_source) @character.special
   ])
-
-(extglob_alternative
-  (literal
-    fragment: (lexeme_fragment) @string.regexp))
-
-(extglob_alternative
-  (pattern_star_source
-    fragment: (lexeme_fragment) @character.special))
-
-(extglob_alternative
-  (pattern_question_source
-    fragment: (lexeme_fragment) @character.special))
 
 (pattern_list
   (word
     [
-      (literal
-        !fragment) @string.regexp
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (literal) @string.regexp
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
-
-(pattern_list
-  (word
-    (literal
-      fragment: (lexeme_fragment) @string.regexp)))
-
-(pattern_list
-  (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(pattern_list
-  (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
 
 (simple_command
   name: (word
     [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
-
-(simple_command
-  name: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(simple_command
-  name: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
 
 (simple_command
   argument: (word
     [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
-    ]))
-
-(simple_command
-  argument: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(simple_command
-  argument: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(for_clause
-  word: (word
-    [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
 
 (for_clause
   word: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(for_clause
-  word: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(select_clause
-  word: (word
     [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
 
 (select_clause
   word: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(select_clause
-  word: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(array_assignment
-  element: (word
     [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
 
 (array_assignment
   element: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(array_assignment
-  element: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
+    [
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
+    ]))
 
 (brace_alternative
   [
-    (pattern_star_source
-      !fragment) @character.special
-    (pattern_question_source
-      !fragment) @character.special
+    (pattern_star_source) @character.special
+    (pattern_question_source) @character.special
   ])
-
-(brace_alternative
-  (pattern_star_source
-    fragment: (lexeme_fragment) @character.special))
-
-(brace_alternative
-  (pattern_question_source
-    fragment: (lexeme_fragment) @character.special))
 
 (io_file
   filename: (word
     [
-      (pattern_star_source
-        !fragment) @character.special
-      (pattern_question_source
-        !fragment) @character.special
+      (pattern_star_source) @character.special
+      (pattern_question_source) @character.special
     ]))
-
-(io_file
-  filename: (word
-    (pattern_star_source
-      fragment: (lexeme_fragment) @character.special)))
-
-(io_file
-  filename: (word
-    (pattern_question_source
-      fragment: (lexeme_fragment) @character.special)))
 
 (pattern_list
   (word
@@ -1344,29 +500,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -1374,133 +523,46 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(pattern_list
-  (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (parameter_pattern
   (pattern_bracket_source
     [
       "[" @punctuation.bracket
       "]" @punctuation.bracket
-      (pattern_bracket_negation_source
-        !fragment) @operator
+      (pattern_bracket_negation_source) @operator
       (pattern_bracket_members_source
         [
-          (pattern_bracket_character_source
-            !fragment) @character
-          (pattern_bracket_hyphen_source
-            !fragment) @character
+          (pattern_bracket_character_source) @character
+          (pattern_bracket_hyphen_source) @character
           (pattern_bracket_range_source
             [
-              (pattern_bracket_character_source
-                !fragment) @character
-              (pattern_bracket_hyphen_source
-                !fragment) @character
-              (pattern_bracket_range_operator_source
-                !fragment) @operator
+              (pattern_bracket_character_source) @character
+              (pattern_bracket_hyphen_source) @character
+              (pattern_bracket_range_operator_source) @operator
               (pattern_collating_symbol_source
                 [
                   "[" @punctuation.bracket
                   "." @punctuation.delimiter
                   "]" @punctuation.bracket
-                  (pattern_collating_symbol_character_source
-                    !fragment) @character.special
+                  (pattern_collating_symbol_character_source) @character.special
                 ])
             ])
           (pattern_character_class_source
@@ -1508,123 +570,46 @@
               "[" @punctuation.bracket
               ":" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_character_class_content_source
-                !fragment) @character.special
+              (pattern_character_class_content_source) @character.special
             ])
           (pattern_collating_symbol_source
             [
               "[" @punctuation.bracket
               "." @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_collating_symbol_character_source
-                !fragment) @character.special
+              (pattern_collating_symbol_character_source) @character.special
             ])
           (pattern_equivalence_class_source
             [
               "[" @punctuation.bracket
               "=" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_equivalence_class_character_source
-                !fragment) @character.special
+              (pattern_equivalence_class_character_source) @character.special
             ])
         ])
     ]))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_negation_source
-      fragment: (lexeme_fragment) @operator)))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_character_source
-        fragment: (lexeme_fragment) @character))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_hyphen_source
-        fragment: (lexeme_fragment) @character))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_range_operator_source
-          fragment: (lexeme_fragment) @operator)))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_character_class_source
-        (pattern_character_class_content_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_collating_symbol_source
-        (pattern_collating_symbol_character_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(parameter_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_equivalence_class_source
-        (pattern_equivalence_class_character_source
-          fragment: (lexeme_fragment) @character.special)))))
 
 (conditional_pattern
   (pattern_bracket_source
     [
       "[" @punctuation.bracket
       "]" @punctuation.bracket
-      (pattern_bracket_negation_source
-        !fragment) @operator
+      (pattern_bracket_negation_source) @operator
       (pattern_bracket_members_source
         [
-          (pattern_bracket_character_source
-            !fragment) @character
-          (pattern_bracket_hyphen_source
-            !fragment) @character
+          (pattern_bracket_character_source) @character
+          (pattern_bracket_hyphen_source) @character
           (pattern_bracket_range_source
             [
-              (pattern_bracket_character_source
-                !fragment) @character
-              (pattern_bracket_hyphen_source
-                !fragment) @character
-              (pattern_bracket_range_operator_source
-                !fragment) @operator
+              (pattern_bracket_character_source) @character
+              (pattern_bracket_hyphen_source) @character
+              (pattern_bracket_range_operator_source) @operator
               (pattern_collating_symbol_source
                 [
                   "[" @punctuation.bracket
                   "." @punctuation.delimiter
                   "]" @punctuation.bracket
-                  (pattern_collating_symbol_character_source
-                    !fragment) @character.special
+                  (pattern_collating_symbol_character_source) @character.special
                 ])
             ])
           (pattern_character_class_source
@@ -1632,123 +617,46 @@
               "[" @punctuation.bracket
               ":" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_character_class_content_source
-                !fragment) @character.special
+              (pattern_character_class_content_source) @character.special
             ])
           (pattern_collating_symbol_source
             [
               "[" @punctuation.bracket
               "." @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_collating_symbol_character_source
-                !fragment) @character.special
+              (pattern_collating_symbol_character_source) @character.special
             ])
           (pattern_equivalence_class_source
             [
               "[" @punctuation.bracket
               "=" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_equivalence_class_character_source
-                !fragment) @character.special
+              (pattern_equivalence_class_character_source) @character.special
             ])
         ])
     ]))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_negation_source
-      fragment: (lexeme_fragment) @operator)))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_character_source
-        fragment: (lexeme_fragment) @character))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_hyphen_source
-        fragment: (lexeme_fragment) @character))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_range_operator_source
-          fragment: (lexeme_fragment) @operator)))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_character_class_source
-        (pattern_character_class_content_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_collating_symbol_source
-        (pattern_collating_symbol_character_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(conditional_pattern
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_equivalence_class_source
-        (pattern_equivalence_class_character_source
-          fragment: (lexeme_fragment) @character.special)))))
 
 (extglob_alternative
   (pattern_bracket_source
     [
       "[" @punctuation.bracket
       "]" @punctuation.bracket
-      (pattern_bracket_negation_source
-        !fragment) @operator
+      (pattern_bracket_negation_source) @operator
       (pattern_bracket_members_source
         [
-          (pattern_bracket_character_source
-            !fragment) @character
-          (pattern_bracket_hyphen_source
-            !fragment) @character
+          (pattern_bracket_character_source) @character
+          (pattern_bracket_hyphen_source) @character
           (pattern_bracket_range_source
             [
-              (pattern_bracket_character_source
-                !fragment) @character
-              (pattern_bracket_hyphen_source
-                !fragment) @character
-              (pattern_bracket_range_operator_source
-                !fragment) @operator
+              (pattern_bracket_character_source) @character
+              (pattern_bracket_hyphen_source) @character
+              (pattern_bracket_range_operator_source) @operator
               (pattern_collating_symbol_source
                 [
                   "[" @punctuation.bracket
                   "." @punctuation.delimiter
                   "]" @punctuation.bracket
-                  (pattern_collating_symbol_character_source
-                    !fragment) @character.special
+                  (pattern_collating_symbol_character_source) @character.special
                 ])
             ])
           (pattern_character_class_source
@@ -1756,124 +664,47 @@
               "[" @punctuation.bracket
               ":" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_character_class_content_source
-                !fragment) @character.special
+              (pattern_character_class_content_source) @character.special
             ])
           (pattern_collating_symbol_source
             [
               "[" @punctuation.bracket
               "." @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_collating_symbol_character_source
-                !fragment) @character.special
+              (pattern_collating_symbol_character_source) @character.special
             ])
           (pattern_equivalence_class_source
             [
               "[" @punctuation.bracket
               "=" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_equivalence_class_character_source
-                !fragment) @character.special
+              (pattern_equivalence_class_character_source) @character.special
             ])
         ])
     ]))
 
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_negation_source
-      fragment: (lexeme_fragment) @operator)))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_character_source
-        fragment: (lexeme_fragment) @character))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_hyphen_source
-        fragment: (lexeme_fragment) @character))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_range_operator_source
-          fragment: (lexeme_fragment) @operator)))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_character_class_source
-        (pattern_character_class_content_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_collating_symbol_source
-        (pattern_collating_symbol_character_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(extglob_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_equivalence_class_source
-        (pattern_equivalence_class_character_source
-          fragment: (lexeme_fragment) @character.special)))))
-
 (simple_command
   name: (word
     (pattern_bracket_source
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -1881,104 +712,24 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(simple_command
-  name: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (simple_command
   argument: (word
@@ -1986,29 +737,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -2016,104 +760,24 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(simple_command
-  argument: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (for_clause
   word: (word
@@ -2121,29 +785,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -2151,104 +808,24 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (select_clause
   word: (word
@@ -2256,29 +833,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -2286,104 +856,24 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(select_clause
-  word: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (array_assignment
   element: (word
@@ -2391,29 +881,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -2421,133 +904,46 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(array_assignment
-  element: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 (brace_alternative
   (pattern_bracket_source
     [
       "[" @punctuation.bracket
       "]" @punctuation.bracket
-      (pattern_bracket_negation_source
-        !fragment) @operator
+      (pattern_bracket_negation_source) @operator
       (pattern_bracket_members_source
         [
-          (pattern_bracket_character_source
-            !fragment) @character
-          (pattern_bracket_hyphen_source
-            !fragment) @character
+          (pattern_bracket_character_source) @character
+          (pattern_bracket_hyphen_source) @character
           (pattern_bracket_range_source
             [
-              (pattern_bracket_character_source
-                !fragment) @character
-              (pattern_bracket_hyphen_source
-                !fragment) @character
-              (pattern_bracket_range_operator_source
-                !fragment) @operator
+              (pattern_bracket_character_source) @character
+              (pattern_bracket_hyphen_source) @character
+              (pattern_bracket_range_operator_source) @operator
               (pattern_collating_symbol_source
                 [
                   "[" @punctuation.bracket
                   "." @punctuation.delimiter
                   "]" @punctuation.bracket
-                  (pattern_collating_symbol_character_source
-                    !fragment) @character.special
+                  (pattern_collating_symbol_character_source) @character.special
                 ])
             ])
           (pattern_character_class_source
@@ -2555,94 +951,24 @@
               "[" @punctuation.bracket
               ":" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_character_class_content_source
-                !fragment) @character.special
+              (pattern_character_class_content_source) @character.special
             ])
           (pattern_collating_symbol_source
             [
               "[" @punctuation.bracket
               "." @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_collating_symbol_character_source
-                !fragment) @character.special
+              (pattern_collating_symbol_character_source) @character.special
             ])
           (pattern_equivalence_class_source
             [
               "[" @punctuation.bracket
               "=" @punctuation.delimiter
               "]" @punctuation.bracket
-              (pattern_equivalence_class_character_source
-                !fragment) @character.special
+              (pattern_equivalence_class_character_source) @character.special
             ])
         ])
     ]))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_negation_source
-      fragment: (lexeme_fragment) @operator)))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_character_source
-        fragment: (lexeme_fragment) @character))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_hyphen_source
-        fragment: (lexeme_fragment) @character))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_bracket_range_operator_source
-          fragment: (lexeme_fragment) @operator)))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_bracket_range_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_character_class_source
-        (pattern_character_class_content_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_collating_symbol_source
-        (pattern_collating_symbol_character_source
-          fragment: (lexeme_fragment) @character.special)))))
-
-(brace_alternative
-  (pattern_bracket_source
-    (pattern_bracket_members_source
-      (pattern_equivalence_class_source
-        (pattern_equivalence_class_character_source
-          fragment: (lexeme_fragment) @character.special)))))
 
 (io_file
   filename: (word
@@ -2650,29 +976,22 @@
       [
         "[" @punctuation.bracket
         "]" @punctuation.bracket
-        (pattern_bracket_negation_source
-          !fragment) @operator
+        (pattern_bracket_negation_source) @operator
         (pattern_bracket_members_source
           [
-            (pattern_bracket_character_source
-              !fragment) @character
-            (pattern_bracket_hyphen_source
-              !fragment) @character
+            (pattern_bracket_character_source) @character
+            (pattern_bracket_hyphen_source) @character
             (pattern_bracket_range_source
               [
-                (pattern_bracket_character_source
-                  !fragment) @character
-                (pattern_bracket_hyphen_source
-                  !fragment) @character
-                (pattern_bracket_range_operator_source
-                  !fragment) @operator
+                (pattern_bracket_character_source) @character
+                (pattern_bracket_hyphen_source) @character
+                (pattern_bracket_range_operator_source) @operator
                 (pattern_collating_symbol_source
                   [
                     "[" @punctuation.bracket
                     "." @punctuation.delimiter
                     "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source
-                      !fragment) @character.special
+                    (pattern_collating_symbol_character_source) @character.special
                   ])
               ])
             (pattern_character_class_source
@@ -2680,251 +999,64 @@
                 "[" @punctuation.bracket
                 ":" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_character_class_content_source
-                  !fragment) @character.special
+                (pattern_character_class_content_source) @character.special
               ])
             (pattern_collating_symbol_source
               [
                 "[" @punctuation.bracket
                 "." @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source
-                  !fragment) @character.special
+                (pattern_collating_symbol_character_source) @character.special
               ])
             (pattern_equivalence_class_source
               [
                 "[" @punctuation.bracket
                 "=" @punctuation.delimiter
                 "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source
-                  !fragment) @character.special
+                (pattern_equivalence_class_character_source) @character.special
               ])
           ])
       ])))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_negation_source
-        fragment: (lexeme_fragment) @operator))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_character_source
-          fragment: (lexeme_fragment) @character)))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_hyphen_source
-          fragment: (lexeme_fragment) @character)))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_character_source
-            fragment: (lexeme_fragment) @character))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_hyphen_source
-            fragment: (lexeme_fragment) @character))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_bracket_range_operator_source
-            fragment: (lexeme_fragment) @operator))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_bracket_range_source
-          (pattern_collating_symbol_source
-            (pattern_collating_symbol_character_source
-              fragment: (lexeme_fragment) @character.special)))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_character_class_source
-          (pattern_character_class_content_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_collating_symbol_source
-          (pattern_collating_symbol_character_source
-            fragment: (lexeme_fragment) @character.special))))))
-
-(io_file
-  filename: (word
-    (pattern_bracket_source
-      (pattern_bracket_members_source
-        (pattern_equivalence_class_source
-          (pattern_equivalence_class_character_source
-            fragment: (lexeme_fragment) @character.special))))))
 
 [
-  (function_keyword
-    !fragment)
-  (select_keyword
-    !fragment)
-  (coproc_keyword
-    !fragment)
-  (time_keyword
-    !fragment)
+  (function_keyword)
+  (select_keyword)
+  (coproc_keyword)
+  (time_keyword)
 ] @keyword
 
-(function_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(select_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(coproc_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(time_keyword
-  fragment: (lexeme_fragment) @keyword)
-
-(declaration_name
-  !fragment) @function.call
-
-(declaration_name
-  fragment: (lexeme_fragment) @function.call)
+(declaration_name) @function.call
 
 (coproc
   name: (word
-    (literal
-      !fragment) @label))
+    (literal) @label))
 
-(coproc
-  name: (word
-    (literal
-      fragment: (lexeme_fragment) @label)))
-
-(time_option
-  !fragment) @keyword.modifier
-
-(time_option
-  fragment: (lexeme_fragment) @keyword.modifier)
+(time_option) @keyword.modifier
 
 [
-  (assignment_append
-    !fragment)
-  (conditional_unary_operator
-    !fragment)
-  (conditional_binary_operator
-    !fragment)
-  (conditional_match_operator
-    !fragment)
-  (conditional_regex_operator
-    !fragment)
-  (conditional_not
-    !fragment)
-  (pipe_and
-    !fragment)
-  (dsemi_and
-    !fragment)
-  (andgreat
-    !fragment)
-  (anddgreat
-    !fragment)
-  (here_string_operator
-    !fragment)
-  (parameter_indirection_operator
-    !fragment)
-  (parameter_names_operator
-    !fragment)
-  (parameter_substring_operator
-    !fragment)
-  (parameter_replacement_operator
-    !fragment)
-  (parameter_case_operator
-    !fragment)
-  (extglob_operator
-    !fragment)
+  (assignment_append)
+  (conditional_unary_operator)
+  (conditional_binary_operator)
+  (conditional_match_operator)
+  (conditional_regex_operator)
+  (conditional_not)
+  (pipe_and)
+  (dsemi_and)
+  (andgreat)
+  (anddgreat)
+  (here_string_operator)
+  (parameter_indirection_operator)
+  (parameter_names_operator)
+  (parameter_substring_operator)
+  (parameter_replacement_operator)
+  (parameter_case_operator)
+  (extglob_operator)
 ] @operator
 
-(assignment_append
-  fragment: (lexeme_fragment) @operator)
-
-(conditional_unary_operator
-  fragment: (lexeme_fragment) @operator)
-
-(conditional_binary_operator
-  fragment: (lexeme_fragment) @operator)
-
-(conditional_match_operator
-  fragment: (lexeme_fragment) @operator)
-
-(conditional_regex_operator
-  fragment: (lexeme_fragment) @operator)
-
-(conditional_not
-  fragment: (lexeme_fragment) @operator)
-
-(pipe_and
-  fragment: (lexeme_fragment) @operator)
-
-(dsemi_and
-  fragment: (lexeme_fragment) @operator)
-
-(andgreat
-  fragment: (lexeme_fragment) @operator)
-
-(anddgreat
-  fragment: (lexeme_fragment) @operator)
-
-(here_string_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_indirection_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_names_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_substring_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_replacement_operator
-  fragment: (lexeme_fragment) @operator)
-
-(parameter_case_operator
-  fragment: (lexeme_fragment) @operator)
-
-(extglob_operator
-  fragment: (lexeme_fragment) @operator)
-
 (parameter_transformation
-  (parameter_transformation_operator
-    !fragment) @operator)
+  (parameter_transformation_operator) @operator)
 
-(parameter_transformation
-  (parameter_transformation_operator
-    fragment: (lexeme_fragment) @operator))
-
-(parameter_transformation_code
-  !fragment) @character.special
-
-(parameter_transformation_code
-  fragment: (lexeme_fragment) @character.special)
+(parameter_transformation_code) @character.special
 
 (locale_quoted
   [
@@ -2932,46 +1064,18 @@
     "\""
   ] @punctuation.delimiter)
 
-(brace_endpoint
-  !fragment) @string
+(brace_endpoint) @string
 
-(brace_endpoint
-  fragment: (lexeme_fragment) @string)
+(brace_increment) @number
 
-(brace_increment
-  !fragment) @number
-
-(brace_increment
-  fragment: (lexeme_fragment) @number)
-
-(ordinary_character
-  !fragment) @string.regexp
-
-(ordinary_character
-  fragment: (lexeme_fragment) @string.regexp)
+(ordinary_character) @string.regexp
 
 [
-  (collating_element_single
-    !fragment)
-  (collating_element_multi
-    !fragment)
-  (class_name
-    !fragment)
-  (meta_character
-    !fragment)
+  (collating_element_single)
+  (collating_element_multi)
+  (class_name)
+  (meta_character)
 ] @character.special
-
-(collating_element_single
-  fragment: (lexeme_fragment) @character.special)
-
-(collating_element_multi
-  fragment: (lexeme_fragment) @character.special)
-
-(class_name
-  fragment: (lexeme_fragment) @character.special)
-
-(meta_character
-  fragment: (lexeme_fragment) @character.special)
 
 (one_char_or_coll_elem_ere
   "." @character.special)
@@ -2982,17 +1086,9 @@
     "$"
   ] @operator)
 
-(repetition_modifier
-  !fragment) @operator
+(repetition_modifier) @operator
 
-(repetition_modifier
-  fragment: (lexeme_fragment) @operator)
-
-(duplication_count
-  !fragment) @number
-
-(duplication_count
-  fragment: (lexeme_fragment) @number)
+(duplication_count) @number
 
 (ere_dupl_symbol
   [
@@ -3050,22 +1146,10 @@
   "=" @punctuation.delimiter)
 
 [
-  (conditional_open
-    !fragment)
-  (conditional_close
-    !fragment)
-  (arithmetic_for_open
-    !fragment)
+  (conditional_open)
+  (conditional_close)
+  (arithmetic_for_open)
 ] @punctuation.bracket
-
-(conditional_open
-  fragment: (lexeme_fragment) @punctuation.bracket)
-
-(conditional_close
-  fragment: (lexeme_fragment) @punctuation.bracket)
-
-(arithmetic_for_open
-  fragment: (lexeme_fragment) @punctuation.bracket)
 
 [
   (arithmetic_array_reference
@@ -3104,28 +1188,13 @@
   "," @punctuation.delimiter)
 
 (brace_sequence
-  (brace_sequence_separator
-    !fragment) @punctuation.delimiter)
-
-(brace_sequence
-  (brace_sequence_separator
-    fragment: (lexeme_fragment) @punctuation.delimiter))
+  (brace_sequence_separator) @punctuation.delimiter)
 
 (parameter_substring
-  (parameter_substring_separator
-    !fragment) @punctuation.delimiter)
-
-(parameter_substring
-  (parameter_substring_separator
-    fragment: (lexeme_fragment) @punctuation.delimiter))
+  (parameter_substring_separator) @punctuation.delimiter)
 
 (parameter_replacement
-  (parameter_replacement_separator
-    !fragment) @punctuation.delimiter)
-
-(parameter_replacement
-  (parameter_replacement_separator
-    fragment: (lexeme_fragment) @punctuation.delimiter))
+  (parameter_replacement_separator) @punctuation.delimiter)
 
 (array_element_assignment
   "=" @operator)
@@ -3145,13 +1214,6 @@
 (here_end
   word: (word
     (locale_quoted
-      (double_quote_text
-        !fragment) @label)))
-
-(here_end
-  word: (word
-    (locale_quoted
-      (double_quote_text
-        fragment: (lexeme_fragment) @label))))
+      (double_quote_text) @label)))
 
 (line_continuation) @punctuation.special

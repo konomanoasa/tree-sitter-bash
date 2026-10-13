@@ -2,8 +2,6 @@
 command-name brackets stop before ordinary suffixes and arguments
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail
 
@@ -62,7 +60,6 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail
 ==================
 command-name brackets nest through assignments redirects and extglobs
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg
 
@@ -124,8 +121,6 @@ a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg
 reserved word spellings glued to subscripts or plus signs are command words
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 time[[ a ]] fi+ if[x]=1
 in[b] then+=2
@@ -165,15 +160,12 @@ in[b] then+=2
                 (pattern_bracket_members_source
                   (pattern_bracket_character_source))))
             (word
-              (literal)
               (literal))))))))
 
 ==================
 quoted and expanded command names
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 "printf" value; ${runner} arg
 
@@ -205,8 +197,6 @@ quoted and expanded command names
 reserved words remain words outside keyword positions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo if then do done fi
 
@@ -235,8 +225,6 @@ echo if then do done fi
 trailing backslash at end of input is a literal
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo a\
 ------------------
@@ -399,8 +387,6 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\[ ] tail; 1a[ ] tail; a-b[ ] t
 command-name subscripts retain whitespace and operators in one word
 :language(bash)
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
-:language(bash_noextquote)
 :cst
 ==================
 a[ ] one; a[(x)] two; a[;|
@@ -528,3 +514,179 @@ a[$(>out x=y a[)] ) ] next
 0:22 - 0:26               argument: word
 0:22 - 0:26                 literal `next`
 0:26 - 1:0      "\n"
+
+==================
+eval and let compound-shaped arguments remain ordinary words
+:language(bash)
+:language(bash_extglob)
+==================
+eval a=(one two) tail
+let n+=(1 + 2)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)
+              (literal))
+            argument: (word
+              (literal))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)
+              (literal)
+              (literal))))))))
+
+==================
+eval compound-shaped argument retains quotes expansions comments and suffixes
+:language(bash)
+:language(bash_extglob)
+==================
+eval a=("x $v" $(printf z) # c
+ q)tail next
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)
+              (double_quoted
+                (double_quote_text)
+                (parameter_expansion
+                  parameter: (variable_name)))
+              (command_substitution
+                body: (command_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (literal)))))))))
+              (comment
+                (comment_text))
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
+eval argument whitespace belongs to the single word
+:language(bash)
+:language(bash_extglob)
+:cst
+==================
+eval a=(x y)
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:12     commands: list
+0:0  - 0:12       and_or: and_or
+0:0  - 0:12         pipeline: pipeline
+0:0  - 0:12           command: command
+0:0  - 0:12             body: simple_command
+0:0  - 0:4                name: word
+0:0  - 0:4                  literal `eval`
+0:5  - 0:12               argument: word
+0:5  - 0:9                  literal `a=(x`
+0:10 - 0:12                 literal `y)`
+0:12 - 1:0      "\n"
+
+==================
+quoting eval disables compound-shaped argument boundaries
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+"eval" a=(one two)
+
+------------------
+
+==================
+a redirect after let ends compound-shaped argument boundaries
+:language(bash)
+:language(bash_extglob)
+:error
+==================
+let >out n=(1 + 2)
+
+------------------
+
+==================
+eval arguments preserve whitespace and hashes inside extglobs
+:language(bash_extglob)
+==================
+eval a=(@( a#b | #c)) tail
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)
+              (extglob_pattern
+                operator: (extglob_operator)
+                alternative: (extglob_alternative
+                  (literal))
+                alternative: (extglob_alternative
+                  (literal)))
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
+eval arguments preserve brace alternatives across comments
+:language(bash)
+:language(bash_extglob)
+==================
+eval a=({a, # {,(;
+ b})
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (literal)
+              (brace_expansion
+                alternative: (brace_alternative
+                  (literal))
+                alternative: (brace_alternative
+                  (literal)
+                  (comment
+                    (comment_text))
+                  (literal)))
+              (literal))))))))

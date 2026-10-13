@@ -2,8 +2,6 @@
 nested commands substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo "$([[ $x == @(a|b) ]] && ((x++)))"
 
@@ -52,8 +50,6 @@ echo "$([[ $x == @(a|b) ]] && ((x++)))"
 command substitution resets quote context
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo "$(printf '%s' "$x")"
 
@@ -90,8 +86,6 @@ echo "$(printf '%s' "$x")"
 command substitution selected by shell boundary
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo $((printf hi);:) $( (echo yes))
 
@@ -151,8 +145,6 @@ echo $((printf hi);:) $( (echo yes))
 current shell substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
 
@@ -212,8 +204,6 @@ echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
 nested current shell substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; }))
 
@@ -296,8 +286,6 @@ echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; })
 empty current shell substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo ${ } ${| } ${
 }
@@ -323,8 +311,6 @@ echo ${ } ${| } ${
 here strings in substitutions retain enclosing arithmetic and braces
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : $(( $(cat <<<1) + 2 )) {a,$(cat <<<x)}
 
@@ -381,8 +367,6 @@ here strings in substitutions retain enclosing arithmetic and braces
 arithmetic shifts in substitutions do not start here documents
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : {a,$( ((1 << 2))
 : )}
@@ -424,8 +408,6 @@ arithmetic shifts in substitutions do not start here documents
 Braced substitutions balance groups after command prefixes
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : {a,${ time { :; }; }}
 : {a,${| coproc worker { :; }; }}
@@ -501,8 +483,6 @@ Braced substitutions balance groups after command prefixes
 Conditional words and regex groups preserve enclosing braced substitutions
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : {a,${ [[ x == } ]]; }}
 : {a,${ [[ x =~ (]]|}) ]]; }}
@@ -584,8 +564,6 @@ Conditional words and regex groups preserve enclosing braced substitutions
 Braced command lookahead distinguishes quoted commands and literal closing braces
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : {a,${ : }; }}
 : {a,"${| : '"'; }"}
@@ -642,3 +620,72 @@ Braced command lookahead distinguishes quoted commands and literal closing brace
                                     (single_quote_content)))))))
                         terminator: (separator
                           operator: (separator_op))))))))))))))
+
+==================
+ambiguous command substitutions keep comments and here-documents
+:language(bash)
+:language(bash_extglob)
+==================
+echo $((echo a) # c
+) $((cat) <<E
+x
+E
+)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (subshell
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal))))))))))))
+                  (comment
+                    (comment_text)))))
+            argument: (word
+              (command_substitution
+                body: (command_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (subshell
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))))))))
+                          redirect: (io_redirect
+                            body: (io_here
+                              operator: (dless)
+                              end: (here_end
+                                word: (word
+                                  (literal)))))))))
+                  (here_document_sequence
+                    line_end: (here_document_line_end)
+                    document: (here_document
+                      body: (here_document_body
+                        (here_document_text))
+                      end: (here_document_end
+                        (here_document_end_text)))))))))))))

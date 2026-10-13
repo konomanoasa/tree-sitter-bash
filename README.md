@@ -15,14 +15,13 @@ npm install @konomanoasa/tree-sitter-bash
 
 ## Grammars
 
-Syntax differs with `extglob` and `extquote`, so the grammars are separate.
+Parsing assumes Bash's default options. An `extglob` variant is provided for
+compatibility with existing scripts.
 
-| Grammar                   | extglob  | extquote |
-| ------------------------- | -------- | -------- |
-| `bash`                    | disabled | enabled  |
-| `bash_extglob`            | enabled  | enabled  |
-| `bash_noextquote`         | disabled | disabled |
-| `bash_extglob_noextquote` | enabled  | disabled |
+| Grammar        | `extglob` option |
+| -------------- | ---------------- |
+| `bash`         | disabled         |
+| `bash_extglob` | enabled          |
 
 ## Development
 

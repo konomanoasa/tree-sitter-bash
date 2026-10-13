@@ -36,44 +36,6 @@
         "src/parser.c",
         "src/tree_sitter/parser.h"
       ]
-    },
-    {
-      "name": "bash_noextquote",
-      "title": "Bash (no extquote)",
-      "scope": "source.bash_noextquote",
-      "path": "bash_noextquote",
-      "file-types": ["bash_noextquote"],
-      "injection-regex": "^bash_noextquote$",
-      "highlights": "queries/highlights.scm",
-      "external-files": [
-        "common/arithmetic.h",
-        "common/input.h",
-        "common/source.h",
-        "common/scanner.h",
-        "common/lexical-tokens.json",
-        "bash_noextquote/src/lexical-tokens.h",
-        "src/parser.c",
-        "src/tree_sitter/parser.h"
-      ]
-    },
-    {
-      "name": "bash_extglob_noextquote",
-      "title": "Bash (extglob, no extquote)",
-      "scope": "source.bash_extglob_noextquote",
-      "path": "bash_extglob_noextquote",
-      "file-types": ["bash_extglob_noextquote"],
-      "injection-regex": "^bash_extglob_noextquote$",
-      "highlights": "queries/highlights.scm",
-      "external-files": [
-        "common/arithmetic.h",
-        "common/input.h",
-        "common/source.h",
-        "common/scanner.h",
-        "common/lexical-tokens.json",
-        "bash_extglob_noextquote/src/lexical-tokens.h",
-        "src/parser.c",
-        "src/tree_sitter/parser.h"
-      ]
     }
   ],
   "metadata": {

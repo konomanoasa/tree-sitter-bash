@@ -137,28 +137,13 @@ fn parses_valid_source() {
 
 #[test]
 fn parses_fixed_conditions_for_every_language() {
-  for (name, language, node_types, extglob, extquote) in [
-    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, false, true),
+  for (name, language, node_types, extglob) in [
+    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, false),
     (
       "bash_extglob",
       grammar::LANGUAGE_EXTGLOB,
       grammar::NODE_TYPES_EXTGLOB,
       true,
-      true,
-    ),
-    (
-      "bash_noextquote",
-      grammar::LANGUAGE_NOEXTQUOTE,
-      grammar::NODE_TYPES_NOEXTQUOTE,
-      false,
-      false,
-    ),
-    (
-      "bash_extglob_noextquote",
-      grammar::LANGUAGE_EXTGLOB_NOEXTQUOTE,
-      grammar::NODE_TYPES_EXTGLOB_NOEXTQUOTE,
-      true,
-      false,
     ),
   ] {
     let language = language.into();
@@ -178,7 +163,7 @@ fn parses_fixed_conditions_for_every_language() {
       assert_eq!(!tree.root_node().has_error(), valid, "{name}: {source:?}");
     }
 
-    let delimiter = if extquote { "${x:-ab}" } else { "${x:-$'ab'}" };
+    let delimiter = "${x:-ab}";
     let original =
       format!("shopt -s extquote\n: <<\"${{x:-$'ab'}}\"\nbody\n{delimiter}\n")
         .into_bytes();

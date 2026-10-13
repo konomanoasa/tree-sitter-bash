@@ -15,14 +15,6 @@ include = [
   "/bash_extglob/src/*.h",
   "/bash_extglob/src/node-types.json",
   "/bash_extglob/src/tree_sitter/*.h",
-  "/bash_extglob_noextquote/src/*.c",
-  "/bash_extglob_noextquote/src/*.h",
-  "/bash_extglob_noextquote/src/node-types.json",
-  "/bash_extglob_noextquote/src/tree_sitter/*.h",
-  "/bash_noextquote/src/*.c",
-  "/bash_noextquote/src/*.h",
-  "/bash_noextquote/src/node-types.json",
-  "/bash_noextquote/src/tree_sitter/*.h",
   "/bindings/rust/*.rs",
   "/common/*.h",
   "/queries/*.scm",
@@ -44,7 +36,7 @@ path = "test/bindings.test.rs"
 tree-sitter-language = "0.1.8"
 
 [dev-dependencies]
-tree-sitter = "0.27.0"
+tree-sitter = "0.27.1"
 
 [build-dependencies]
 cc = "1.4"

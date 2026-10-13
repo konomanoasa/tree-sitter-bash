@@ -2,8 +2,6 @@
 commands in here document
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<EOF
 $([[ x == x ]] && printf y)
@@ -95,8 +93,6 @@ EOF
 expansions in here document
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<EOF
 ${x//a/b} ${ printf hi; } ${| REPLY=x; } $((2**3))
@@ -170,8 +166,6 @@ EOF
 an empty quoted delimiter does not invent a terminator at EOF
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<''
   a
@@ -203,11 +197,40 @@ cat <<''
         (quoted_here_document_text)))))
 
 ==================
+stripped tabs on a final line without a newline end an empty quoted delimiter
+:language(bash)
+:language(bash_extglob)
+==================
+cat <<-''
+	a
+		
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dlessdash)
+                end: (here_end
+                  word: (word
+                    (single_quoted))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (quoted_here_document_body
+        (quoted_here_document_text))
+      end: (here_document_end))))
+
+==================
 an unquoted body keeps expansions and apparent commands through EOF
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<E
 $x
@@ -241,8 +264,6 @@ echo AFTER
 unquoted body preserves expansions and literal double quotes
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<EOF
 "$x" $(echo y) $((1+2))
@@ -296,8 +317,6 @@ EOF
 outer delimiter quoting disables body expansion
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<E"OF"
 $x $(echo y)
@@ -333,8 +352,6 @@ EOF
 quoted delimiter does not join body lines
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 cat <<'EOF'
 E\
@@ -371,8 +388,6 @@ EOF
 a quoted body inside backquotes joins continued lines
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 : `cat <<'E'
 a\

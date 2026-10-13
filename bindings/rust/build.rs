@@ -18,11 +18,6 @@ fn main() {
   for (directory, library) in [
     ("src", "tree-sitter-bash"),
     ("bash_extglob/src", "tree-sitter-bash-extglob"),
-    ("bash_noextquote/src", "tree-sitter-bash-noextquote"),
-    (
-      "bash_extglob_noextquote/src",
-      "tree-sitter-bash-extglob-noextquote",
-    ),
   ] {
     println!("cargo::rerun-if-changed={directory}");
     let directory = Path::new(directory);

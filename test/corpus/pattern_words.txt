@@ -1,7 +1,6 @@
 ==================
 Reserved punctuation separates groups and extglob
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 [[ ((x)) ]]
 ! ( : )
@@ -69,7 +68,6 @@ Reserved punctuation separates groups and extglob
 ==================
 special parameter spellings before extglob patterns are literal dollars
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 $@(a) $!(b|c)x
 $?(d)() { :; }
@@ -117,7 +115,6 @@ $?(d)() { :; }
 ==================
 extglob kinds and nesting
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 
@@ -181,7 +178,6 @@ echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 ==================
 extglob source delimiters
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 
@@ -240,8 +236,6 @@ echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 bracket negation
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 echo [^a] [!a]
 
@@ -267,9 +261,87 @@ echo [^a] [!a]
                   (pattern_bracket_character_source))))))))))
 
 ==================
+Range endpoints treat class and equivalence openings as literal brackets
+:language(bash)
+:language(bash_extglob)
+==================
+: [A-[:digit:]] [A-[=Z=]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_bracket_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_bracket_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))))))))
+
+==================
+Incomplete collating range endpoints keep the bracket close while complete symbols stay structured
+:language(bash)
+:language(bash_extglob)
+==================
+: [A-[.abc] [A-[.Z.]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_bracket_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source))))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_collating_symbol_source
+                      value: (pattern_collating_symbol_character_source))))))))))))
+
+==================
 Dollar-prefixed extglobs retain literal prefixes and pattern operators
 :language(bash_extglob)
-:language(bash_extglob_noextquote)
 ==================
 : $@(a) $?(b)
 
@@ -401,3 +473,93 @@ extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([
 echo @([)])
 
 ------------------
+
+==================
+token delimiters inside bracket expressions within extglob groups stay members
+:language(bash_extglob)
+==================
+case $s in @([a|b]|c)) :;; esac
+x=@([;]|c)
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (case_clause
+            (case_keyword)
+            (word
+              (parameter_expansion
+                (variable_name)))
+            (in_keyword)
+            (case_item
+              (pattern_list
+                (word
+                  (extglob_pattern
+                    (extglob_operator)
+                    (extglob_alternative
+                      (pattern_bracket_source
+                        (pattern_bracket_members_source
+                          (pattern_bracket_character_source)
+                          (pattern_bracket_character_source)
+                          (pattern_bracket_character_source))))
+                    (extglob_alternative
+                      (literal)))))
+              (list
+                (and_or
+                  (pipeline
+                    (command
+                      (simple_command
+                        (word
+                          (literal)))))))
+              (dsemi))
+            (esac_keyword)))))
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (assignment_word
+              (variable_name)
+              (assignment_value
+                (extglob_pattern
+                  (extglob_operator)
+                  (extglob_alternative
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (extglob_alternative
+                    (literal)))))))))))
+
+==================
+conditional patterns keep blanks inside bracket expressions within extglob groups
+:language(bash)
+:language(bash_extglob)
+==================
+[[ $s == @([ ]|x) ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (parameter_expansion
+                  (variable_name)))
+              (conditional_match_operator)
+              (conditional_pattern
+                (extglob_pattern
+                  (extglob_operator)
+                  (extglob_alternative
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (extglob_alternative
+                    (literal)))))
+            (conditional_close)))))))

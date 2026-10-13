@@ -2,8 +2,6 @@
 arithmetic command precedence
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 ((x=2**3, x++))
 
@@ -32,8 +30,6 @@ arithmetic command precedence
 arithmetic command empty
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 (( ))
 
@@ -47,11 +43,127 @@ arithmetic command empty
           (arithmetic_command ))))))
 
 ==================
+repeated arithmetic signs before numbers form nested unary expressions
+:language(bash)
+:language(bash_extglob)
+:cst
+==================
+((++1 + --1))
+
+------------------
+
+0:0  - 1:0    program
+0:0  - 0:13     commands: list
+0:0  - 0:13       and_or: and_or
+0:0  - 0:13         pipeline: pipeline
+0:0  - 0:13           command: command
+0:0  - 0:13             body: arithmetic_command
+0:0  - 0:1                "("
+0:1  - 0:2                "("
+0:2  - 0:11               expression: arithmetic_binary_expression
+0:2  - 0:5                  left: arithmetic_unary_expression
+0:2  - 0:3                    operator: arithmetic_operator `+`
+0:3  - 0:5                    operand: arithmetic_unary_expression
+0:3  - 0:4                      operator: arithmetic_operator `+`
+0:4  - 0:5                      operand: arithmetic_number `1`
+0:6  - 0:7                  operator: arithmetic_operator `+`
+0:8  - 0:11                 right: arithmetic_unary_expression
+0:8  - 0:9                    operator: arithmetic_operator `-`
+0:9  - 0:11                   operand: arithmetic_unary_expression
+0:9  - 0:10                     operator: arithmetic_operator `-`
+0:10 - 0:11                     operand: arithmetic_number `1`
+0:11 - 0:12               ")"
+0:12 - 0:13               ")"
+0:13 - 1:0      "\n"
+
+==================
+repeated arithmetic signs distinguish groups from prefix and postfix updates
+:language(bash)
+:language(bash_extglob)
+==================
+((++(x),+++x,x++++1))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_command
+            expression: (arithmetic_sequence_expression
+              left: (arithmetic_sequence_expression
+                left: (arithmetic_unary_expression
+                  operator: (arithmetic_operator)
+                  operand: (arithmetic_unary_expression
+                    operator: (arithmetic_operator)
+                    operand: (parenthesized_arithmetic
+                      expression: (arithmetic_variable))))
+                operator: (arithmetic_operator)
+                right: (arithmetic_unary_expression
+                  operator: (arithmetic_operator)
+                  operand: (arithmetic_update_expression
+                    operator: (arithmetic_operator)
+                    operand: (arithmetic_variable))))
+              operator: (arithmetic_operator)
+              right: (arithmetic_binary_expression
+                left: (arithmetic_update_expression
+                  operand: (arithmetic_variable)
+                  operator: (arithmetic_operator))
+                operator: (arithmetic_operator)
+                right: (arithmetic_unary_expression
+                  operator: (arithmetic_operator)
+                  operand: (arithmetic_number))))))))))
+
+==================
+repeated arithmetic signs after a number split into binary and unary operators
+:language(bash)
+:language(bash_extglob)
+==================
+((1++1))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_command
+            expression: (arithmetic_binary_expression
+              left: (arithmetic_number)
+              operator: (arithmetic_operator)
+              right: (arithmetic_unary_expression
+                operator: (arithmetic_operator)
+                operand: (arithmetic_number)))))))))
+
+==================
+repeated arithmetic signs retain expansion-dependent and incomplete source
+:language(bash)
+:language(bash_extglob)
+==================
+((++$x,1++))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_command
+            expression: (arithmetic_source_expression
+              (arithmetic_operator)
+              (parameter_expansion
+                parameter: (variable_name))
+              (arithmetic_operator)
+              (arithmetic_number)
+              (arithmetic_operator))))))))
+
+==================
 arithmetic command dynamic
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 (( 0x$x + ${a[i]} ))
 
@@ -79,8 +191,6 @@ arithmetic command dynamic
 arithmetic command invalid value
 :language(bash)
 :language(bash_extglob)
-:language(bash_noextquote)
-:language(bash_extglob_noextquote)
 ==================
 (( 1;2 ))
 
