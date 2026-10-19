@@ -1,7 +1,7 @@
 ==================
 commands in here document
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<EOF
 $([[ x == x ]] && printf y)
@@ -92,7 +92,7 @@ EOF
 ==================
 expansions in here document
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<EOF
 ${x//a/b} ${ printf hi; } ${| REPLY=x; } $((2**3))
@@ -165,7 +165,7 @@ EOF
 ==================
 an empty quoted delimiter does not invent a terminator at EOF
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<''
   a
@@ -199,7 +199,7 @@ cat <<''
 ==================
 stripped tabs on a final line without a newline end an empty quoted delimiter
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<-''
 	a
@@ -230,7 +230,7 @@ cat <<-''
 ==================
 an unquoted body keeps expansions and apparent commands through EOF
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<E
 $x
@@ -263,7 +263,7 @@ echo AFTER
 ==================
 unquoted body preserves expansions and literal double quotes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<EOF
 "$x" $(echo y) $((1+2))
@@ -316,7 +316,7 @@ EOF
 ==================
 outer delimiter quoting disables body expansion
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<E"OF"
 $x $(echo y)
@@ -351,7 +351,7 @@ EOF
 ==================
 quoted delimiter does not join body lines
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<'EOF'
 E\
@@ -387,7 +387,7 @@ EOF
 ==================
 a quoted body inside backquotes joins continued lines
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : `cat <<'E'
 a\
@@ -430,3 +430,160 @@ E
                           (line_continuation)))
                       (here_document_end
                         (here_document_end_text)))))))))))))
+
+==================
+backquotes in a here-document keep escaped double quotes
+:language(bash)
+:language(bash_default)
+==================
+cat <<E
+`echo \"a\" \"`
+E
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (backquote_substitution
+          body: (backquote_substitution_body
+            (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (escaped_character)
+                        (literal)
+                        (escaped_character))
+                      argument: (word
+                        (escaped_character))))))))))
+      end: (here_document_end
+        (here_document_end_text)))))
+
+==================
+here-document parameters and commands retain distinct backquote quoting
+:language(bash)
+:language(bash_default)
+==================
+cat <<E
+${x:-"`echo \"1\"`"}
+${x:?"`echo \"1\"`"}
+${x#"`echo \"1\"`"}
+$(: "`echo \"1\"`")
+E
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (literal))))))))))
+  trailing: (here_document_sequence
+    line_end: (here_document_line_end)
+    document: (here_document
+      body: (here_document_body
+        (parameter_expansion
+          parameter: (variable_name)
+          operator: (parameter_value_operator)
+          word: (parameter_word
+            (double_quoted
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (escaped_character)
+                              (literal)
+                              (escaped_character))))))))))))
+        (parameter_expansion
+          parameter: (variable_name)
+          operator: (parameter_value_operator)
+          word: (parameter_word
+            (double_quoted
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (double_quoted
+                                (double_quote_text)))))))))))))
+        (parameter_expansion
+          parameter: (variable_name)
+          operator: (parameter_pattern_operator)
+          pattern: (parameter_pattern
+            (double_quoted
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))
+                            argument: (word
+                              (double_quoted
+                                (double_quote_text)))))))))))))
+        (command_substitution
+          body: (command_substitution_body
+            (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))
+                      argument: (word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (double_quoted
+                                            (double_quote_text))))))))))))))))))))
+      end: (here_document_end
+        (here_document_end_text)))))

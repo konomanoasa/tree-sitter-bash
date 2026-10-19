@@ -5,9 +5,7 @@ use tree_sitter::{
 
 fn parser() -> Parser {
   let mut parser = Parser::new();
-  parser
-    .set_language(&grammar::LANGUAGE_EXTGLOB.into())
-    .unwrap();
+  parser.set_language(&grammar::LANGUAGE.into()).unwrap();
   parser
 }
 
@@ -130,20 +128,19 @@ fn parses_valid_source() {
   assert_eq!(tree.root_node().kind(), "program");
   assert_eq!(tree.root_node().byte_range(), 0..11);
   assert!(!tree.root_node().has_error());
-  assert!(grammar::NODE_TYPES_EXTGLOB.contains("\"program\""));
-  Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
-    .unwrap();
+  assert!(grammar::NODE_TYPES.contains("\"program\""));
+  Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
 }
 
 #[test]
 fn parses_fixed_conditions_for_every_language() {
   for (name, language, node_types, extglob) in [
-    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, false),
+    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, true),
     (
-      "bash_extglob",
-      grammar::LANGUAGE_EXTGLOB,
-      grammar::NODE_TYPES_EXTGLOB,
-      true,
+      "bash_default",
+      grammar::LANGUAGE_DEFAULT,
+      grammar::NODE_TYPES_DEFAULT,
+      false,
     ),
   ] {
     let language = language.into();
@@ -197,8 +194,7 @@ fn parses_fixed_conditions_for_every_language() {
 #[test]
 fn highlights_lexical_nodes_with_context_precedence() {
   let query =
-    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
-      .unwrap();
+    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
   let source = "x=\"$1\"; echo ~ @(a|b) [[:alpha:]][[=a=]]\n";
   let actual = captures(source, &query);
   let expected = [
@@ -257,7 +253,7 @@ fn highlights_lexical_nodes_with_context_precedence() {
 #[test]
 fn ere_group_fields_survive_adjacent_quotes_and_expansions() {
   let query = Query::new(
-    &grammar::LANGUAGE_EXTGLOB.into(),
+    &grammar::LANGUAGE.into(),
     r#"(ere_expression opening: "(" @opening closing: ")" @closing)"#,
   )
   .unwrap();
@@ -413,16 +409,14 @@ fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
   let continuation = source.find("\\\n").unwrap();
   assert_eq!(continuations, vec![continuation..continuation + 1]);
   let query =
-    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
-      .unwrap();
+    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
   captures(source, &query);
 }
 
 #[test]
 fn highlights_remain_lexical_across_continuations_and_recovery() {
   let query =
-    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
-      .unwrap();
+    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
   for source in [
     "if [[ $x == @(a|b) ]]; then a=(1 \"x\"); echo ${a[0]} $((1+2)); fi\n",
     "cat <<EOF\nabc${x}def\nEOF\n",

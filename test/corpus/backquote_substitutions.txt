@@ -1,7 +1,7 @@
 ==================
 backquote substitution retains nested command source
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo `printf '%s' "$x"`
 
@@ -35,7 +35,7 @@ echo `printf '%s' "$x"`
 
 ==================
 backquote nesting
-:language(bash_extglob)
+:language(bash)
 ==================
 echo `printf "%s" @(a|b) ${x//a/b}`
 
@@ -83,7 +83,7 @@ echo `printf "%s" @(a|b) ${x//a/b}`
 ==================
 backquotes join continued lines inside single quotes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : `printf %s 'a\
 b'`
@@ -118,11 +118,1305 @@ b'`
 ==================
 closing backquote ends arithmetic and quoted source
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :error
 ==================
 : `$((`))`
 x=`((`))`
 : `for ((`;;)); do :; done`
+
+------------------
+
+==================
+escaped double quotes decode only directly inside double quotes
+:language(bash)
+:language(bash_default)
+==================
+echo "`echo \"a\"`" "${x:-`echo \"a\"`}" $((`echo \"1\"`)) ${!x`echo \"a\"`*}
+[[ a =~ `echo \"a\"` ]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (backquote_substitution
+                  body: (backquote_substitution_body
+                    (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              argument: (word
+                                (double_quoted
+                                  (double_quote_text))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (escaped_character)
+                                    (literal)
+                                    (escaped_character)))))))))))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (backquote_substitution
+                  body: (backquote_substitution_body
+                    (list
+                      and_or: (and_or
+                        pipeline: (pipeline
+                          command: (command
+                            body: (simple_command
+                              name: (word
+                                (literal))
+                              argument: (word
+                                (escaped_character)
+                                (literal)
+                                (escaped_character)))))))))))
+            argument: (word
+              (parameter_expansion
+                operator: (parameter_indirection_operator)
+                prefix: (parameter_name_prefix
+                  (literal)
+                  (backquote_substitution
+                    body: (backquote_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                argument: (word
+                                  (escaped_character)
+                                  (literal)
+                                  (escaped_character))))))))))
+                operator: (parameter_names_operator)))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (conditional_command
+            (conditional_open)
+            condition: (conditional_binary_expression
+              left: (word
+                (literal))
+              operator: (conditional_regex_operator)
+              right: (regex_operand
+                expression: (regex_source_expression
+                  (backquote_substitution
+                    body: (backquote_substitution_body
+                      (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))
+                                argument: (word
+                                  (escaped_character)
+                                  (literal)
+                                  (escaped_character))))))))))))
+            (conditional_close)))))))
+
+==================
+quoted parameter value operators preserve escaped backquote quotes
+:language(bash)
+:language(bash_default)
+==================
+: "${x-"`echo \"1\"`"}" "${x:-"`echo \"1\"`"}" "${x="`echo \"1\"`"}" "${x:="`echo \"1\"`"}" "${x+"`echo \"1\"`"}" "${x:+"`echo \"1\"`"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))))))))
+
+==================
+unquoted parameter words decode quotes in their own double quotes
+:language(bash)
+:language(bash_default)
+==================
+: ${x:-"`echo \"1\"`"}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                operator: (parameter_value_operator)
+                word: (parameter_word
+                  (double_quoted
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (double_quoted
+                                      (double_quote_text))))))))))))))))))))
+
+==================
+nested parameter values retain inherited quote removal
+:language(bash)
+:language(bash_default)
+==================
+: "${x:-${y:-"`echo \"1\"`"}}" "${x:-"${y:-"`echo \"1\"`"}"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (escaped_character)
+                                          (literal)
+                                          (escaped_character))))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character)))))))))))))))))))))))
+
+==================
+parameter error words reset inherited backquote quoting
+:language(bash)
+:language(bash_default)
+==================
+: "${x?"`echo \"1\"`"}" "${x:?"`echo \"1\"`"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text)))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text)))))))))))))))))))))
+
+==================
+parameter errors and nested values apply their own quote context
+:language(bash)
+:language(bash_default)
+==================
+: "${x:?${y:-"`echo \"1\"`"}}" "${x:?"${y:-"`echo \"1\"`"}"}" "${x:-"${y:?"`echo \"1\"`"}"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (double_quoted
+                                            (double_quote_text)))))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character)))))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (double_quoted
+                                              (double_quote_text))))))))))))))))))))))))
+
+==================
+parameter patterns reset inherited backquote quoting
+:language(bash)
+:language(bash_default)
+==================
+: "${x#"`echo \"1\"`"}" "${x##"`echo \"1\"`"}" "${x%"`echo \"1\"`"}" "${x^"`echo \"1\"`"}" "${x~"`echo \"1\"`"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_pattern_operator)
+                  pattern: (parameter_pattern
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text)))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_pattern_operator)
+                  pattern: (parameter_pattern
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text)))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_pattern_operator)
+                  pattern: (parameter_pattern
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (double_quote_text)))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  (parameter_case_conversion
+                    operator: (parameter_case_operator)
+                    pattern: (parameter_pattern
+                      (double_quoted
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  (parameter_case_conversion
+                    operator: (parameter_case_operator)
+                    pattern: (parameter_pattern
+                      (double_quoted
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))))))))))))
+
+==================
+parameter replacement pattern and value decode their quoted backquotes
+:language(bash)
+:language(bash_default)
+==================
+: "${x/"`echo \"1\"`"/"`echo \"1\"`"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  (parameter_replacement
+                    operator: (parameter_replacement_operator)
+                    pattern: (parameter_pattern
+                      (double_quoted
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))
+                    (parameter_replacement_separator)
+                    replacement: (parameter_word
+                      (double_quoted
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))))))))))))
+
+==================
+nested pattern values acquire quotation only from an inner quote
+:language(bash)
+:language(bash_default)
+==================
+: "${x#${y:-"`echo \"1\"`"}}" "${x#"${y:-"`echo \"1\"`"}"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_pattern_operator)
+                  pattern: (parameter_pattern
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (double_quoted
+                                            (double_quote_text)))))))))))))))))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_pattern_operator)
+                  pattern: (parameter_pattern
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character)))))))))))))))))))))))
+
+==================
+command bodies reset parameter quote inheritance
+:language(bash)
+:language(bash_default)
+==================
+: "${x:-"$(: "`echo \"1\"`")"}"
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (double_quoted
+                (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (command_substitution
+                        body: (command_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (backquote_substitution
+                                          body: (backquote_substitution_body
+                                            (list
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  command: (command
+                                                    body: (simple_command
+                                                      name: (word
+                                                        (literal))
+                                                      argument: (word
+                                                        (double_quoted
+                                                          (double_quote_text))))))))))))))))))))))))))))))
+
+==================
+arithmetic parameter values preserve escaped backquote quotes
+:language(bash)
+:language(bash_default)
+==================
+: $(( ${x:-"`echo \"1\"`"} )) $[ ${x:-"`echo \"1\"`"} ]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (parameter_expansion
+                  parameter: (variable_name)
+                  operator: (parameter_value_operator)
+                  word: (parameter_word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (list
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (escaped_character)
+                                      (literal)
+                                      (escaped_character))))))))))))))))))))
+
+==================
+arithmetic quotes directly around backquotes still decode
+:language(bash)
+:language(bash_default)
+==================
+: $(( "`echo \"1\"`" ))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (double_quoted
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (double_quoted
+                                      (double_quote_text))))))))))))))))))))
+
+==================
+substring nested values inherit arithmetic quoting
+:language(bash)
+:language(bash_default)
+==================
+: ${x:${y:-"`echo \"1\"`"}}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                (parameter_substring
+                  operator: (parameter_substring_operator)
+                  offset: (substring_source
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (escaped_character)
+                                          (literal)
+                                          (escaped_character))))))))))))))))))))))
+
+==================
+substring explicit quotes decode their backquotes
+:language(bash)
+:language(bash_default)
+==================
+: ${x:"`echo \"1\"`"}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                (parameter_substring
+                  operator: (parameter_substring_operator)
+                  offset: (substring_source
+                    (arithmetic_source_expression
+                      (double_quoted
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))))))))))))
+
+==================
+unquoted parameter backquotes protect decoded grouping characters
+:language(bash)
+:language(bash_default)
+==================
+: ${x:-"`echo \"(1)\"`"}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (parameter_expansion
+                parameter: (variable_name)
+                operator: (parameter_value_operator)
+                word: (parameter_word
+                  (double_quoted
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (double_quoted
+                                      (double_quote_text))))))))))))))))))))
+
+==================
+quoted parameter backquotes expose grouping characters
+:language(bash)
+:language(bash_default)
+:error
+==================
+: "${x:-"`echo \"(1)\"`"}"
+
+------------------
+
+==================
+arithmetic parameter backquotes expose grouping characters
+:language(bash)
+:language(bash_default)
+:error
+==================
+: $(( ${x:-"`echo \"(1)\"`"} ))
+
+------------------
+
+==================
+arithmetic commands pass quoting into parameter values
+:language(bash)
+:language(bash_default)
+==================
+(( ${x:-"`echo \"1\"`"} ))
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (arithmetic_command
+            (parameter_expansion
+              (variable_name)
+              (parameter_value_operator)
+              (parameter_word
+                (double_quoted
+                  (backquote_substitution
+                    (backquote_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word
+                                  (literal))
+                                (word
+                                  (escaped_character)
+                                  (literal)
+                                  (escaped_character))))))))))))))))))
+
+==================
+array subscripts pass quoting into parameter values
+:language(bash)
+:language(bash_default)
+==================
+: ${a[${x:-"`echo \"1\"`"}]}
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              (backquote_substitution_body
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (command
+                                        (simple_command
+                                          (word
+                                            (literal))
+                                          (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character)))))))))))))))))))))))
+
+==================
+array subscript quotes directly around backquotes still decode
+:language(bash)
+:language(bash_default)
+==================
+: ${a["`echo \"1\"`"]}
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (parameter_expansion
+                (array_reference
+                  (variable_name)
+                  (array_subscript
+                    (subscript_source
+                      (arithmetic_candidate_source_expression
+                        (double_quoted
+                          (backquote_substitution
+                            (backquote_substitution_body
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (double_quoted
+                                            (double_quote_text)))))))))))))))))))))))
+
+==================
+regex operand quotes decode backquote quotes
+:language(bash)
+:language(bash_default)
+==================
+[[ 1 =~ "`echo \"1\"`" ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (double_quoted
+                    (backquote_substitution
+                      (backquote_substitution_body
+                        (list
+                          (and_or
+                            (pipeline
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal))
+                                  (word
+                                    (double_quoted
+                                      (double_quote_text))))))))))))))
+            (conditional_close)))))))
+
+==================
+regex parameter values decode backquote quotes in their own quotes
+:language(bash)
+:language(bash_default)
+==================
+[[ 1 =~ ${x:-"`echo \"1\"`"} ]]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (conditional_command
+            (conditional_open)
+            (conditional_binary_expression
+              (word
+                (literal))
+              (conditional_regex_operator)
+              (regex_operand
+                (regex_source_expression
+                  (parameter_expansion
+                    (variable_name)
+                    (parameter_value_operator)
+                    (parameter_word
+                      (double_quoted
+                        (backquote_substitution
+                          (backquote_substitution_body
+                            (list
+                              (and_or
+                                (pipeline
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (double_quoted
+                                          (double_quote_text))))))))))))))))
+            (conditional_close)))))))
+
+==================
+parenthesized arithmetic resets parameter quotation while bracket arithmetic retains it
+:language(bash)
+:language(bash_default)
+==================
+: "${x:-$(( "`echo \"(1)\"`" ))}" "${x:-$[ "`echo \"1\"`" ]}" "${x:-"$[ "`echo \"1\"`" ]"}"
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word
+              (literal))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (arithmetic_expansion
+                      (arithmetic_source_expression
+                        (double_quoted
+                          (backquote_substitution
+                            (backquote_substitution_body
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (double_quoted
+                                            (double_quote_text)))))))))))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (arithmetic_expansion
+                      (arithmetic_source_expression
+                        (double_quoted
+                          (backquote_substitution
+                            (backquote_substitution_body
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (escaped_character)
+                                          (literal)
+                                          (escaped_character))))))))))))))))
+            (word
+              (double_quoted
+                (parameter_expansion
+                  (variable_name)
+                  (parameter_value_operator)
+                  (parameter_word
+                    (double_quoted
+                      (arithmetic_expansion
+                        (arithmetic_source_expression
+                          (double_quoted
+                            (backquote_substitution
+                              (backquote_substitution_body
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (command
+                                        (simple_command
+                                          (word
+                                            (literal))
+                                          (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character)))))))))))))))))))))))
+
+==================
+bracket arithmetic inside a quoted parameter exposes escaped grouping characters
+:language(bash)
+:language(bash_default)
+:error
+==================
+: "${x:-$[ "`echo \"(1)\"`" ]}"
 
 ------------------

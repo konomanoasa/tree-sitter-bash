@@ -1,7 +1,7 @@
 ==================
 redirect variable descriptors own variable names
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 exec {fd}>out; : {fd}>&-; : 3<&4- 5>&6-
 
@@ -58,7 +58,7 @@ exec {fd}>out; : {fd}>&-; : 3<&4- 5>&6-
 ==================
 redirect stdout and stderr
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo x &>out; echo y &>>out
 
@@ -97,7 +97,7 @@ echo x &>out; echo y &>>out
 ==================
 redirect compound output
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 { :; } &>out
 
@@ -127,7 +127,7 @@ redirect compound output
 ==================
 redirect compound descriptor
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 { :; } {fd}>out
 
@@ -158,7 +158,7 @@ redirect compound descriptor
 ==================
 here string source
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 cat <<< "$x"; cat 3<<<$(printf x)
 
@@ -206,7 +206,7 @@ cat <<< "$x"; cat 3<<<$(printf x)
 ==================
 array descriptors retain quoted subscript source and here document ownership
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : {fd["x y"]}>out {fd[$i]}<<EOF
 body
@@ -256,7 +256,7 @@ EOF
 ==================
 descriptor spellings before process substitution remain word prefixes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : 2<(printf x) {fd}>(:)
 
@@ -298,7 +298,7 @@ descriptor spellings before process substitution remain word prefixes
 ==================
 file descriptor duplication and redirection operators
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 exec 3<input 4>output 5>>append 6<>both 7>&1 8<&0 9>|force
 
@@ -355,7 +355,7 @@ exec 3<input 4>output 5>>append 6<>both 7>&1 8<&0 9>|force
 
 ==================
 redirection descriptors and here string operators retain exact ranges
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : {fd}>out 3<&4- &>>log <<<"$x"
@@ -405,7 +405,7 @@ redirection descriptors and here string operators retain exact ranges
 ==================
 descriptor duplication operators accept an adjacent numeric operand
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : <&2>out >&3>log
@@ -445,7 +445,7 @@ descriptor duplication operators accept an adjacent numeric operand
 ==================
 numeric descriptors stop at the signed 32 bit lexical boundary
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : 2147483647>out 0000000001>out
 
@@ -464,7 +464,7 @@ numeric descriptors stop at the signed 32 bit lexical boundary
 ==================
 overflowing descriptor digits remain ordinary arguments
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : 2147483648>out 999999999999999999999>out
 
@@ -485,7 +485,7 @@ overflowing descriptor digits remain ordinary arguments
 ==================
 overflowing descriptor digits cannot follow a compound command
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :error
 ==================
 { :; } 2147483648>out
@@ -494,7 +494,7 @@ overflowing descriptor digits cannot follow a compound command
 
 ==================
 quoted separated and invalid descriptor spellings remain ordinary words
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : {fd} >out '{fd}'>out {1fd}>out {fd>out {fd[]}>out {fd[ x ]}>out {fd[x][y]}>out
@@ -580,7 +580,7 @@ quoted separated and invalid descriptor spellings remain ordinary words
 
 ==================
 numeric descriptor cannot be a redirect operand ": >2>out\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 : >2>out
@@ -591,7 +591,7 @@ numeric descriptor cannot be a redirect operand ": >2>out\n"
 
 ==================
 variable descriptor cannot be a redirect operand ": >{fd}>out\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 : >{fd}>out
@@ -602,7 +602,7 @@ variable descriptor cannot be a redirect operand ": >{fd}>out\n"
 
 ==================
 array descriptor cannot be a redirect operand ": >{fd[0]}>out\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 : >{fd[0]}>out
@@ -613,7 +613,7 @@ array descriptor cannot be a redirect operand ": >{fd[0]}>out\n"
 
 ==================
 numeric descriptor cannot be a conditional operand "[[ 2>1 ]]\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 [[ 2>1 ]]
@@ -624,7 +624,7 @@ numeric descriptor cannot be a conditional operand "[[ 2>1 ]]\n"
 
 ==================
 combined output redirect cannot split into a background separator "{ :; } &>a[ x ]\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 { :; } &>a[ x ]
@@ -635,7 +635,7 @@ combined output redirect cannot split into a background separator "{ :; } &>a[ x
 
 ==================
 combined append redirect cannot split into a background separator "f() { :; } &>>a[ x ]\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 f() { :; } &>>a[ x ]
@@ -646,7 +646,7 @@ f() { :; } &>>a[ x ]
 
 ==================
 coprocess array after redirect "coproc worker >out a=(1)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 coproc worker >out a=(1)
@@ -657,7 +657,7 @@ coproc worker >out a=(1)
 
 ==================
 coprocess array after redirect prefix "coproc >out worker a=(1)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 coproc >out worker a=(1)

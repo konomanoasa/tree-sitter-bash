@@ -1,6 +1,6 @@
 ==================
 Reserved punctuation separates groups and extglob
-:language(bash_extglob)
+:language(bash)
 ==================
 [[ ((x)) ]]
 ! ( : )
@@ -67,7 +67,7 @@ Reserved punctuation separates groups and extglob
 
 ==================
 special parameter spellings before extglob patterns are literal dollars
-:language(bash_extglob)
+:language(bash)
 ==================
 $@(a) $!(b|c)x
 $?(d)() { :; }
@@ -114,7 +114,7 @@ $?(d)() { :; }
 
 ==================
 extglob kinds and nesting
-:language(bash_extglob)
+:language(bash)
 ==================
 echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 
@@ -177,7 +177,7 @@ echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 
 ==================
 extglob source delimiters
-:language(bash_extglob)
+:language(bash)
 ==================
 echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 
@@ -235,7 +235,7 @@ echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 ==================
 bracket negation
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo [^a] [!a]
 
@@ -263,7 +263,7 @@ echo [^a] [!a]
 ==================
 Range endpoints treat class and equivalence openings as literal brackets
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : [A-[:digit:]] [A-[=Z=]]
 
@@ -306,7 +306,7 @@ Range endpoints treat class and equivalence openings as literal brackets
 ==================
 Incomplete collating range endpoints keep the bracket close while complete symbols stay structured
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : [A-[.abc] [A-[.Z.]]
 
@@ -341,7 +341,7 @@ Incomplete collating range endpoints keep the bracket close while complete symbo
 
 ==================
 Dollar-prefixed extglobs retain literal prefixes and pattern operators
-:language(bash_extglob)
+:language(bash)
 ==================
 : $@(a) $?(b)
 
@@ -367,7 +367,7 @@ Dollar-prefixed extglobs retain literal prefixes and pattern operators
 
 ==================
 extglob suffixes stay in command words beside function definitions
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
@@ -467,7 +467,7 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
 
 ==================
 extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 echo @([)])
@@ -476,7 +476,7 @@ echo @([)])
 
 ==================
 token delimiters inside bracket expressions within extglob groups stay members
-:language(bash_extglob)
+:language(bash)
 ==================
 case $s in @([a|b]|c)) :;; esac
 x=@([;]|c)
@@ -535,7 +535,7 @@ x=@([;]|c)
 ==================
 conditional patterns keep blanks inside bracket expressions within extglob groups
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 [[ $s == @([ ]|x) ]]
 

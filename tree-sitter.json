@@ -19,12 +19,12 @@
       ]
     },
     {
-      "name": "bash_extglob",
-      "title": "Bash (extglob)",
-      "scope": "source.bash_extglob",
-      "path": "bash_extglob",
-      "file-types": ["bash_extglob"],
-      "injection-regex": "^bash_extglob$",
+      "name": "bash_default",
+      "title": "Bash (default options)",
+      "scope": "source.bash_default",
+      "path": "bash_default",
+      "file-types": ["bash_default"],
+      "injection-regex": "^bash_default$",
       "highlights": "queries/highlights.scm",
       "external-files": [
         "common/arithmetic.h",
@@ -32,7 +32,7 @@
         "common/source.h",
         "common/scanner.h",
         "common/lexical-tokens.json",
-        "bash_extglob/src/lexical-tokens.h",
+        "bash_default/src/lexical-tokens.h",
         "src/parser.c",
         "src/tree_sitter/parser.h"
       ]

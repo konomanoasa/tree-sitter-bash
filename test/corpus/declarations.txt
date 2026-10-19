@@ -1,7 +1,7 @@
 ==================
 declaration scalar braces preserve name subscript operator and value fields
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 declare x[{0,1}]=pre{a,b}post y+={1..3} empty=
 
@@ -47,7 +47,7 @@ declare x[{0,1}]=pre{a,b}post y+={1..3} empty=
 ==================
 declaration compound elements retain their individual brace contexts
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 declare x=({a,b} [0]={c,d}) y={e,f}
 
@@ -87,7 +87,7 @@ declare x=({a,b} [0]={c,d}) y={e,f}
 ==================
 declaration braces crossing the subscript boundary remain one argument word
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 declare x[{0]=a,1]=b} y={c,d}
 
@@ -119,7 +119,7 @@ declare x[{0]=a,1]=b} y={c,d}
 ==================
 quoted and escaped declaration braces stay literal
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 declare x="{a,b}" y=\{a,b\} z={c,d}
 
@@ -155,7 +155,7 @@ declare x="{a,b}" y=\{a,b\} z={c,d}
 ==================
 Declaration assignments stop after redirects and leading process substitutions
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 >out declare a=(one) pre<(echo x) b=(two) >log c=value
 declare a=(one) <(echo x) b=value
@@ -230,7 +230,7 @@ declare a=(one) <(echo x) b=value
 ==================
 declaration arguments
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 declare -A a=([key]=value); typeset a+=(two); local b=(three); export c=(four); readonly d=(five)
 
@@ -303,7 +303,7 @@ declare -A a=([key]=value); typeset a+=(two); local b=(three); export c=(four); 
 ==================
 alias arguments preserve scalar and compound assignment structure
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 alias x=(one) y+=two
 
@@ -330,7 +330,7 @@ alias x=(one) y+=two
 ==================
 declaration prefixed assignments
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 x=1 declare -a a=(one) >out
 
@@ -362,7 +362,7 @@ x=1 declare -a a=(one) >out
 ==================
 assignment and redirection order preserves scalar declaration fields
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 
 >out x=y a=(one) declare b=(two); x=() >out c=z declare a=$v b+=~/p
@@ -425,7 +425,7 @@ assignment and redirection order preserves scalar declaration fields
 
 ==================
 declarations survive leading redirects and substitutions inside arguments
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 >out declare pre<(echo x) a=(one) a=<(echo y) b=(two) "${v}" c=(three)
@@ -516,7 +516,7 @@ declarations survive leading redirects and substitutions inside arguments
 ==================
 declaration subscripts respect ordinary word and command boundaries: "declare a[x y]=z b[\"x y\"]=v; declare a[x; echo next\n"
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 declare a[x y]=z b["x y"]=v; declare a[x; echo next
@@ -571,7 +571,7 @@ declare a[x y]=z b["x y"]=v; declare a[x; echo next
 
 ==================
 declaration subscripts respect ordinary word and command boundaries rejects "declare a[(i+1)]=x\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare a[(i+1)]=x
@@ -582,7 +582,7 @@ declare a[(i+1)]=x
 
 ==================
 command boundaries reject "declare >out a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare >out a=(one)
@@ -593,7 +593,7 @@ declare >out a=(one)
 
 ==================
 command boundaries reject "declare 2>out a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare 2>out a=(one)
@@ -604,7 +604,7 @@ declare 2>out a=(one)
 
 ==================
 command boundaries reject "declare &>out a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare &>out a=(one)
@@ -615,7 +615,7 @@ declare &>out a=(one)
 
 ==================
 command boundaries reject "declare {fd}>out a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare {fd}>out a=(one)
@@ -626,7 +626,7 @@ declare {fd}>out a=(one)
 
 ==================
 command boundaries reject "declare <<<input a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare <<<input a=(one)
@@ -637,7 +637,7 @@ declare <<<input a=(one)
 
 ==================
 command boundaries reject "declare <(echo x) a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare <(echo x) a=(one)
@@ -648,7 +648,7 @@ declare <(echo x) a=(one)
 
 ==================
 command boundaries reject "declare >(echo x) a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare >(echo x) a=(one)
@@ -659,7 +659,7 @@ declare >(echo x) a=(one)
 
 ==================
 command boundaries reject "declare a=(one)>out b=(two)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 declare a=(one)>out b=(two)
@@ -670,7 +670,7 @@ declare a=(one)>out b=(two)
 
 ==================
 quoted declaration array argument "\"declare\" a=(one two)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 "declare" a=(one two)
@@ -681,7 +681,7 @@ quoted declaration array argument "\"declare\" a=(one two)\n"
 
 ==================
 command prefixed declaration "command declare a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 command declare a=(one)
@@ -692,7 +692,7 @@ command declare a=(one)
 
 ==================
 builtin prefixed declaration "builtin declare a=(one)\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 builtin declare a=(one)

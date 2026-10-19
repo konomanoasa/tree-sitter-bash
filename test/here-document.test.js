@@ -178,7 +178,7 @@ for (const grammar of grammars) {
         }
       }
     });
-    const extglob = grammar.name.includes("extglob");
+    const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
     test("stripped tabs on a final line without a newline end an empty delimiter", () => {
       const seed = "cat <<-''\n\tx\n\t\t";
@@ -206,7 +206,7 @@ for (const grammar of grammars) {
         valid: true,
       });
     });
-    if (grammar.name === "bash_extglob") {
+    if (grammar.name === "bash") {
       test("here document Unicode delimiters use UTF-8 independently of locale", () => {
         const source = ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n";
         const originalLocale = process.env.LC_ALL;
@@ -367,6 +367,20 @@ for (const grammar of grammars) {
       }
 
       for (const entry of [
+        {
+          name: "quoting a here delimiter disables a backquote inside a parameter word",
+          seed: `cat <<E\n\${x:-"\`echo \\"1\\"\`"}\nE\n`,
+          remove: "<<E",
+          insert: "<<'E'",
+          valid: true,
+        },
+        {
+          name: "unquoting a here delimiter restores inherited backquote quoting",
+          seed: `cat <<'E'\n\${x:-"\`echo \\"1\\"\`"}\nE\n`,
+          remove: "<<'E'",
+          insert: "<<E",
+          valid: true,
+        },
         {
           name: "a locale assignment changes without changing a Unicode here delimiter",
           seed: "LC_ALL=C\n: <<$'\\u00e9'\nbody\né\n",

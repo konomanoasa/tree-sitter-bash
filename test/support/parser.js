@@ -6,9 +6,7 @@ import { cstFingerprint, sourceNodes } from "./cst.js";
 
 const parseTimeoutMs = 30_000;
 
-export function createParser(
-  grammar = grammars.find(({ name }) => name === "bash_extglob") ?? grammars[0],
-) {
+export function createParser(grammar = grammars[0]) {
   const runner = createTreeSitter();
   const library = join(
     runner.directory,

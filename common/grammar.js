@@ -321,6 +321,11 @@ const parameterPatternCollatingSymbolSource = ($) =>
     $._parameter_pattern_collating_symbol_source,
     $.pattern_collating_symbol_source,
   );
+const parameterPatternBracketCharacter = ($) =>
+  alias(
+    $._parameter_pattern_bracket_character,
+    $.pattern_bracket_character_source,
+  );
 
 const parameterPatternSpecialSources = ($) => [
   alias(
@@ -345,16 +350,13 @@ const sourceWord = ($, prefix, braces = false) =>
     seq(
       $._assignment_argument_start,
       ...(braces ? [$._brace_word_start] : []),
-      repeat1(
-        choice(
-          alias($._assignment_tilde_expansion, $.tilde_expansion),
-          $._assignment_word_part,
-        ),
-      ),
+      $._assignment_source_word,
       braces ? $._brace_word_end : $._assignment_argument_end,
     ),
   );
 const wordSeparator = ($, marker) => seq(marker, optional($._blank));
+const declarationEndSuffix = ($) =>
+  seq($._declaration_end, field("argument", $.word), optional($._cmd_suffix));
 
 const arithmeticBoundaryLayout = ($, boundary) =>
   seq(boundary, optional($._arithmetic_layout));
@@ -623,19 +625,24 @@ const boundaryLineComment = ($, comment) =>
 const trailingComment = ($) =>
   seq($._trailing_comment_boundary, optional($._horizontal_layout), $.comment);
 
-const quotedExpansionParts = ($) => [
+const quotedDollarExpansionParts = ($) => [
   $.current_shell_substitution,
   $.reply_substitution,
   alias($._double_quoted_parameter_expansion, $.parameter_expansion),
   $.command_substitution,
   $.arithmetic_expansion,
-  alias($._double_quoted_backquote_substitution, $.backquote_substitution),
+];
+// Only a backquote placed directly in a double-quoted string decodes `\"`.
+const quotedExpansionParts = ($) => [
+  ...quotedDollarExpansionParts($),
+  $.backquote_substitution,
 ];
 const doubleQuotedPart = ($) =>
   choice(
     $.double_quote_text,
     $.double_quote_escape,
-    ...quotedExpansionParts($),
+    ...quotedDollarExpansionParts($),
+    alias($._double_quoted_backquote_substitution, $.backquote_substitution),
   );
 const singleQuoted = ($, opener) =>
   seq(
@@ -960,15 +967,11 @@ const commandRedirectContinuations = ($) => [
   seq($._redirect_separator, field("redirect", $.io_redirect)),
 ];
 
-const assignmentWord = ($, value, declaration = false) =>
+const assignmentWord = ($, value, ...start) =>
   prec.dynamic(
     ASSIGNMENT_WORD_PRECEDENCE,
     prec.right(
-      seq(
-        ...(declaration ? [$._declaration_assignment_start] : []),
-        $._assignment_header,
-        optional(field("value", value)),
-      ),
+      seq(...start, $._assignment_header, optional(field("value", value))),
     ),
   );
 
@@ -982,11 +985,7 @@ const declarationSuffix = (
     seq(
       $._word_separator,
       choice(
-        seq(
-          $._declaration_end,
-          field("argument", $.word),
-          optional($._cmd_suffix),
-        ),
+        declarationEndSuffix($),
         seq(
           choice(field(assignmentField, assignment), field("argument", $.word)),
           optional(continuation),
@@ -1159,6 +1158,7 @@ export default function defineGrammar(name) {
         $._word_separator_begin,
         $._term_continuation,
         $._assignment_separator_begin,
+        $._scalar_assignment_separator_begin,
         $._redirect_separator_begin,
         $._pre_newline_blank_begin,
         $._command_substitution_end,
@@ -1418,12 +1418,14 @@ export default function defineGrammar(name) {
         $._empty_bang_begin,
         $._declaration_end,
         $._declaration_assignment_start,
+        $._coproc_declaration_assignment_start,
         $._command_word_start,
         $._brace_word_start,
         $._brace_word_end,
         $._empty_time_keyword_begin,
         $._raw_command_name_begin,
         $._raw_argument_start,
+        $._coproc_raw_argument_start,
         $._raw_layout_start,
         ...sourceExternals($),
       ];
@@ -1690,9 +1692,9 @@ export default function defineGrammar(name) {
 
       _coproc_simple_command: ($) =>
         choice(
-          $._raw_command,
+          $._coproc_raw_command,
           $._prefixed_command,
-          $._declaration_command,
+          $._coproc_declaration_command,
           seq($._command_name, optional($._coproc_command_suffix)),
           seq($._coproc_bare_command_start, $._command_name),
         ),
@@ -1718,6 +1720,60 @@ export default function defineGrammar(name) {
         ),
 
       _declaration_argument: ($) => alias($.declaration_name, $.literal),
+
+      _coproc_declaration_command: ($) =>
+        seq(
+          field("name", $.declaration_name),
+          optional($._coproc_declaration_lead),
+        ),
+      _coproc_declaration_lead: ($) =>
+        choice(
+          seq(
+            $._word_separator,
+            choice(
+              declarationEndSuffix($),
+              seq(
+                field(
+                  "assignment",
+                  alias(
+                    $._coproc_declaration_assignment_word,
+                    $.assignment_word,
+                  ),
+                ),
+                optional($._coproc_declaration_lead),
+              ),
+              seq(
+                field("argument", alias($._command_word, $.word)),
+                optional($._declaration_suffix),
+              ),
+            ),
+          ),
+          ...redirectedSuffixes($),
+        ),
+      _coproc_raw_command: ($) =>
+        seq(
+          field("name", alias($._raw_command_word, $.word)),
+          optional($._coproc_raw_lead),
+        ),
+      _coproc_raw_lead: ($) =>
+        choice(
+          seq(
+            $._word_separator,
+            choice(
+              declarationEndSuffix($),
+              seq(
+                $._coproc_raw_argument_start,
+                field("argument", $.word),
+                optional($._coproc_raw_lead),
+              ),
+              seq(
+                field("argument", alias($._command_word, $.word)),
+                optional($._raw_command_suffix),
+              ),
+            ),
+          ),
+          ...redirectedSuffixes($),
+        ),
 
       _redirectable_compound_command: ($) => redirectableCompoundCommand($),
 
@@ -2046,7 +2102,7 @@ export default function defineGrammar(name) {
             repeat(
               choice(
                 seq(
-                  $._assignment_separator,
+                  $._scalar_assignment_separator,
                   field(
                     "assignment",
                     alias($._scalar_assignment_word, $.assignment_word),
@@ -2091,11 +2147,7 @@ export default function defineGrammar(name) {
           seq(
             $._word_separator,
             choice(
-              seq(
-                $._declaration_end,
-                field("argument", $.word),
-                optional($._cmd_suffix),
-              ),
+              declarationEndSuffix($),
               seq(
                 $._raw_argument_start,
                 field("argument", $.word),
@@ -2317,9 +2369,19 @@ export default function defineGrammar(name) {
         assignmentWord($, choice($.assignment_value, $.array_assignment)),
       _scalar_assignment_word: ($) => assignmentWord($, $.assignment_value),
       _declaration_assignment_word: ($) =>
-        assignmentWord($, choice($.assignment_value, $.array_assignment), true),
+        assignmentWord(
+          $,
+          choice($.assignment_value, $.array_assignment),
+          $._declaration_assignment_start,
+        ),
       _scalar_declaration_assignment_word: ($) =>
-        assignmentWord($, $.assignment_value, true),
+        assignmentWord($, $.assignment_value, $._declaration_assignment_start),
+      _coproc_declaration_assignment_word: ($) =>
+        assignmentWord(
+          $,
+          choice($.assignment_value, $.array_assignment),
+          $._coproc_declaration_assignment_start,
+        ),
       _assignment_operator: ($) =>
         choice(physical($, $._punct_equals, "="), $.assignment_append),
       assignment_append: lexeme("_assignment_append_begin"),
@@ -2570,13 +2632,7 @@ export default function defineGrammar(name) {
             $._parameter_pattern_bracket_range,
             $.pattern_bracket_range_source,
           ),
-          ...patternBracketPlainAtoms(
-            $,
-            alias(
-              $._parameter_pattern_bracket_character,
-              $.pattern_bracket_character_source,
-            ),
-          ),
+          ...patternBracketPlainAtoms($, parameterPatternBracketCharacter($)),
         ),
 
       pattern_bracket_range_source: ($) =>
@@ -2602,13 +2658,7 @@ export default function defineGrammar(name) {
 
       _parameter_pattern_bracket_range_endpoint: ($) =>
         choice(
-          ...patternBracketPlainAtoms(
-            $,
-            alias(
-              $._parameter_pattern_bracket_character,
-              $.pattern_bracket_character_source,
-            ),
-          ),
+          ...patternBracketPlainAtoms($, parameterPatternBracketCharacter($)),
           parameterPatternCollatingSymbolSource($),
         ),
 
@@ -3524,6 +3574,8 @@ export default function defineGrammar(name) {
 
       _assignment_separator: ($) =>
         wordSeparator($, $._assignment_separator_begin),
+      _scalar_assignment_separator: ($) =>
+        wordSeparator($, $._scalar_assignment_separator_begin),
 
       _redirect_separator: ($) => wordSeparator($, $._redirect_separator_begin),
 

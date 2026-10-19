@@ -1,7 +1,7 @@
 ==================
 basic parameter forms and patterns
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo $x ${x} ${x:-default} ${#x} ${x%%a*} "$@"
 
@@ -46,7 +46,7 @@ echo $x ${x} ${x:-default} ${#x} ${x%%a*} "$@"
 ==================
 extquote inside quoted parameter
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo "${x:-$'\u3042'}" "${x:-$"hello"}"
 
@@ -80,7 +80,7 @@ echo "${x:-$'\u3042'}" "${x:-$"hello"}"
 ==================
 indirection and enumeration
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${!ref} ${!prefix*} ${!prefix@} ${!arr[@]} ${!arr[*]} ${!ref@Q}
 
@@ -137,7 +137,7 @@ echo ${!ref} ${!prefix*} ${!prefix@} ${!arr[@]} ${!arr[*]} ${!ref@Q}
 ==================
 special parameter indirection preserves operators and targets
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${!!} "${!$}" ${!$:-x} ${!-}
@@ -191,7 +191,7 @@ special parameter indirection preserves operators and targets
 ==================
 parameter arrays and length
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${arr[x+y]} ${arr[$x]} ${arr["a ] b"]} ${arr[b[2]]} ${#arr[@]}
 
@@ -255,7 +255,7 @@ echo ${arr[x+y]} ${arr[$x]} ${arr["a ] b"]} ${arr[b[2]]} ${#arr[@]}
 ==================
 parameter value operators
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x:-a} ${x:=a} ${x:+a} ${x:?a} ${x-a} ${x+a} ${x=a} ${x?a}
 
@@ -321,7 +321,7 @@ echo ${x:-a} ${x:=a} ${x:+a} ${x:?a} ${x-a} ${x+a} ${x=a} ${x?a}
 ==================
 substring operands
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x:1:2} ${x: -2} ${x:(a?b:c):d} ${x:a?b:c:d} ${x:${n}:$((m+1))}
 
@@ -404,7 +404,7 @@ echo ${x:1:2} ${x: -2} ${x:(a?b:c):d} ${x:a?b:c:d} ${x:${n}:$((m+1))}
 ==================
 parameter replacement
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x/a/b} ${x//a/b} ${x/#a/b} ${x/%a/b} ${x/a} ${x/a/} ${x//\//x} ${x/[a/]/b}
 
@@ -497,7 +497,7 @@ echo ${x/a/b} ${x//a/b} ${x/#a/b} ${x/%a/b} ${x/a} ${x/a/} ${x//\//x} ${x/[a/]/b
 ==================
 quoted replacement
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo "${x//a/'b c'}" "${x/a/$'\n'}" ${x/a/$(echo hi)}
 
@@ -559,7 +559,7 @@ echo "${x//a/'b c'}" "${x/a/$'\n'}" ${x/a/$(echo hi)}
 ==================
 case toggle operators and pattern boundaries
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${x~} "${x~~?}" ${x~~~}
@@ -611,7 +611,7 @@ case toggle operators and pattern boundaries
 ==================
 case conversion and transformations
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x^} ${x^^[ab]} ${x,?} ${x,,} ${x@U} ${x@u} ${x@L} ${x@Q} ${x@E} ${x@P} ${x@A} ${x@K} ${x@a} ${x@k}
 
@@ -715,7 +715,7 @@ echo ${x^} ${x^^[ab]} ${x,?} ${x,,} ${x@U} ${x@u} ${x@L} ${x@Q} ${x@E} ${x@P} ${
 
 ==================
 extglob in parameter patterns
-:language(bash_extglob)
+:language(bash)
 ==================
 echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 
@@ -770,7 +770,7 @@ echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 
 ==================
 disabled parameter extglobs remain ordinary pattern source
-:language(bash)
+:language(bash_default)
 ==================
 echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 
@@ -810,7 +810,7 @@ echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 
 ==================
 disabled parameter extglobs preserve quotes expansions and special parameters
-:language(bash)
+:language(bash_default)
 ==================
 echo ${x:-@("$y"|$(printf Z))} ${x/a/@(b|c)} ${x:-$@(a|b)}
 
@@ -868,7 +868,7 @@ echo ${x:-@("$y"|$(printf Z))} ${x/a/@(b|c)} ${x:-$@(a|b)}
 ==================
 quoted parameter process source
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo "${x:-<(echo hi)}"
 
@@ -893,7 +893,7 @@ echo "${x:-<(echo hi)}"
 ==================
 quoted parameter extglob value
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo "${x:-@(a|b)}"
 
@@ -918,7 +918,7 @@ echo "${x:-@(a|b)}"
 ==================
 parameter process replacement
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x/a/<(echo hi)}
 
@@ -956,7 +956,7 @@ echo ${x/a/<(echo hi)}
 ==================
 special exclamation parameter operators
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${!:-none} ${!-none} ${!+yes}
 
@@ -992,7 +992,7 @@ echo ${!:-none} ${!-none} ${!+yes}
 ==================
 replacement separators precede bracket and extglob patterns
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${x//[a/]/X} ${x//[a\/]/X} ${x/@(a/b)/X}
 
@@ -1042,7 +1042,7 @@ echo ${x//[a/]/X} ${x//[a\/]/X} ${x/@(a/b)/X}
 
 ==================
 parameter extglobs retain bracket members and partial brackets
-:language(bash_extglob)
+:language(bash)
 ==================
 echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 
@@ -1090,7 +1090,7 @@ echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 
 ==================
 disabled parameter extglobs retain ordinary brackets
-:language(bash)
+:language(bash_default)
 ==================
 echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 
@@ -1132,7 +1132,7 @@ echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 ==================
 parameter array keys retain unmatched parentheses
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo ${a[(]} "${a[)]}" ${a[(key)]} after
 
@@ -1177,7 +1177,7 @@ echo ${a[(]} "${a[)]}" ${a[(key)]} after
 ==================
 substring separators across quotes nested expansions and source parentheses
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : "${x:1?${n:-2}:$(printf 3):a["1:2"]}" ${x:(${y:1?2:3:4}):`printf 2`} ${x:a[1:2]}
 
@@ -1280,7 +1280,7 @@ substring separators across quotes nested expansions and source parentheses
 ==================
 substring arithmetic hierarchy and incomplete source lexemes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : "${s: (n > 0 ? 1 : 0):2}" ${s:0x$y:2+3*4} ${s:(x y)+08: a["1:2"] }
 
@@ -1358,7 +1358,7 @@ substring arithmetic hierarchy and incomplete source lexemes
 ==================
 quoted parameter single-quote boundaries
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : "${x:-'"'}" "${x:-'a}b'}" "${x:-'${y}'}"
 : {a,"${x:-'"'}"}
@@ -1418,7 +1418,7 @@ quoted parameter single-quote boundaries
 
 ==================
 substring operands share arithmetic precedence and conditional fields
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : "${s: (n > 0 ? 1 : 0):2}"
@@ -1464,7 +1464,7 @@ substring operands share arithmetic precedence and conditional fields
 
 ==================
 parameter replacement and substring operands retain separate fields
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 echo ${x//[a/]/日} ${x:(a?b:c):2}
@@ -1517,7 +1517,7 @@ echo ${x//[a/]/日} ${x:(a?b:c):2}
 
 ==================
 substring fields distinguish absent operands from whitespace source
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : ${x:} ${x::} ${x: 	: 
@@ -1567,7 +1567,7 @@ substring fields distinguish absent operands from whitespace source
 ==================
 substring operands retain source without requiring valid arithmetic
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${x:1?2} ${x:(1} ${x:1)} ${x:0:1:2}
@@ -1640,7 +1640,7 @@ substring operands retain source without requiring valid arithmetic
 ==================
 unterminated parameter extglobs remain source within their expansion
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
@@ -1701,7 +1701,7 @@ echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
 ==================
 array and substring sources preserve Bash dollar quotes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
@@ -1785,7 +1785,7 @@ a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
 ==================
 nested parameter operators preserve each enclosing word boundary
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${x:-${y:0:1}:suffix} ${x:-${y/a/b}/suffix} ${x/${y:-a\/b}/"${z:-c}d"}
@@ -1879,7 +1879,7 @@ nested parameter operators preserve each enclosing word boundary
 
 ==================
 substring source keeps incomplete lexemes and each operand's known structure
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : ${s:0x$y:2+3*4} ${s:(x y)+08: a["1:2"] }
@@ -1951,7 +1951,7 @@ substring source keeps incomplete lexemes and each operand's known structure
 
 ==================
 substring boundaries resume outside quoted and nested expansion sources
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : "${x:1?${n:-2}:$(printf 3):a["1:2"]}" ${x:(${y:1?2:3:4}):`printf 2`}
@@ -2066,7 +2066,7 @@ substring boundaries resume outside quoted and nested expansion sources
 ==================
 name enumeration prefixes keep stars and end at operators
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${!x*y*} ${!x*!x@} ${!x[a:b]*} ${!x~*} ${!x[1]:-*} ${!-*}
@@ -2147,7 +2147,7 @@ name enumeration prefixes keep stars and end at operators
 ==================
 name enumeration prefixes protect operators only inside closed subscripts
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : ${!x\:[a:b]!*} ${!x[*}
 
@@ -2179,7 +2179,7 @@ name enumeration prefixes protect operators only inside closed subscripts
 ==================
 name enumeration operators after non-name prefix characters or unclosed subscripts are indirections "${!x.y:-*} ${!x!x-*} ${!xy[:-*}"
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :error
 ==================
 : ${!x.y:-*} ${!x!x-*} ${!xy[:-*}
@@ -2189,7 +2189,7 @@ name enumeration operators after non-name prefix characters or unclosed subscrip
 ==================
 name enumeration leaves the backslash before its final operator in the prefix
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :cst
 ==================
 : ${!x\*} "${!x\@}"
@@ -2230,7 +2230,7 @@ name enumeration leaves the backslash before its final operator in the prefix
 ==================
 name enumeration retains nested expansions rejected by Bash
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : ${!x${y}*} ${!x$(printf '}')*}
 
@@ -2274,7 +2274,7 @@ name enumeration retains nested expansions rejected by Bash
 ==================
 special parameters followed by brackets are operators not length operands
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : ${##[1]} ${#-[1]/a/b} ${#?[@]:-x} ${#_[1]}
 

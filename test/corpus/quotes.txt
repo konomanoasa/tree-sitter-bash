@@ -1,7 +1,7 @@
 ==================
 single double and dollar single quotes retain source
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo '$x' "a$x\"" $'line\n' \*
 
@@ -34,7 +34,7 @@ echo '$x' "a$x\"" $'line\n' \*
 ==================
 locale quotation and ANSI-C escapes
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
 
@@ -67,7 +67,7 @@ echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
 ==================
 ANSI-C control escapes close at the first unescaped quote
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 : $'\c' $'\c\'' $'\c\\' $'\cA' $'\c\x'
 
@@ -99,7 +99,7 @@ ANSI-C control escapes close at the first unescaped quote
 
 ==================
 quoted pattern spelling and parameter values remain literal
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 echo "@(a|b)" "{a,b}" "${x:-@(a|b)}" "${x:-<(echo hi)}"
@@ -152,7 +152,7 @@ echo "@(a|b)" "{a,b}" "${x:-@(a|b)}" "${x:-<(echo hi)}"
 
 ==================
 quoted parameter dollar quotes preserve source before expansion-time rescanning
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 : "${x:-$'${y}'}" "${x:-$'a}b'}"

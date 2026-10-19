@@ -20,7 +20,7 @@
 #define TREE_SITTER_SERIALIZATION_BUFFER_SIZE 1024
 #endif
 
-#define SCANNER_SERIALIZATION_VERSION 39
+#define SCANNER_SERIALIZATION_VERSION 40
 #define SCANNER_STATE_CAPACITY (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - 1)
 #define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 /* `function` is the longest reserved word; the buffers hold a terminator. */
@@ -103,6 +103,7 @@ enum TokenType {
   WORD_SEPARATOR_BEGIN,
   TERM_CONTINUATION,
   ASSIGNMENT_SEPARATOR_BEGIN,
+  SCALAR_ASSIGNMENT_SEPARATOR_BEGIN,
   REDIRECT_SEPARATOR_BEGIN,
   PRE_NEWLINE_BLANK,
   COMMAND_SUBSTITUTION_END,
@@ -362,12 +363,14 @@ enum TokenType {
   EMPTY_BANG_BEGIN,
   DECLARATION_END,
   DECLARATION_ASSIGNMENT_START,
+  COPROC_DECLARATION_ASSIGNMENT_START,
   COMMAND_WORD_START,
   BRACE_WORD_START,
   BRACE_WORD_END,
   EMPTY_TIME_KEYWORD,
   RAW_COMMAND_NAME_BEGIN,
   RAW_ARGUMENT_START,
+  COPROC_RAW_ARGUMENT_START,
   RAW_LAYOUT_START,
 #define LEXICAL_SOURCE_ENUM(begin, piece) piece,
   BASH_LEXICAL_SOURCE_TOKENS(LEXICAL_SOURCE_ENUM)
@@ -640,6 +643,20 @@ struct HereDocumentFrame {
   bool at_line_start;
 };
 
+enum QuoteMode {
+  QUOTE_PLAIN,
+  QUOTE_DOUBLE,
+  QUOTE_PARAMETER,
+};
+
+static enum QuoteMode quote_double(enum QuoteMode parent) {
+  return parent == QUOTE_PARAMETER ? QUOTE_PARAMETER : QUOTE_DOUBLE;
+}
+
+static enum QuoteMode quote_parameter(enum QuoteMode parent) {
+  return parent == QUOTE_PLAIN ? QUOTE_PLAIN : QUOTE_PARAMETER;
+}
+
 struct SourceContext {
   enum TokenType opener;
   size_t stage_count;
@@ -659,6 +676,7 @@ struct SourceContext {
   bool raw_argument;
   bool raw_element_start;
   bool local_disabled;
+  uint8_t quote;
 };
 
 struct Scanner {
@@ -719,6 +737,11 @@ static bool is_word_context(enum TokenType symbol) {
     symbol == BRACE_WORD_START ||
     symbol == DECLARATION_ASSIGNMENT_START ||
     symbol == ASSIGNMENT_ARGUMENT_START;
+}
+
+static bool assignment_separator_is_valid(const bool *valid) {
+  return valid[ASSIGNMENT_SEPARATOR_BEGIN] ||
+    valid[SCALAR_ASSIGNMENT_SEPARATOR_BEGIN];
 }
 
 static bool is_arithmetic_field_context(enum TokenType opener) {
@@ -955,6 +978,7 @@ static bool serialize_source_contexts(
       !write_state_size(writer, context->opener) ||
       !write_state_size(writer, context->stage_count) ||
       !write_state_size(writer, context->count) ||
+      !write_state_byte(writer, context->quote) ||
       (is_bracket_fallback_context(context->opener) &&
         !write_state_size(writer, context->bracket_chains)) ||
       (is_here_document_context(context->opener) &&
@@ -1228,6 +1252,9 @@ static bool deserialize_context_fields(
   struct SerializedScannerState *state,
   struct SourceContext *context
 ) {
+  uint8_t quote;
+  if (!read_byte(state, &quote) || quote > QUOTE_PARAMETER) return false;
+  context->quote = quote;
   size_t chains = 0;
   if (is_bracket_fallback_context(context->opener)) {
     if (!read_size(state, &chains) || chains >= BRACKET_CHAINS_LIMIT)
@@ -1286,7 +1313,7 @@ static bool deserialize_source_contexts(
   size_t count;
   if (
     !read_size(state, &count) ||
-    count > (state->length - state->offset) / 4 ||
+    count > (state->length - state->offset) / 5 ||
     count > SIZE_MAX / sizeof(*scanner->contexts)
   ) {
     return false;
@@ -1538,6 +1565,44 @@ static enum TokenType top_context_opener(const struct Scanner *scanner) {
 
 static struct SourceContext *top_context(struct Scanner *scanner) {
   return &scanner->contexts[scanner->context_count - 1];
+}
+
+static enum QuoteMode source_quote(const struct Scanner *scanner) {
+  return scanner == NULL || scanner->context_count == 0
+    ? QUOTE_PLAIN
+    : scanner->contexts[scanner->context_count - 1].quote;
+}
+
+static enum QuoteMode
+quote_after_token(enum QuoteMode parent, enum TokenType token) {
+  switch (token) {
+    case DQ_OPEN:
+    case BRACKET_ARITHMETIC_OPEN:
+      return quote_double(parent);
+    case PARAMETER_OPEN:
+      return quote_parameter(parent);
+    case COMMAND_OPEN:
+    case CURRENT_SHELL_OPEN:
+    case REPLY_OPEN:
+    case BACKQUOTE_START:
+    case DOUBLE_QUOTED_BACKQUOTE_START:
+    case PARAMETER_PATTERN_OPERATOR_BEGIN:
+    case PARAMETER_REPLACE_BEGIN:
+    case REPLACEMENT_SEPARATOR_BEGIN:
+    case PARAMETER_CASE_BEGIN:
+      return QUOTE_PLAIN;
+    case HERE_DOCUMENT_BODY_START:
+    case ARITHMETIC_EXPANSION_OPEN:
+    case ARITHMETIC_COMMAND_OPEN:
+    case FOR_ARITHMETIC_OPEN:
+    case SUBSCRIPT_OPEN:
+    case ARITHMETIC_SUBSCRIPT_OPEN:
+    case PARAMETER_SUBSTRING_BEGIN:
+    case SUBSTRING_SEPARATOR_BEGIN:
+      return QUOTE_DOUBLE;
+    default:
+      return parent;
+  }
 }
 
 static bool arithmetic_for_context(const struct Scanner *scanner) {
@@ -2752,10 +2817,12 @@ static enum ArithmeticValidation skip_embedded_construct(
   bool force_extglob
 );
 
+static enum ArithmeticValidation
+skip_subscript_source(const struct Scanner *scanner, TSLexer *lexer);
+
 static bool skip_subscript_body(const struct Scanner *scanner, TSLexer *lexer) {
   lexer->advance(lexer, false);
-  return skip_embedded_construct(scanner, lexer, ']', false) ==
-    ARITHMETIC_VALIDATION_VALID;
+  return skip_subscript_source(scanner, lexer) == ARITHMETIC_VALIDATION_VALID;
 }
 static enum ArithmeticValidation skip_extglob_pattern(
   const struct Scanner *scanner,
@@ -2944,13 +3011,21 @@ static enum TokenType pattern_context(const struct Scanner *scanner) {
   return context == NULL ? TOKEN_COUNT : context->opener;
 }
 
+/* Openers that continue the word they appear in. */
+static bool is_word_piece_opener(enum TokenType opener) {
+  return opener == BRACE_OPEN ||
+    opener == BRACE_LITERAL_OPEN ||
+    opener == WORD_TILDE_START ||
+    opener == ASSIGNMENT_TILDE_START ||
+    opener == WORD_FALLBACK_LITERAL_BEGIN ||
+    opener == ASSIGNMENT_FALLBACK_LITERAL_BEGIN;
+}
+
 static const struct SourceContext *
 word_source_context(const struct Scanner *scanner, bool braces_only) {
   for (size_t count = scanner->context_count; count > 0; count--) {
     const struct SourceContext *context = &scanner->contexts[count - 1];
     switch (context->opener) {
-      case SUBSCRIPT_OPEN:
-        break;
       case DECLARATION_ASSIGNMENT_START:
       case BRACE_WORD_START:
         return context;
@@ -2958,16 +3033,11 @@ word_source_context(const struct Scanner *scanner, bool braces_only) {
       case ARRAY_WORD_START:
         if (!braces_only) return context;
         break;
-      case BRACE_OPEN:
-      case BRACE_LITERAL_OPEN:
+      case SUBSCRIPT_OPEN:
       case EXTGLOB_OPEN:
-      case WORD_TILDE_START:
-      case ASSIGNMENT_TILDE_START:
-      case WORD_FALLBACK_LITERAL_BEGIN:
-      case ASSIGNMENT_FALLBACK_LITERAL_BEGIN:
         break;
       default:
-        return NULL;
+        if (!is_word_piece_opener(context->opener)) return NULL;
     }
   }
   return NULL;
@@ -3039,17 +3109,7 @@ raw_word_context(const struct Scanner *scanner) {
     const struct SourceContext *context = &scanner->contexts[count - 1];
     if (context->raw_argument)
       return context->word_remaining > 0 ? context : NULL;
-    switch (context->opener) {
-      case BRACE_OPEN:
-      case BRACE_LITERAL_OPEN:
-      case WORD_TILDE_START:
-      case ASSIGNMENT_TILDE_START:
-      case WORD_FALLBACK_LITERAL_BEGIN:
-      case ASSIGNMENT_FALLBACK_LITERAL_BEGIN:
-        break;
-      default:
-        return NULL;
-    }
+    if (!is_word_piece_opener(context->opener)) return NULL;
   }
   return NULL;
 }
@@ -3268,6 +3328,7 @@ enum ParameterQuoteState {
   PARAMETER_QUOTE_OPERATOR,
   PARAMETER_QUOTE_COLON,
   PARAMETER_QUOTE_WORD,
+  PARAMETER_QUOTE_ERROR,
   PARAMETER_QUOTE_PATTERN,
   PARAMETER_QUOTE_ARITHMETIC,
 };
@@ -3324,19 +3385,22 @@ parameter_quote_step(struct ParameterQuote *quote, int32_t character) {
       }
       return true;
     case PARAMETER_QUOTE_COLON:
-      quote->state = is_one_of(character, "-+=?") ? PARAMETER_QUOTE_WORD
-                                                  : PARAMETER_QUOTE_ARITHMETIC;
+      quote->state = character == '?' ? PARAMETER_QUOTE_ERROR
+        : is_one_of(character, "-+=") ? PARAMETER_QUOTE_WORD
+                                      : PARAMETER_QUOTE_ARITHMETIC;
       return true;
     case PARAMETER_QUOTE_OPERATOR:
       break;
     case PARAMETER_QUOTE_WORD:
+    case PARAMETER_QUOTE_ERROR:
     case PARAMETER_QUOTE_PATTERN:
     case PARAMETER_QUOTE_ARITHMETIC:
       return true;
   }
-  quote->state = character == ':'   ? PARAMETER_QUOTE_COLON
-    : is_one_of(character, "#%/^,") ? PARAMETER_QUOTE_PATTERN
-                                    : PARAMETER_QUOTE_WORD;
+  quote->state = character == ':'    ? PARAMETER_QUOTE_COLON
+    : character == '?'               ? PARAMETER_QUOTE_ERROR
+    : is_one_of(character, "#%/^,~") ? PARAMETER_QUOTE_PATTERN
+                                     : PARAMETER_QUOTE_WORD;
   return true;
 }
 
@@ -5475,7 +5539,7 @@ static bool scan_element_boundary(
   if (
     crossed_layout &&
     (valid_symbols[WORD_SEPARATOR_BEGIN] ||
-      valid_symbols[ASSIGNMENT_SEPARATOR_BEGIN] ||
+      assignment_separator_is_valid(valid_symbols) ||
       valid_symbols[REDIRECT_SEPARATOR_BEGIN]) &&
     is_word_element_start(lexer)
   ) {
@@ -5551,7 +5615,7 @@ scan_redirect_descriptor(const struct Scanner *scanner, TSLexer *lexer) {
 static struct SeparatorTarget scan_separator_target(
   const struct Scanner *scanner,
   TSLexer *lexer,
-  bool declaration
+  bool word_boundary
 ) {
   struct SeparatorTarget target = {0};
   int32_t character = lexer->lookahead;
@@ -5564,7 +5628,9 @@ static struct SeparatorTarget scan_separator_target(
     target.redirect = scan_redirect_operator(lexer);
   } else if (is_name_start_character(character)) {
     advance_name(lexer);
-    if (lexer->lookahead == '[' && !skip_subscript(scanner, lexer, declaration))
+    if (
+      lexer->lookahead == '[' && !skip_subscript(scanner, lexer, word_boundary)
+    )
       return target;
     if (lexer->lookahead == '+') lexer->advance(lexer, false);
     target.assignment = lexer->lookahead == '=';
@@ -5572,17 +5638,25 @@ static struct SeparatorTarget scan_separator_target(
   return target;
 }
 
+/* After a redirection that follows an assignment, Bash reads a subscript
+   only within the word. */
 static bool classify_word_separator(
   const struct Scanner *scanner,
   TSLexer *lexer,
   const bool *valid_symbols
 ) {
   lexer->mark_end(lexer);
-  struct SeparatorTarget target = scan_separator_target(scanner, lexer, false);
+  bool scalar = !valid_symbols[ASSIGNMENT_SEPARATOR_BEGIN] &&
+    valid_symbols[SCALAR_ASSIGNMENT_SEPARATOR_BEGIN];
+  struct SeparatorTarget target = scan_separator_target(scanner, lexer, scalar);
 
-  if (target.assignment && valid_symbols[ASSIGNMENT_SEPARATOR_BEGIN]) {
-    lexer->result_symbol = ASSIGNMENT_SEPARATOR_BEGIN;
-    return true;
+  if (target.assignment) {
+    enum TokenType symbol =
+      scalar ? SCALAR_ASSIGNMENT_SEPARATOR_BEGIN : ASSIGNMENT_SEPARATOR_BEGIN;
+    if (valid_symbols[symbol]) {
+      lexer->result_symbol = symbol;
+      return true;
+    }
   }
   if (target.redirect && valid_symbols[REDIRECT_SEPARATOR_BEGIN]) {
     lexer->result_symbol = REDIRECT_SEPARATOR_BEGIN;
@@ -5959,6 +6033,7 @@ static bool append_arithmetic_expansion(struct ArithmeticScan *scan) {
 
 enum EmbeddedFrameKind {
   EMBEDDED_SOURCE,
+  EMBEDDED_SUBSCRIPT,
   EMBEDDED_PARENTHESES,
   EMBEDDED_ARRAY,
   EMBEDDED_CONDITIONAL,
@@ -5972,9 +6047,9 @@ struct EmbeddedFrame {
   char closer;
   enum EmbeddedFrameKind kind;
   struct CommandTracker command;
-  bool double_quoted_parameter;
   bool regex;
   bool pattern;
+  uint8_t quote;
   struct ParameterQuote parameter_quote;
   struct LookaheadContext source_context;
 };
@@ -5987,6 +6062,7 @@ struct EmbeddedSkip {
   struct HereDocumentList pending;
   bool started;
   bool force_extglob;
+  enum QuoteMode initial_quote;
 };
 
 static void clear_embedded_skip(struct EmbeddedSkip *skip) {
@@ -6027,12 +6103,39 @@ static bool embedded_pop_frame(struct EmbeddedSkip *skip) {
   return true;
 }
 
+static enum QuoteMode embedded_quote(const struct EmbeddedFrame *frame) {
+  if (frame->kind == EMBEDDED_SOURCE && frame->closer == '}') {
+    if (
+      frame->parameter_quote.state == PARAMETER_QUOTE_PATTERN ||
+      frame->parameter_quote.state == PARAMETER_QUOTE_ERROR
+    )
+      return quote_after_token(frame->quote, PARAMETER_PATTERN_OPERATOR_BEGIN);
+    if (
+      frame->parameter_quote.state == PARAMETER_QUOTE_ARITHMETIC ||
+      frame->parameter_quote.state == PARAMETER_QUOTE_SUBSCRIPT
+    )
+      return quote_after_token(frame->quote, PARAMETER_SUBSTRING_BEGIN);
+  }
+  return frame->quote;
+}
+
 static bool embedded_push_frame(
   struct EmbeddedSkip *skip,
   char closer,
-  enum EmbeddedFrameKind kind,
-  bool double_quoted
+  enum EmbeddedFrameKind kind
 ) {
+  enum QuoteMode parent = skip->frame_count > 0
+    ? embedded_quote(&skip->frames[skip->frame_count - 1])
+    : skip->initial_quote;
+  enum QuoteMode quote = parent;
+  if (kind == EMBEDDED_COMMAND_SUBSTITUTION) quote = QUOTE_PLAIN;
+  else if (kind == EMBEDDED_SUBSCRIPT) quote = QUOTE_DOUBLE;
+  else if (kind == EMBEDDED_SOURCE && closer == '"')
+    quote = quote_double(parent);
+  else if (kind == EMBEDDED_SOURCE && closer == '}')
+    quote = quote_parameter(parent);
+  else if (kind == EMBEDDED_SOURCE && closer == ']')
+    quote = quote_after_token(parent, BRACKET_ARITHMETIC_OPEN);
   struct EmbeddedFrame *frames = source_grow(
     skip->frames,
     &skip->frame_capacity,
@@ -6046,8 +6149,7 @@ static bool embedded_push_frame(
   skip->frames[skip->frame_count] = (struct EmbeddedFrame){
     .closer = closer,
     .kind = kind,
-    .double_quoted_parameter =
-      kind == EMBEDDED_SOURCE && closer == '}' && double_quoted,
+    .quote = quote,
   };
   reset_command_position(
     &skip->frames[skip->frame_count].command,
@@ -6066,8 +6168,7 @@ static bool embedded_push_source(
   if (!embedded_push_frame(
         skip,
         closer,
-        closer == '`' ? EMBEDDED_COMMAND_SUBSTITUTION : EMBEDDED_SOURCE,
-        false
+        closer == '`' ? EMBEDDED_COMMAND_SUBSTITUTION : EMBEDDED_SOURCE
       )) {
     return false;
   }
@@ -6103,8 +6204,7 @@ static bool embedded_extglob(
 static enum ArithmeticValidation embedded_push_dollar_group(
   const struct Scanner *scanner,
   struct EmbeddedSkip *skip,
-  TSLexer *lexer,
-  bool double_quoted
+  TSLexer *lexer
 ) {
   bool command_context = lexer->lookahead == '(';
   char closer = dollar_group_closer(lexer->lookahead);
@@ -6123,8 +6223,7 @@ static enum ArithmeticValidation embedded_push_dollar_group(
   return embedded_push_frame(
            skip,
            closer,
-           command_context ? EMBEDDED_COMMAND_SUBSTITUTION : EMBEDDED_SOURCE,
-           double_quoted
+           command_context ? EMBEDDED_COMMAND_SUBSTITUTION : EMBEDDED_SOURCE
          )
     ? ARITHMETIC_VALIDATION_VALID
     : ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
@@ -6214,7 +6313,7 @@ static void embedded_walk_push(
   char closer,
   enum EmbeddedFrameKind kind
 ) {
-  if (!embedded_push_frame(walk->skip, closer, kind, false))
+  if (!embedded_push_frame(walk->skip, closer, kind))
     walk->result = ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
 }
 
@@ -6307,8 +6406,9 @@ static void embedded_quoted_step(
     return;
   }
   if (character == '`' || character == '"') {
+    bool decode = frame->closer == '"' && embedded_quote(frame) == QUOTE_DOUBLE;
     lexer->advance(lexer, false);
-    if (!embedded_push_source(walk->skip, lexer, (char)character, true)) {
+    if (!embedded_push_source(walk->skip, lexer, (char)character, decode)) {
       walk->result = ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
     }
     return;
@@ -6320,7 +6420,7 @@ static void embedded_quoted_step(
         walk->result = ARITHMETIC_VALIDATION_INCOMPLETE;
     } else if (is_dollar_group_opener(lexer->lookahead)) {
       walk->result =
-        embedded_push_dollar_group(walk->scanner, walk->skip, lexer, true);
+        embedded_push_dollar_group(walk->scanner, walk->skip, lexer);
     } else {
       skip_dollar_parameter(lexer, NULL);
     }
@@ -6334,8 +6434,7 @@ static void embedded_dollar(struct EmbeddedWalk *walk, bool in_command) {
   lexer->advance(lexer, false);
   embedded_note_word(walk->skip, in_command);
   if (is_dollar_group_opener(lexer->lookahead)) {
-    walk->result =
-      embedded_push_dollar_group(walk->scanner, walk->skip, lexer, false);
+    walk->result = embedded_push_dollar_group(walk->scanner, walk->skip, lexer);
     return;
   }
   if (lexer->lookahead == '\'') {
@@ -6605,7 +6704,7 @@ static bool embedded_left_bracket_step(
     frame->command.word.head = COMMAND_WORD_SUBSCRIPT;
     frame->command.word.name = false;
     frame->command.word.candidate = false;
-    embedded_walk_push(walk, ']', EMBEDDED_SOURCE);
+    embedded_walk_push(walk, ']', EMBEDDED_SUBSCRIPT);
     return true;
   }
   return false;
@@ -6686,7 +6785,7 @@ static bool embedded_closer_step(
   }
   if (!in_command && frame->closer == ']' && character == '[') {
     lexer->advance(lexer, false);
-    embedded_walk_push(walk, ']', EMBEDDED_SOURCE);
+    embedded_walk_push(walk, ']', EMBEDDED_SUBSCRIPT);
     return true;
   }
   if (character == ']' && frame->closer == ']') {
@@ -6728,6 +6827,7 @@ static struct EmbeddedRoles embedded_roles(const struct EmbeddedFrame *frame) {
     .array = frame->kind == EMBEDDED_ARRAY,
   };
   roles.in_command = frame->kind != EMBEDDED_SOURCE &&
+    frame->kind != EMBEDDED_SUBSCRIPT &&
     frame->kind != EMBEDDED_PARENTHESES &&
     !roles.conditional &&
     !roles.array;
@@ -6754,7 +6854,9 @@ static void embedded_step(
       return;
     }
   }
-  bool quoted_parameter = frame->double_quoted_parameter &&
+  bool quoted_parameter = frame->kind == EMBEDDED_SOURCE &&
+    frame->closer == '}' &&
+    frame->quote == QUOTE_PARAMETER &&
     parameter_inherits_quotes(&frame->parameter_quote);
   if (character == SOURCE_BACKQUOTE_BOUNDARY) {
     embedded_backquote_boundary(walk, frame);
@@ -6781,7 +6883,7 @@ static void embedded_step(
   if (array && character == '[' && !frame->command.word.active) {
     embedded_note_word(skip, true);
     lexer->advance(lexer, false);
-    embedded_walk_push(walk, ']', EMBEDDED_SOURCE);
+    embedded_walk_push(walk, ']', EMBEDDED_SUBSCRIPT);
     return;
   }
   if (array && !is_one_of(character, "()")) {
@@ -6796,11 +6898,13 @@ static void embedded_step(
 }
 
 static bool begin_embedded_frames(
+  const struct Scanner *scanner,
   TSLexer *lexer,
   char initial_closer,
-  bool double_quoted,
+  bool reset_quote,
   struct EmbeddedSkip *skip
 ) {
+  skip->initial_quote = reset_quote ? QUOTE_DOUBLE : source_quote(scanner);
   bool braced_command =
     initial_closer == '}' && braced_command_follows(lexer->lookahead);
   if (braced_command && lexer->lookahead == '|') lexer->advance(lexer, false);
@@ -6808,8 +6912,7 @@ static bool begin_embedded_frames(
         skip,
         initial_closer,
         initial_closer == ')' || braced_command ? EMBEDDED_COMMAND_SUBSTITUTION
-                                                : EMBEDDED_SOURCE,
-        double_quoted
+                                                : EMBEDDED_SOURCE
       ))
     return false;
   skip->started = true;
@@ -6817,7 +6920,9 @@ static bool begin_embedded_frames(
   skip->frames[0].kind = EMBEDDED_COMMAND_SUBSTITUTION;
   return lookahead_backquote_begin(
     lexer,
-    double_quoted,
+    scanner != NULL &&
+      top_context_opener(scanner) == DQ_OPEN &&
+      source_quote(scanner) == QUOTE_DOUBLE,
     &skip->frames[0].source_context
   );
 }
@@ -6881,7 +6986,7 @@ static enum ArithmeticValidation resume_embedded_construct(
   const struct Scanner *scanner,
   TSLexer *lexer,
   char initial_closer,
-  bool double_quoted,
+  bool reset_quote,
   struct EmbeddedSkip *skip
 ) {
   struct EmbeddedWalk walk = {
@@ -6895,7 +7000,7 @@ static enum ArithmeticValidation resume_embedded_construct(
 
   if (
     !skip->started &&
-    !begin_embedded_frames(lexer, initial_closer, double_quoted, skip)
+    !begin_embedded_frames(scanner, lexer, initial_closer, reset_quote, skip)
   ) {
     lookahead_fail(lookahead);
     return ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
@@ -6985,11 +7090,23 @@ static enum ArithmeticValidation skip_extglob_pattern(
   }
   lexer->advance(lexer, false);
   struct EmbeddedSkip skip = {.force_extglob = force_extglob};
-  if (!embedded_push_frame(&skip, ')', EMBEDDED_PARENTHESES, false))
+  if (!embedded_push_frame(&skip, ')', EMBEDDED_PARENTHESES))
     return ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
   skip.started = true;
   enum ArithmeticValidation result =
     resume_embedded_construct(scanner, lexer, ')', false, &skip);
+  clear_embedded_skip(&skip);
+  return result;
+}
+
+static enum ArithmeticValidation
+skip_subscript_source(const struct Scanner *scanner, TSLexer *lexer) {
+  struct EmbeddedSkip skip = {0};
+  if (!embedded_push_frame(&skip, ']', EMBEDDED_SUBSCRIPT))
+    return ARITHMETIC_VALIDATION_RESOURCE_FAILURE;
+  skip.started = true;
+  enum ArithmeticValidation result =
+    resume_embedded_construct(scanner, lexer, ']', false, &skip);
   clear_embedded_skip(&skip);
   return result;
 }
@@ -7169,7 +7286,7 @@ static bool continue_arithmetic_embedded(
         scanner,
         lexer,
         scan->embedded_closer,
-        true,
+        !scan->bracket_delimited,
         scan->embedded
       );
   if (lookahead_is_pending(lexer)) {
@@ -7223,8 +7340,7 @@ static bool skip_subscript_text(
   size_t limit
 ) {
   return bracket_delimited
-    ? skip_embedded_construct(scanner, lexer, ']', false) ==
-      ARITHMETIC_VALIDATION_VALID
+    ? skip_subscript_source(scanner, lexer) == ARITHMETIC_VALIDATION_VALID
     : skip_arithmetic_subscript(scanner, lexer, stop_semicolon, limit);
 }
 
@@ -7712,8 +7828,7 @@ static bool ambiguous_command_boundary(
 ) {
   probe_seek(lexer, start);
   struct EmbeddedSkip skip = {0};
-  if (!embedded_push_frame(&skip, ')', EMBEDDED_PARENTHESES, false))
-    return false;
+  if (!embedded_push_frame(&skip, ')', EMBEDDED_PARENTHESES)) return false;
   skip.started = true;
   enum ArithmeticValidation result =
     resume_embedded_construct(scanner, lexer, ')', false, &skip);
@@ -7874,7 +7989,7 @@ scan_braced_numeric_parameter_start(TSLexer *lexer, const bool *valid_symbols) {
 static bool
 command_element_boundary_symbols_are_valid(const bool *valid_symbols) {
   return (
-    valid_symbols[ASSIGNMENT_SEPARATOR_BEGIN] ||
+    assignment_separator_is_valid(valid_symbols) ||
     valid_symbols[REDIRECT_SEPARATOR_BEGIN] ||
     valid_symbols[PIPE_CONTINUATION] ||
     valid_symbols[AND_OR_CONTINUATION] ||
@@ -8231,19 +8346,23 @@ static bool declaration_subscript_braces_nested(
   return depth == 0 && probe_position(lexer) == end;
 }
 
+/* The assignments leading a coproc's declaration command keep Bash's
+   command-position subscript boundary. */
 static enum DispatchResult dispatch_declaration_assignment_start(
   struct Scanner *scanner,
   TSLexer *lexer,
   const bool *valid
 ) {
   if (
-    !valid[DECLARATION_ASSIGNMENT_START] ||
+    (!valid[DECLARATION_ASSIGNMENT_START] &&
+      !valid[COPROC_DECLARATION_ASSIGNMENT_START]) ||
     !is_name_start_character(lexer->lookahead)
   )
     return DISPATCH_NEXT;
+  bool lead = !valid[DECLARATION_ASSIGNMENT_START];
   size_t position = probe_position(lexer);
   lexer->mark_end(lexer);
-  if (scan_separator_target(scanner, lexer, true).assignment) {
+  if (scan_separator_target(scanner, lexer, !lead).assignment) {
     size_t end = probe_position(lexer);
     lexer->advance(lexer, false);
     bool array = lexer->lookahead == '(';
@@ -8252,7 +8371,8 @@ static enum DispatchResult dispatch_declaration_assignment_start(
       if (!declaration_subscript_braces_nested(scanner, lexer, end))
         return dispatch_retreat(lexer, position);
     }
-    lexer->result_symbol = DECLARATION_ASSIGNMENT_START;
+    lexer->result_symbol =
+      lead ? COPROC_DECLARATION_ASSIGNMENT_START : DECLARATION_ASSIGNMENT_START;
     return dispatch_outcome(
       array || source_context_push(scanner, DECLARATION_ASSIGNMENT_START)
     );
@@ -8379,8 +8499,7 @@ static enum DispatchResult dispatch_subscript_start(
     lookahead_seek(probe, position);
   }
   lexer->mark_end(lexer);
-  enum ArithmeticValidation complete =
-    skip_embedded_construct(scanner, lexer, ']', false);
+  enum ArithmeticValidation complete = skip_subscript_source(scanner, lexer);
   if (lookahead_is_pending(lexer)) return DISPATCH_REJECTED;
   if (complete == ARITHMETIC_VALIDATION_RESOURCE_FAILURE) {
     lookahead_fail(probe);
@@ -8427,6 +8546,26 @@ dispatch_subscript_closing_boundary(TSLexer *lexer, const bool *valid) {
   return dispatch_retreat(lexer, position);
 }
 
+/* The expression or source start a classified arithmetic scan selects;
+   TOKEN_COUNT when the scan is pending or invalid or the start is not valid. */
+static enum TokenType arithmetic_start_symbol(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  struct ArithmeticScan *scan,
+  const bool *valid,
+  enum TokenType expression,
+  enum TokenType source
+) {
+  enum ArithmeticValidation result;
+  enum TokenType classified =
+    classify_arithmetic_scan(scanner, lexer, scan, &result);
+  if (lookahead_is_pending(lexer) || result != ARITHMETIC_VALIDATION_VALID)
+    return TOKEN_COUNT;
+  enum TokenType symbol =
+    classified == ARITHMETIC_LEFT_PARENTHESIS ? expression : source;
+  return valid[symbol] ? symbol : TOKEN_COUNT;
+}
+
 static enum DispatchResult dispatch_arithmetic_field_start(
   struct Scanner *scanner,
   TSLexer *lexer,
@@ -8466,15 +8605,15 @@ static enum DispatchResult dispatch_arithmetic_field_start(
   if (limit == probe->characters[position].raw_cut) return DISPATCH_REJECTED;
   lookahead_seek(probe, position);
   struct ArithmeticScan scan = {.limit = limit, .bracket_delimited = bracket};
-  enum ArithmeticValidation result;
-  enum TokenType classified =
-    classify_arithmetic_scan(scanner, lexer, &scan, &result);
-  if (lookahead_is_pending(lexer) || result != ARITHMETIC_VALIDATION_VALID)
-    return DISPATCH_REJECTED;
-  enum TokenType symbol = classified == ARITHMETIC_LEFT_PARENTHESIS
-    ? ARITHMETIC_FIELD_EXPRESSION_START
-    : ARITHMETIC_FIELD_SOURCE_START;
-  if (!valid[symbol]) return DISPATCH_REJECTED;
+  enum TokenType symbol = arithmetic_start_symbol(
+    scanner,
+    lexer,
+    &scan,
+    valid,
+    ARITHMETIC_FIELD_EXPRESSION_START,
+    ARITHMETIC_FIELD_SOURCE_START
+  );
+  if (symbol == TOKEN_COUNT) return DISPATCH_REJECTED;
   context->arithmetic_field_remaining = limit;
   lexer->result_symbol = symbol;
   return DISPATCH_ACCEPTED;
@@ -8532,15 +8671,15 @@ static enum DispatchResult dispatch_for_expression_start(
     if (context->opener != PUNCT_LEFT_PARENTHESIS) break;
     scan.group_depth += context->count;
   }
-  enum ArithmeticValidation result;
-  enum TokenType classified =
-    classify_arithmetic_scan(scanner, lexer, &scan, &result);
-  if (lookahead_is_pending(lexer) || result != ARITHMETIC_VALIDATION_VALID)
-    return DISPATCH_REJECTED;
-  enum TokenType symbol = classified == ARITHMETIC_LEFT_PARENTHESIS
-    ? FOR_EXPRESSION_START
-    : FOR_SOURCE_START;
-  if (!valid[symbol]) return DISPATCH_REJECTED;
+  enum TokenType symbol = arithmetic_start_symbol(
+    scanner,
+    lexer,
+    &scan,
+    valid,
+    FOR_EXPRESSION_START,
+    FOR_SOURCE_START
+  );
+  if (symbol == TOKEN_COUNT) return DISPATCH_REJECTED;
   lexer->result_symbol = symbol;
   return DISPATCH_ACCEPTED;
 }
@@ -8823,7 +8962,7 @@ static enum DispatchResult dispatch_reserved_characters(
     bool reachable = valid[RIGHT_BRACE] &&
       (!valid[TERM_CONTINUATION] ||
         !(valid[WORD_SEPARATOR_BEGIN] ||
-          valid[ASSIGNMENT_SEPARATOR_BEGIN] ||
+          assignment_separator_is_valid(valid) ||
           valid[REDIRECT_SEPARATOR_BEGIN]));
     return dispatch_outcome(
       (reachable || valid[FNAME_TOKEN]) &&
@@ -9103,6 +9242,7 @@ static bool append_source_context(
     .substitution_depth =
       is_here_document_context(opener) ? scanner->substitution_depth : 0,
     .local_disabled = local_disabled,
+    .quote = QUOTE_PLAIN,
   };
   return true;
 }
@@ -9125,6 +9265,8 @@ grow_source_stages(struct Scanner *scanner, size_t added) {
 
 static bool
 source_context_push(struct Scanner *scanner, enum TokenType opener) {
+  enum QuoteMode parent_quote = source_quote(scanner);
+  enum QuoteMode quote = quote_after_token(parent_quote, opener);
   size_t depth = 0;
   for (size_t index = 0; index < scanner->context_count; index += 1) {
     size_t count = scanner->contexts[index].count;
@@ -9144,6 +9286,7 @@ source_context_push(struct Scanner *scanner, enum TokenType opener) {
     !is_word_context(opener) &&
     !is_arithmetic_field_context(opener) &&
     previous->opener == opener &&
+    previous->quote == quote &&
     previous->stage_count == count &&
     previous->local_disabled == local->disabled
   ) {
@@ -9151,12 +9294,16 @@ source_context_push(struct Scanner *scanner, enum TokenType opener) {
   } else if (!append_source_context(scanner, opener, count, local->disabled)) {
     return false;
   }
+  top_context(scanner)->quote = quote;
   if (opener == BACKQUOTE_START || opener == DOUBLE_QUOTED_BACKQUOTE_START) {
     struct SourceStage *stages = grow_source_stages(scanner, 2);
     if (stages == NULL) {
       return false;
     }
-    backquote_stages(opener == DOUBLE_QUOTED_BACKQUOTE_START, stages);
+    backquote_stages(
+      opener == DOUBLE_QUOTED_BACKQUOTE_START && parent_quote == QUOTE_DOUBLE,
+      stages
+    );
     scanner->backquote_depth += 1;
   } else if (is_here_document_context(opener)) {
     if (scanner->active.documents.count == 0) return false;
@@ -9289,7 +9436,26 @@ commit_parameter_operator(struct Scanner *scanner, enum TokenType symbol) {
     top_context(scanner)->count--;
     return source_context_push(scanner, symbol);
   }
+  top_context(scanner)->quote =
+    quote_after_token(top_context(scanner)->quote, symbol);
   top_context(scanner)->opener = symbol;
+  return true;
+}
+
+static bool clear_parameter_quote(struct Scanner *scanner) {
+  if (scanner->context_count == 0) return false;
+  struct SourceContext *context = top_context(scanner);
+  if (context->count > 1) {
+    context->count--;
+    if (!append_source_context(
+          scanner,
+          context->opener,
+          context->stage_count,
+          context->local_disabled
+        ))
+      return false;
+  }
+  top_context(scanner)->quote = QUOTE_PLAIN;
   return true;
 }
 
@@ -9323,6 +9489,9 @@ source_context_commit(struct Scanner *scanner, enum TokenType symbol) {
     return false;
 
   switch (symbol) {
+    case PARAMETER_PATTERN_OPERATOR_BEGIN:
+    case PARAMETER_CASE_BEGIN:
+      return clear_parameter_quote(scanner);
     case PARAMETER_INDIRECTION_BEGIN:
     case PARAMETER_REPLACE_BEGIN:
     case REPLACEMENT_SEPARATOR_BEGIN:
@@ -9429,6 +9598,18 @@ static bool begin_lexical_emission(
   )
     scanner->emission.symbol = whole;
   symbol = lexical_source_symbol(symbol);
+  if (symbol == PARAMETER_VALUE_OPERATOR_BEGIN) {
+    bool error_word = false;
+    for (size_t index = 0; index < input->cursor.logical_count; index++) {
+      const struct SourceCharacter *character = &input->cursor.logical[index];
+      if (
+        character->origin.end > 0 &&
+        (size_t)character->origin.end + input->base <= input->mark
+      )
+        error_word = character->value == '?';
+    }
+    if (error_word && !clear_parameter_quote(scanner)) return false;
+  }
   if (
     symbol == ASSIGNMENT_LITERAL_BEGIN ||
     symbol == ASSIGNMENT_FALLBACK_LITERAL_BEGIN
@@ -9769,6 +9950,9 @@ struct LexicalOperator {
 };
 
 static const struct LexicalOperator LEXICAL_OPERATORS[] = {
+  {"?", PARAMETER_VALUE_OPERATOR_BEGIN},
+  {"##", PARAMETER_PATTERN_OPERATOR_BEGIN},
+  {"#", PARAMETER_PATTERN_OPERATOR_BEGIN},
   {"+=", ASSIGNMENT_APPEND_BEGIN},
   {"((", FOR_ARITHMETIC_OPEN},
   {"<<<", HERE_STRING_BEGIN},
@@ -10174,7 +10358,7 @@ static bool lexical_arithmetic_fragment(
 static bool after_redirect_target(const bool *valid) {
   return valid[REDIRECT_SEPARATOR_BEGIN] &&
     !valid[WORD_SEPARATOR_BEGIN] &&
-    !valid[ASSIGNMENT_SEPARATOR_BEGIN];
+    !assignment_separator_is_valid(valid);
 }
 
 static enum DispatchResult lexical_blank(
@@ -11869,8 +12053,8 @@ static bool begin_bracket_word(
       }
       if (lexer->lookahead == '[') {
         lexer->advance(lexer, false);
-        complete = skip_embedded_construct(scanner, lexer, ']', false) ==
-          ARITHMETIC_VALIDATION_VALID;
+        complete =
+          skip_subscript_source(scanner, lexer) == ARITHMETIC_VALIDATION_VALID;
         if (complete) remaining = probe.characters[probe.position].raw_cut;
       }
       complete = complete && !lookahead_is_pending(lexer);
@@ -12272,20 +12456,26 @@ classify_declaration_name(struct LogicalLexer *input, const bool *valid) {
   return classify_retreat(input);
 }
 
-static size_t
-raw_argument_range(const struct Scanner *scanner, struct LogicalLexer *input) {
+/* The extent a raw argument's assignment form forces into one word: its
+   compound value, or in a coproc's lead its command-position head. */
+static size_t raw_argument_range(
+  const struct Scanner *scanner,
+  struct LogicalLexer *input,
+  bool lead
+) {
   if (!is_name_start_character(input->lexer.lookahead)) return 0;
-  struct LogicalPosition position = logical_position(input);
+  struct LogicalPosition saved = logical_position(input);
   struct LookaheadLexer probe = {0};
   size_t remaining = 0;
   if (lookahead_begin(&probe, &input->lexer)) {
     TSLexer *lexer = &probe.lexer;
     advance_name(lexer);
     bool head = true;
-    if (lexer->lookahead == '[') head = skip_subscript_body(scanner, lexer);
+    if (lexer->lookahead == '[') head = skip_subscript(scanner, lexer, !lead);
     if (lexer->lookahead == '+') lexer->advance(lexer, false);
     if (head && lexer->lookahead == '=') {
       lexer->advance(lexer, false);
+      if (lead) remaining = probe.characters[probe.position].raw_cut;
       if (lexer->lookahead == '(') {
         lexer->advance(lexer, false);
         bool start = true;
@@ -12345,7 +12535,7 @@ raw_argument_range(const struct Scanner *scanner, struct LogicalLexer *input) {
     if (lookahead_is_pending(lexer)) remaining = 0;
   }
   lookahead_clear(&probe);
-  logical_restore_position(input, &position);
+  logical_restore_position(input, &saved);
   return remaining;
 }
 
@@ -12365,20 +12555,25 @@ static enum DispatchResult classify_raw_argument(
       );
     logical_rewind(input);
   }
+  bool lead = !valid[RAW_ARGUMENT_START] && valid[COPROC_RAW_ARGUMENT_START];
   if (
-    !valid[RAW_ARGUMENT_START] ||
+    (!valid[RAW_ARGUMENT_START] && !lead) ||
     is_horizontal_blank(input->lexer.lookahead) ||
     process_substitution_follows(input)
   )
     return DISPATCH_NEXT;
-  size_t remaining = raw_argument_range(scanner, input);
+  size_t remaining = raw_argument_range(scanner, input, lead);
+  if (lead && remaining == 0) return DISPATCH_NEXT;
   if (remaining > 0) {
     if (!source_context_push(scanner, COMMAND_WORD_START))
       return DISPATCH_REJECTED;
     top_context(scanner)->word_remaining = remaining;
     top_context(scanner)->raw_argument = true;
   }
-  return dispatch_outcome(accept_token(&input->lexer, RAW_ARGUMENT_START));
+  return dispatch_outcome(accept_token(
+    &input->lexer,
+    lead ? COPROC_RAW_ARGUMENT_START : RAW_ARGUMENT_START
+  ));
 }
 
 static size_t assignment_argument_head_range(
@@ -12393,7 +12588,8 @@ static size_t assignment_argument_head_range(
     struct LookaheadLexer probe = {0};
     if (lookahead_begin(&probe, &input->lexer)) {
       TSLexer *lexer = &probe.lexer;
-      bool head = skip_subscript(scanner, lexer, true);
+      bool head =
+        skip_subscript(scanner, lexer, raw_word_context(scanner) == NULL);
       if (lexer->lookahead == '+') lexer->advance(lexer, false);
       if (head && lexer->lookahead == '=') {
         lexer->advance(lexer, false);
@@ -12617,7 +12813,7 @@ select_body_recovery_symbols(bool *valid, const struct HereDocument *doc) {
   valid[QUOTED_HERE_DOCUMENT_TEXT] = !doc->ending && doc->quoted;
   valid[HERE_DOCUMENT_ESCAPE_BEGIN] = !doc->ending && !doc->quoted;
   valid[DOLLAR_EXPANSION_START] = !doc->ending && !doc->quoted;
-  valid[DOUBLE_QUOTED_BACKQUOTE_START] = !doc->ending && !doc->quoted;
+  valid[BACKQUOTE_START] = !doc->ending && !doc->quoted;
   valid[NEWLINE] = !doc->ending;
   valid[SOURCE_BEGIN] = true;
 }
@@ -12636,13 +12832,14 @@ select_quoted_recovery_symbols(const struct Scanner *scanner, bool *valid) {
     return;
   }
   valid[DOLLAR_EXPANSION_START] = true;
-  valid[DOUBLE_QUOTED_BACKQUOTE_START] = true;
   if (opener == DQ_OPEN) {
+    valid[DOUBLE_QUOTED_BACKQUOTE_START] = true;
     valid[DQ_CLOSE] = true;
     valid[DOUBLE_QUOTE_TEXT_BEGIN] = true;
     valid[DOUBLE_QUOTE_ESCAPE_BEGIN] = true;
     return;
   }
+  valid[BACKQUOTE_START] = true;
   valid[PARAMETER_CLOSE] = true;
   valid[VARIABLE_NAME_BEGIN] = true;
   valid[SPECIAL_PARAMETER_BEGIN] = true;

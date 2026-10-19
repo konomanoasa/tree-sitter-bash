@@ -1,7 +1,7 @@
 ==================
 groups own nested lists and following redirects
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 { echo one; echo two; } >out; (echo three) <in
 
@@ -60,7 +60,7 @@ groups own nested lists and following redirects
 ==================
 closing reserved words cannot follow a compound redirection target
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 :error
 ==================
 if :; then { :; } >out fi

@@ -823,6 +823,39 @@ static void test_pattern_range_state_round_trip(void) {
   bash_scanner_destroy(scanner);
 }
 
+static void test_parameter_quote_changes_preserve_compressed_parents(void) {
+  struct Scanner scanner = {0};
+  assert(scanner_source_ready(&scanner));
+  assert(source_context_push(&scanner, DQ_OPEN));
+  assert(source_context_push(&scanner, PARAMETER_OPEN));
+  assert(source_context_push(&scanner, PARAMETER_OPEN));
+  assert(scanner.context_count == 2);
+  assert(top_context(&scanner)->count == 2);
+  assert(clear_parameter_quote(&scanner));
+  assert(scanner.context_count == 3);
+  assert(source_context_push(&scanner, DQ_OPEN));
+
+  char original[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  char restored[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+  unsigned length = snapshot(&scanner, original);
+  bash_scanner_deserialize(&scanner, original, length);
+  assert(snapshot(&scanner, restored) == length);
+  assert(memcmp(original, restored, length) == 0);
+  assert(source_quote(&scanner) == QUOTE_DOUBLE);
+  assert(source_context_pop(&scanner));
+  assert(source_quote(&scanner) == QUOTE_PLAIN);
+  assert(source_context_pop(&scanner));
+  assert(source_quote(&scanner) == QUOTE_PARAMETER);
+  assert(top_context(&scanner)->count == 1);
+  assert(source_context_push(&scanner, DQ_OPEN));
+  assert(source_quote(&scanner) == QUOTE_PARAMETER);
+  assert(source_context_push(&scanner, COMMAND_OPEN));
+  assert(source_quote(&scanner) == QUOTE_PLAIN);
+  assert(source_context_pop(&scanner));
+  assert(source_quote(&scanner) == QUOTE_PARAMETER);
+  clear_scanner(&scanner);
+}
+
 static void
 test_collating_absence_regions_round_trip_and_stay_in_context(void) {
   struct Scanner *scanner = bash_scanner_create();
@@ -2168,6 +2201,7 @@ int main(void) {
   test_here_document_end_restores_its_source_and_serialized_depth();
   test_scanner_copy_owns_nested_state_and_preserves_source_on_failure();
   test_nested_context_round_trip_and_reset();
+  test_parameter_quote_changes_preserve_compressed_parents();
   test_pattern_range_state_round_trip();
   test_collating_absence_regions_round_trip_and_stay_in_context();
   test_repeated_contexts_fit_serialization_budget();

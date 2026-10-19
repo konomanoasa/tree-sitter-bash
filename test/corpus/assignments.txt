@@ -1,7 +1,7 @@
 ==================
 scalar append
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 x+=one y+=two echo "$x"
 
@@ -33,7 +33,7 @@ x+=one y+=two echo "$x"
 ==================
 assignments command name arguments and ordered redirects
 :language(bash)
-:language(bash_extglob)
+:language(bash_default)
 ==================
 A=one 2>err echo "$A" tail >out
 
@@ -69,7 +69,7 @@ A=one 2>err echo "$A" tail >out
 
 ==================
 leading redirects permit compound assignments before and after declaration names
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 >out 2>err a=(one) b+=(two) declare c=(three)
@@ -121,8 +121,45 @@ leading redirects permit compound assignments before and after declaration names
 0:45 - 1:0      "\n"
 
 ==================
+redirect after an assignment bounds later subscripts to the word
+:language(bash)
+:language(bash_default)
+==================
+x=1 >f y[1]=2 z[3 4]=4 cmd
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            assignment: (assignment_word
+              name: (variable_name)
+              value: (assignment_value
+                (literal)))
+            redirect: (io_redirect
+              body: (io_file
+                filename: (word
+                  (literal))))
+            assignment: (assignment_word
+              name: (variable_name)
+              subscript: (array_subscript
+                source: (subscript_source
+                  candidate: (arithmetic_candidate_number)))
+              value: (assignment_value
+                (literal)))
+            name: (word
+              (literal))
+            argument: (word
+              (literal))
+            argument: (word
+              (literal))))))))
+
+==================
 redirects after an assignment preserve subsequent scalar assignments and declarations
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
@@ -190,7 +227,7 @@ x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
 
 ==================
 parenthesized assignment subscripts take precedence over function names: "a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }\n"
-:language(bash_extglob)
+:language(bash)
 :cst
 ==================
 a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
@@ -291,7 +328,7 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
 
 ==================
 parenthesized assignment subscripts take precedence over function names rejects "a[ () { :; }\n"
-:language(bash_extglob)
+:language(bash)
 :error
 ==================
 a[ () { :; }

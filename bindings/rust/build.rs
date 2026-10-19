@@ -17,7 +17,7 @@ fn main() {
 
   for (directory, library) in [
     ("src", "tree-sitter-bash"),
-    ("bash_extglob/src", "tree-sitter-bash-extglob"),
+    ("bash_default/src", "tree-sitter-bash-default"),
   ] {
     println!("cargo::rerun-if-changed={directory}");
     let directory = Path::new(directory);

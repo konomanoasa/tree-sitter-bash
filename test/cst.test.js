@@ -147,7 +147,7 @@ for (const grammar of grammars) {
       {
         name: "command-name brackets retain quoted expanded and continued source",
         source: 'a["x y"$p$(printf x)日本\\\n ]suffix tail\n',
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (word (literal) (pattern_bracket_source (pattern_bracket_members_source (double_quoted (double_quote_text)) (parameter_expansion (variable_name)) (command_substitution (command_substitution_body (list (and_or (pipeline (command (simple_command (word (literal)) (word (literal))))))))) (pattern_bracket_character_source) (pattern_bracket_character_source) (pattern_bracket_character_source))) (literal)) (word (literal))))))))",
         continuations: ["0:26-0:27"],
@@ -155,7 +155,7 @@ for (const grammar of grammars) {
       {
         name: "logical continuation commands",
         source: "fu\\\nnction f() { ((x+\\\n+)); }; ti\\\nme -p f |\\\n& cat\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (function_definition (function_keyword) (function_name) (function_body (brace_group (list (and_or (pipeline (command (arithmetic_command (arithmetic_update_expression (arithmetic_variable) (arithmetic_operator)))))) (separator (separator_op))))))))) (separator_op) (and_or (pipeline (timing (time_keyword) (time_option)) (command (simple_command (word (literal)))) (pipe_and) (command (simple_command (word (literal))))))))",
         continuations: ["0:2-0:3", "1:17-1:18", "2:10-2:11", "3:9-3:10"],
@@ -164,7 +164,7 @@ for (const grammar of grammars) {
         name: "arithmetic for crossing delimiters survive nested substitution and continuation",
         source:
           "\necho $(for ((a[日\\\n本;x;y])); do :; done)\nfor (((x;$(for ((a[x;y;z])); do :; done);z))); do :; done\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (word (literal)) (word (command_substitution (command_substitution_body (list (and_or (pipeline (command (arithmetic_for_clause (for_keyword) (arithmetic_for_open) (arithmetic_source_expression (arithmetic_variable) (arithmetic_source_fragment) (arithmetic_source_fragment) (arithmetic_source_fragment)) (arithmetic_variable) (arithmetic_source_expression (arithmetic_variable) (arithmetic_source_fragment)) (do_group (do_keyword) (list (and_or (pipeline (command (simple_command (word (literal)))))) (separator (separator_op))) (done_keyword)))))))))))))) (and_or (pipeline (command (arithmetic_for_clause (for_keyword) (arithmetic_for_open) (arithmetic_source_expression (arithmetic_source_fragment) (arithmetic_variable)) (command_substitution (command_substitution_body (list (and_or (pipeline (command (arithmetic_for_clause (for_keyword) (arithmetic_for_open) (arithmetic_source_expression (arithmetic_variable) (arithmetic_source_fragment) (arithmetic_variable)) (arithmetic_variable) (arithmetic_source_expression (arithmetic_variable) (arithmetic_source_fragment)) (do_group (do_keyword) (list (and_or (pipeline (command (simple_command (word (literal)))))) (separator (separator_op))) (done_keyword))))))))) (arithmetic_source_expression (arithmetic_variable) (arithmetic_source_fragment)) (do_group (do_keyword) (list (and_or (pipeline (command (simple_command (word (literal)))))) (separator (separator_op))) (done_keyword))))))))",
         continuations: ["1:18-1:19"],
@@ -172,7 +172,7 @@ for (const grammar of grammars) {
       {
         name: "line continuations join words and operators",
         source: "ec\\\nho a\\\nb |\\\n| echo c\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) argument: (word (literal))))) operator: (or_if) pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) argument: (word (literal))))))))",
         continuations: ["0:2-0:3", "1:4-1:5", "2:3-2:4"],
@@ -180,7 +180,7 @@ for (const grammar of grammars) {
       {
         name: "arithmetic operator continuations",
         source: "echo $((2*\\\n*3)) $((a+\\\n+))\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (word (literal)) (word (arithmetic_expansion (arithmetic_binary_expression (arithmetic_number) (arithmetic_operator) (arithmetic_number)))) (word (arithmetic_expansion (arithmetic_update_expression (arithmetic_variable) (arithmetic_operator))))))))))",
         continuations: ["0:10-0:11", "1:10-1:11"],
@@ -188,7 +188,7 @@ for (const grammar of grammars) {
       {
         name: "boundary continuations",
         source: `echo @\\\n(a|b) <\\\n(echo hi) $\\\n"x" {1.\\\n.3} \${x/\\\n/a/b}\n`,
-        languages: ["bash_extglob"],
+        languages: ["bash"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (word (literal)) (word (extglob_pattern (extglob_operator) (extglob_alternative (literal)) (extglob_alternative (literal)))) (word (process_substitution (command_substitution_body (list (and_or (pipeline (command (simple_command (word (literal)) (word (literal)))))))))) (word (locale_quoted (double_quote_text))) (word (brace_expansion (brace_sequence (brace_endpoint) (brace_sequence_separator) (brace_endpoint)))) (word (parameter_expansion (variable_name) (parameter_replacement (parameter_replacement_operator) (parameter_pattern (literal)) (parameter_replacement_separator) (parameter_word (literal)))))))))))",
         continuations: [
@@ -202,7 +202,7 @@ for (const grammar of grammars) {
       {
         name: "subscript quotations expansions and nested brackets keep source",
         source: `a[(日\\\n本[)]"("\${p}$(printf ")"))]=x\n`,
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (assignment_word (variable_name) (array_subscript (subscript_source (arithmetic_candidate_source_expression (parenthesized_arithmetic_candidate_source (subscript_text) (subscript_text) (array_subscript (subscript_source (arithmetic_candidate_source_expression (subscript_text)))) (double_quoted (double_quote_text)) (parameter_expansion (variable_name)) (command_substitution (command_substitution_body (list (and_or (pipeline (command (simple_command (word (literal)) (word (double_quoted (double_quote_text)))))))))))))) (assignment_value (literal)))))))))",
         continuations: ["0:6-0:7"],
@@ -210,7 +210,7 @@ for (const grammar of grammars) {
       {
         name: "array word boundaries retain nested substitutions and continuations",
         source: '\na=(["x y"$p$(b=([x y]); printf z)日本\\\n ]suffix)\n',
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (simple_command (assignment_word (variable_name) (array_assignment (word (pattern_bracket_source (pattern_bracket_members_source (double_quoted (double_quote_text)) (parameter_expansion (variable_name)) (command_substitution (command_substitution_body (list (and_or (pipeline (command (simple_command (assignment_word (variable_name) (array_assignment (word (pattern_bracket_source (pattern_bracket_members_source (pattern_bracket_character_source) (pattern_bracket_character_source) (pattern_bracket_character_source)))))))))) (separator_op) (and_or (pipeline (command (simple_command (word (literal)) (word (literal))))))))) (pattern_bracket_character_source) (pattern_bracket_character_source) (pattern_bracket_character_source))) (literal))))))))))",
         continuations: ["1:39-1:40"],
@@ -218,7 +218,7 @@ for (const grammar of grammars) {
       {
         name: "escaped newline before delimiter terminates Bash here document",
         source: "cat <<EOF\nbody\n\\\nEOF\necho after\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) redirect: (io_redirect body: (io_here operator: (dless) end: (here_end word: (word (literal))))))))) separator: (here_document_sequence line_end: (here_document_line_end) document: (here_document body: (here_document_body (here_document_text)) end: (here_document_end (here_document_end_text)))) and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) argument: (word (literal))))))))",
         continuations: ["2:0-2:1"],
@@ -226,7 +226,7 @@ for (const grammar of grammars) {
       {
         name: "escaped newline inside delimiter terminates Bash here document",
         source: "cat <<EOF\nbody\nE\\\nOF\necho after\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) redirect: (io_redirect body: (io_here operator: (dless) end: (here_end word: (word (literal))))))))) separator: (here_document_sequence line_end: (here_document_line_end) document: (here_document body: (here_document_body (here_document_text)) end: (here_document_end (here_document_end_text)))) and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) argument: (word (literal))))))))",
         continuations: ["2:1-2:2"],
@@ -234,7 +234,7 @@ for (const grammar of grammars) {
       {
         name: "continued variable descriptor owns its name before a here document",
         source: "cat {f\\\nd}<<EOF\nbody\nEOF\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) redirect: (io_redirect number: (io_variable name: (variable_name)) body: (io_here operator: (dless) end: (here_end word: (word (literal)))))))))) trailing: (here_document_sequence line_end: (here_document_line_end) document: (here_document body: (here_document_body (here_document_text)) end: (here_document_end (here_document_end_text)))))",
         continuations: ["0:6-0:7"],
@@ -242,7 +242,7 @@ for (const grammar of grammars) {
       {
         name: "ERE continuations retain original source within class and count",
         source: "[[ x =~ [[:di\\\ngit:]]{1\\\n2,3}?\\\n$ ]]\n",
-        languages: ["bash", "bash_extglob"],
+        languages: ["bash", "bash_default"],
         expected:
           "(program (list (and_or (pipeline (command (conditional_command (conditional_open) (conditional_binary_expression (word (literal)) (conditional_regex_operator) (regex_operand (extended_reg_exp (ere_branch (ere_expression (one_char_or_coll_elem_ere (bracket_expression (matching_list (bracket_list (follow_list (expression_term (single_expression (character_class (class_name))))))))) (ere_dupl_symbol (duplication_count) (duplication_count) (repetition_modifier))) (ere_expression))))) (conditional_close)))))))",
         continuations: ["0:13-0:14", "1:8-1:9", "2:5-2:6"],
@@ -266,7 +266,7 @@ for (const grammar of grammars) {
         );
       });
     }
-    if (grammar.name === "bash_extglob") {
+    if (grammar.name === "bash") {
       test("Unicode edits use byte offsets", () => {
         assertEditRoundTrip(parser, {
           seed: "echo 日本語\n",

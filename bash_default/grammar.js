@@ -1,3 +1,3 @@
 import defineGrammar from "../common/grammar.js";
 
-export default defineGrammar("bash_extglob");
+export default defineGrammar("bash_default");

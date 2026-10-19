@@ -18,7 +18,7 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
-    const extglob = grammar.name.includes("extglob");
+    const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
     test("eval and let argument boundaries survive edits and repair", () => {
       for (const [seed, remove, insert, valid] of [
@@ -448,7 +448,7 @@ for (const grammar of grammars) {
       }
     });
 
-    if (grammar.name === "bash_extglob") {
+    if (grammar.name === "bash") {
       test("comment becomes a command", () => {
         assertEditRoundTrip(parser, {
           seed: "# echo yes\n",

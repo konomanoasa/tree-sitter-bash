@@ -13,15 +13,10 @@ GNU Bourne Again SHell 5.3.
 npm install @konomanoasa/tree-sitter-bash
 ```
 
-## Grammars
+## Parsing Options
 
-Parsing assumes Bash's default options. An `extglob` variant is provided for
-compatibility with existing scripts.
-
-| Grammar        | `extglob` option |
-| -------------- | ---------------- |
-| `bash`         | disabled         |
-| `bash_extglob` | enabled          |
+For Bash's default parsing behavior, where `extglob` is disabled, use
+`bash_default`.
 
 ## Development
 

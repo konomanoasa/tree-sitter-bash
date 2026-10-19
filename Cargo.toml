@@ -11,10 +11,10 @@ links = "tree-sitter-bash"
 include = [
   "/LICENSE",
   "/README.md",
-  "/bash_extglob/src/*.c",
-  "/bash_extglob/src/*.h",
-  "/bash_extglob/src/node-types.json",
-  "/bash_extglob/src/tree_sitter/*.h",
+  "/bash_default/src/*.c",
+  "/bash_default/src/*.h",
+  "/bash_default/src/node-types.json",
+  "/bash_default/src/tree_sitter/*.h",
   "/bindings/rust/*.rs",
   "/common/*.h",
   "/queries/*.scm",
@@ -33,10 +33,10 @@ name = "bindings"
 path = "test/bindings.test.rs"
 
 [dependencies]
-tree-sitter-language = "0.1.8"
+tree-sitter-language = "=0.1.9"
 
 [dev-dependencies]
-tree-sitter = "0.27.1"
+tree-sitter = "=0.27.1"
 
 [build-dependencies]
-cc = "1.4"
+cc = "=1.9.0"

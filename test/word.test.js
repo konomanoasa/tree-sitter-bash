@@ -225,7 +225,7 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
-    const extglob = grammar.name.includes("extglob");
+    const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
     test("bracket range endpoints keep their classification across word and pattern contexts", () => {
       for (const [prefix, suffix] of [
@@ -536,7 +536,7 @@ for (const grammar of grammars) {
         }
       }
     });
-    if (grammar.name === "bash_extglob") {
+    if (grammar.name === "bash") {
       test("a line continuation at the end of input becomes a trailing backslash", () => {
         assertEditRoundTrip(parser, {
           seed: "echo a\\\nb\n",
@@ -2128,6 +2128,76 @@ for (const grammar of grammars) {
           valid: false,
         },
         {
+          name: "a quoted backquote value becomes an error word",
+          seed: `: "\${x:-"\`echo \\"1\\"\`"}"\n`,
+          remove: ":-",
+          insert: ":?",
+          valid: true,
+        },
+        {
+          name: "a quoted backquote value becomes a pattern",
+          seed: `: "\${x:-"\`echo \\"1\\"\`"}"\n`,
+          remove: ":-",
+          insert: "#",
+          valid: true,
+        },
+        {
+          name: "a backquote substring becomes a quoted value",
+          seed: `: "\${x:"\`echo \\"1\\"\`"}"\n`,
+          remove: "x:",
+          insert: "x:-",
+          valid: true,
+        },
+        {
+          name: "a backquote replacement becomes a quoted value",
+          seed: `: "\${x/"\`echo \\"1\\"\`"/X}"\n`,
+          remove: "x/",
+          insert: "x:-",
+          valid: true,
+        },
+        {
+          name: "a parameter pattern with a backquote gains a continued operator",
+          seed: `: "\${x##"\`echo \\"1\\"\`"}"\n`,
+          remove: "##",
+          insert: "#\\\n#",
+          valid: true,
+        },
+        {
+          name: "a parameter error word with a backquote gains a continued operator",
+          seed: `: "\${x:?"\`echo \\"1\\"\`"}"\n`,
+          remove: ":?",
+          insert: ":\\\n?",
+          valid: true,
+        },
+        {
+          name: "an inner backquote edit preserves inherited parameter quoting",
+          seed: `: "\${x:-"\`echo \\"1\\"\`"}"\n`,
+          remove: "1",
+          insert: "2",
+          valid: true,
+        },
+        {
+          name: "a bracket arithmetic backquote gains an error-word quote context",
+          seed: `: "\${x:-$[ "\`echo \\"1\\"\`" ]}"\n`,
+          remove: ":-",
+          insert: ":?",
+          valid: true,
+        },
+        {
+          name: "arithmetic delimiters change inherited backquote quote removal",
+          seed: `: "\${x:-$[ "\`echo \\"1\\"\`" ]}"\n`,
+          remove: '$[ "`echo \\"1\\"`" ]',
+          insert: '$(( "`echo \\"1\\"`" ))',
+          valid: true,
+        },
+        {
+          name: "removing an outer quote changes backquote quote removal",
+          seed: `: "\${x:-"\`echo \\"1\\"\`"}"\n`,
+          remove: `"\${x:-"\`echo \\"1\\"\`"}"`,
+          insert: `\${x:-"\`echo \\"1\\"\`"}`,
+          valid: true,
+        },
+        {
           name: "word gains a line continuation",
           seed: "echo hello\n",
           remove: "echo",
@@ -2281,19 +2351,61 @@ for (const grammar of grammars) {
     test("dollar-prefixed extglobs retain lexical patterns in word contexts", () => {
       for (const operator of ["@", "?", "*", "!", "+"]) {
         const pattern = `${operator}(a|b)`;
-        for (const [name, source, enabled, accepted = enabled] of [
-          ["argument", `: $${pattern}\n`, extglob],
-          ["assignment", `v=$${pattern}\n`, extglob],
-          ["case selector", `case $${pattern} in a) :;; esac\n`, extglob],
-          ["case pattern", `case a in $${pattern}) :;; esac\n`, extglob],
-          ["delimiter", `cat <<$${pattern}\nbody\n$${pattern}\n`, extglob],
-          ["nested command", `: $(: $${pattern})\n`, extglob],
-          ["nested pattern", `: @(c|$${pattern})\n`, extglob],
-          ["brace alternative", `: {x,$${pattern}}\n`, extglob],
-          ["conditional pattern", `[[ a == $${pattern} ]]\n`, true],
-          ["conditional nested command", `[[ a == $(: $${pattern}) ]]\n`, true],
-          ["parameter value", `: \${v:-$${pattern}}\n`, extglob, true],
-          ["parameter pattern", `: \${v#$${pattern}}\n`, extglob, true],
+        for (const { name, source, enabled, accepted = enabled } of [
+          { name: "argument", source: `: $${pattern}\n`, enabled: extglob },
+          { name: "assignment", source: `v=$${pattern}\n`, enabled: extglob },
+          {
+            name: "case selector",
+            source: `case $${pattern} in a) :;; esac\n`,
+            enabled: extglob,
+          },
+          {
+            name: "case pattern",
+            source: `case a in $${pattern}) :;; esac\n`,
+            enabled: extglob,
+          },
+          {
+            name: "delimiter",
+            source: `cat <<$${pattern}\nbody\n$${pattern}\n`,
+            enabled: extglob,
+          },
+          {
+            name: "nested command",
+            source: `: $(: $${pattern})\n`,
+            enabled: extglob,
+          },
+          {
+            name: "nested pattern",
+            source: `: @(c|$${pattern})\n`,
+            enabled: extglob,
+          },
+          {
+            name: "brace alternative",
+            source: `: {x,$${pattern}}\n`,
+            enabled: extglob,
+          },
+          {
+            name: "conditional pattern",
+            source: `[[ a == $${pattern} ]]\n`,
+            enabled: true,
+          },
+          {
+            name: "conditional nested command",
+            source: `[[ a == $(: $${pattern}) ]]\n`,
+            enabled: true,
+          },
+          {
+            name: "parameter value",
+            source: `: \${v:-$${pattern}}\n`,
+            enabled: extglob,
+            accepted: true,
+          },
+          {
+            name: "parameter pattern",
+            source: `: \${v#$${pattern}}\n`,
+            enabled: extglob,
+            accepted: true,
+          },
         ]) {
           const result = parser.parse(source, {});
           assert.equal(
