@@ -135,7 +135,7 @@ echo a=~:~/bin ~-2 literal:~
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:28     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:28       and_or: and_or
 0:0  - 0:28         pipeline: pipeline
 0:0  - 0:28           command: command
@@ -157,7 +157,7 @@ echo a=~:~/bin ~-2 literal:~
 0:16 - 0:18                     literal `-2`
 0:19 - 0:28               argument: word
 0:19 - 0:28                 literal `literal:~`
-0:28 - 1:0      "\n"
+0:28 - 1:0        "\n"
 
 ==================
 append assignments retain the same tilde boundary as equals
@@ -169,7 +169,7 @@ x+=~ a[0]+=~user
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:16     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:16       and_or: and_or
 0:0  - 0:16         pipeline: pipeline
 0:0  - 0:16           command: command
@@ -193,7 +193,7 @@ x+=~ a[0]+=~user
 0:11 - 0:12                     "~"
 0:12 - 0:16                     user: tilde_user
 0:12 - 0:16                       literal `user`
-0:16 - 1:0      "\n"
+0:16 - 1:0        "\n"
 
 ==================
 subscripted assignment-shaped arguments classify value tildes without assignment nodes
@@ -437,7 +437,7 @@ printf x\
 ------------------
 
 0:0 - 3:0   program
-0:0 - 2:3     commands: list
+0:0 - 3:0     commands: list
 0:0 - 2:3       and_or: and_or
 0:0 - 2:3         pipeline: pipeline
 0:0 - 2:3           command: command
@@ -459,4 +459,4 @@ printf x\
 2:1 - 2:2                 literal `:`
 2:2 - 2:3                 tilde_expansion
 2:2 - 2:3                   "~"
-2:3 - 3:0     "\n"
+2:3 - 3:0       "\n"

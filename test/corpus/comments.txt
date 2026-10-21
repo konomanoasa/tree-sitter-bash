@@ -19,9 +19,9 @@ echo ok # trailing
             name: (word
               (literal))
             argument: (word
-              (literal)))))))
-  trailing: (comment
-    (comment_text)))
+              (literal))))))
+    separator: (comment
+      (comment_text))))
 
 ==================
 comments starting with a function-like word are not function names

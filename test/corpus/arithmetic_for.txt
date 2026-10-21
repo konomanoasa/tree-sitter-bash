@@ -470,7 +470,7 @@ for (($'a;))';$"b;))";$'c\'')); do :; done
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:42     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:42       and_or: and_or
 0:0  - 0:42         pipeline: pipeline
 0:0  - 0:42           command: command
@@ -503,18 +503,18 @@ for (($'a;))';$"b;))";$'c\'')); do :; done
 0:30 - 0:31               ";"
 0:32 - 0:42               body: do_group
 0:32 - 0:34                 do_keyword `do`
-0:34 - 0:37                 body: list
+0:34 - 0:38                 body: list
 0:35 - 0:36                   and_or: and_or
 0:35 - 0:36                     pipeline: pipeline
 0:35 - 0:36                       command: command
 0:35 - 0:36                         body: simple_command
 0:35 - 0:36                           name: word
 0:35 - 0:36                             literal `:`
-0:36 - 0:37                   terminator: separator
+0:36 - 0:37                   separator: separator
 0:36 - 0:37                     operator: separator_op
 0:36 - 0:37                       ";"
 0:38 - 0:42                 done_keyword `done`
-0:42 - 1:0      "\n"
+0:42 - 1:0        "\n"
 
 ==================
 arithmetic for fields distinguish all three expressions: "for ((i=0;i<2;i++)); do :; done\n"
@@ -526,7 +526,7 @@ for ((i=0;i<2;i++)); do :; done
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:31     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:31       and_or: and_or
 0:0  - 0:31         pipeline: pipeline
 0:0  - 0:31           command: command
@@ -551,18 +551,18 @@ for ((i=0;i<2;i++)); do :; done
 0:19 - 0:20               ";"
 0:21 - 0:31               body: do_group
 0:21 - 0:23                 do_keyword `do`
-0:23 - 0:26                 body: list
+0:23 - 0:27                 body: list
 0:24 - 0:25                   and_or: and_or
 0:24 - 0:25                     pipeline: pipeline
 0:24 - 0:25                       command: command
 0:24 - 0:25                         body: simple_command
 0:24 - 0:25                           name: word
 0:24 - 0:25                             literal `:`
-0:25 - 0:26                   terminator: separator
+0:25 - 0:26                   separator: separator
 0:25 - 0:26                     operator: separator_op
 0:25 - 0:26                       ";"
 0:27 - 0:31                 done_keyword `done`
-0:31 - 1:0      "\n"
+0:31 - 1:0        "\n"
 
 ==================
 arithmetic for fields distinguish all three expressions: "for ((;;)) do break; done\n"
@@ -575,7 +575,7 @@ for ((;;)) do break; done
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:25     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:25       and_or: and_or
 0:0  - 0:25         pipeline: pipeline
 0:0  - 0:25           command: command
@@ -588,18 +588,18 @@ for ((;;)) do break; done
 0:9  - 0:10               ")"
 0:11 - 0:25               body: do_group
 0:11 - 0:13                 do_keyword `do`
-0:13 - 0:20                 body: list
+0:13 - 0:21                 body: list
 0:14 - 0:19                   and_or: and_or
 0:14 - 0:19                     pipeline: pipeline
 0:14 - 0:19                       command: command
 0:14 - 0:19                         body: simple_command
 0:14 - 0:19                           name: word
 0:14 - 0:19                             literal `break`
-0:19 - 0:20                   terminator: separator
+0:19 - 0:20                   separator: separator
 0:19 - 0:20                     operator: separator_op
 0:19 - 0:20                       ";"
 0:21 - 0:25                 done_keyword `done`
-0:25 - 1:0      "\n"
+0:25 - 1:0        "\n"
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((a[x;y];;)); do :; done\n"

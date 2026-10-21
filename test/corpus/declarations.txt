@@ -433,7 +433,7 @@ declarations survive leading redirects and substitutions inside arguments
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:70     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:70       and_or: and_or
 0:0  - 0:70         pipeline: pipeline
 0:0  - 0:70           command: command
@@ -511,7 +511,7 @@ declarations survive leading redirects and substitutions inside arguments
 0:64 - 0:69                   element: word
 0:64 - 0:69                     literal `three`
 0:69 - 0:70                   ")"
-0:70 - 1:0      "\n"
+0:70 - 1:0        "\n"
 
 ==================
 declaration subscripts respect ordinary word and command boundaries: "declare a[x y]=z b[\"x y\"]=v; declare a[x; echo next\n"
@@ -524,7 +524,7 @@ declare a[x y]=z b["x y"]=v; declare a[x; echo next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:51     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:27       and_or: and_or
 0:0  - 0:27         pipeline: pipeline
 0:0  - 0:27           command: command
@@ -567,7 +567,7 @@ declare a[x y]=z b["x y"]=v; declare a[x; echo next
 0:42 - 0:46                 literal `echo`
 0:47 - 0:51               argument: word
 0:47 - 0:51                 literal `next`
-0:51 - 1:0      "\n"
+0:51 - 1:0        "\n"
 
 ==================
 declaration subscripts respect ordinary word and command boundaries rejects "declare a[(i+1)]=x\n"

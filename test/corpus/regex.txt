@@ -999,7 +999,7 @@ ERE ordinary characters retain individual UTF-8 source ranges
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:24     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:24       and_or: and_or
 0:0  - 0:24         pipeline: pipeline
 0:0  - 0:24           command: command
@@ -1025,7 +1025,7 @@ ERE ordinary characters retain individual UTF-8 source ranges
 0:18 - 0:21                         one_char_or_coll_elem_ere
 0:18 - 0:21                           ordinary_character `日`
 0:22 - 0:24               conditional_close `]]`
-0:24 - 1:0      "\n"
+0:24 - 1:0        "\n"
 
 ==================
 ERE hierarchy owns static repetition, intervals and code point leaves
@@ -1037,7 +1037,7 @@ ERE hierarchy owns static repetition, intervals and code point leaves
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:45     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:45       and_or: and_or
 0:0  - 0:45         pipeline: pipeline
 0:0  - 0:45           command: command
@@ -1113,7 +1113,7 @@ ERE hierarchy owns static repetition, intervals and code point leaves
 0:41 - 0:42                       ere_expression
 0:41 - 0:42                         "$"
 0:43 - 0:45               conditional_close `]]`
-0:45 - 1:0      "\n"
+0:45 - 1:0        "\n"
 
 ==================
 opaque ERE source and following repetitions are not single atoms
@@ -1125,7 +1125,7 @@ opaque ERE source and following repetitions are not single atoms
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:27     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:27       and_or: and_or
 0:0  - 0:27         pipeline: pipeline
 0:0  - 0:27           command: command
@@ -1154,7 +1154,7 @@ opaque ERE source and following repetitions are not single atoms
 0:23 - 0:24                     ere_dupl_symbol
 0:23 - 0:24                       "+"
 0:25 - 0:27               conditional_close `]]`
-0:27 - 1:0      "\n"
+0:27 - 1:0        "\n"
 
 ==================
 ERE groups, brackets and interval payloads retain embedded Bash source
@@ -1166,7 +1166,7 @@ ERE groups, brackets and interval payloads retain embedded Bash source
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:41     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:41       and_or: and_or
 0:0  - 0:41         pipeline: pipeline
 0:0  - 0:41           command: command
@@ -1229,7 +1229,7 @@ ERE groups, brackets and interval payloads retain embedded Bash source
 0:36 - 0:37                               "}"
 0:37 - 0:38                           "}"
 0:39 - 0:41               conditional_close `]]`
-0:41 - 1:0      "\n"
+0:41 - 1:0        "\n"
 
 ==================
 ERE delimiter probes preserve process substitution payloads
@@ -1241,7 +1241,7 @@ ERE delimiter probes preserve process substitution payloads
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:60     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:60       and_or: and_or
 0:0  - 0:60         pipeline: pipeline
 0:0  - 0:60           command: command
@@ -1343,7 +1343,7 @@ ERE delimiter probes preserve process substitution payloads
 0:55 - 0:56                               ")"
 0:56 - 0:57                           "}"
 0:58 - 0:60               conditional_close `]]`
-0:60 - 1:0      "\n"
+0:60 - 1:0        "\n"
 
 ==================
 ERE groups remain structured immediately after opaque source
@@ -1355,7 +1355,7 @@ ERE groups remain structured immediately after opaque source
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:30     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:30       and_or: and_or
 0:0  - 0:30         pipeline: pipeline
 0:0  - 0:30           command: command
@@ -1404,7 +1404,7 @@ ERE groups remain structured immediately after opaque source
 0:25 - 0:26                               ordinary_character `c`
 0:26 - 0:27                       ")"
 0:28 - 0:30               conditional_close `]]`
-0:30 - 1:0      "\n"
+0:30 - 1:0        "\n"
 
 ==================
 conditional regex unclosed group "[[ x =~ ( ]]\n"

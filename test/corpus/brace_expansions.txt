@@ -9,7 +9,7 @@ parameter brace suppression extends past its syntax end and then resumes
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:21     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:21       and_or: and_or
 0:0  - 0:21         pipeline: pipeline
 0:0  - 0:21           command: command
@@ -34,7 +34,7 @@ parameter brace suppression extends past its syntax end and then resumes
 0:19 - 0:20                   alternative: brace_alternative
 0:19 - 0:20                     literal `e`
 0:20 - 0:21                   "}"
-0:21 - 1:0      "\n"
+0:21 - 1:0        "\n"
 
 ==================
 parameter brace suppression protects enclosing alternative boundaries
@@ -47,7 +47,7 @@ parameter brace suppression protects enclosing alternative boundaries
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:20     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -71,7 +71,7 @@ parameter brace suppression protects enclosing alternative boundaries
 0:12 - 0:13                       "}"
 0:13 - 0:19                     literal `{b,c}}`
 0:19 - 0:20                   "}"
-0:20 - 1:0      "\n"
+0:20 - 1:0        "\n"
 
 ==================
 parameter brace suppression ends at word boundaries when braces remain open
@@ -677,7 +677,7 @@ Bash command headers and array words preserve enclosing brace expansions
                                                             (literal)))))))
                                                 terminator: (dsemi))
                                               (esac_keyword)))))
-                                      terminator: (separator
+                                      separator: (separator
                                         operator: (separator_op)))))))))))))))))))
     and_or: (and_or
       pipeline: (pipeline
@@ -1117,7 +1117,7 @@ echo pre{01..09..2}post {x} {1..x}
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:34     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:34       and_or: and_or
 0:0  - 0:34         pipeline: pipeline
 0:0  - 0:34           command: command
@@ -1140,7 +1140,7 @@ echo pre{01..09..2}post {x} {1..x}
 0:24 - 0:27                 literal `{x}`
 0:28 - 0:34               argument: word
 0:28 - 0:34                 literal `{1..x}`
-0:34 - 1:0      "\n"
+0:34 - 1:0        "\n"
 
 ==================
 brace separators split crossing bracket and extglob source
@@ -1152,7 +1152,7 @@ brace separators split crossing bracket and extglob source
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:50     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:50       and_or: and_or
 0:0  - 0:50         pipeline: pipeline
 0:0  - 0:50           command: command
@@ -1214,7 +1214,7 @@ brace separators split crossing bracket and extglob source
 0:48 - 0:49                   alternative: brace_alternative
 0:48 - 0:49                     literal `c`
 0:49 - 0:50                   "}"
-0:50 - 1:0      "\n"
+0:50 - 1:0        "\n"
 
 ==================
 nested braces retain bracket member range endpoint and class fields
@@ -1226,7 +1226,7 @@ nested braces retain bracket member range endpoint and class fields
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:65     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:65       and_or: and_or
 0:0  - 0:65         pipeline: pipeline
 0:0  - 0:65           command: command
@@ -1312,7 +1312,7 @@ nested braces retain bracket member range endpoint and class fields
 0:62 - 0:63                       ":"
 0:63 - 0:64                       "]"
 0:64 - 0:65                   "]"
-0:65 - 1:0      "\n"
+0:65 - 1:0        "\n"
 
 ==================
 quotes escapes substitutions and nested braces protect their own separators
@@ -1324,7 +1324,7 @@ quotes escapes substitutions and nested braces protect their own separators
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:65     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:65       and_or: and_or
 0:0  - 0:65         pipeline: pipeline
 0:0  - 0:65           command: command
@@ -1420,7 +1420,7 @@ quotes escapes substitutions and nested braces protect their own separators
 0:62 - 0:63                         literal `z`
 0:63 - 0:64                       ")"
 0:64 - 0:65                   "}"
-0:65 - 1:0      "\n"
+0:65 - 1:0        "\n"
 
 ==================
 brace crossings flatten an extglob while balanced nested groups survive
@@ -1432,7 +1432,7 @@ brace crossings flatten an extglob while balanced nested groups survive
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:38     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:38       and_or: and_or
 0:0  - 0:38         pipeline: pipeline
 0:0  - 0:38           command: command
@@ -1483,7 +1483,7 @@ brace crossings flatten an extglob while balanced nested groups survive
 0:35 - 0:36                           "}"
 0:36 - 0:37                       ")"
 0:37 - 0:38                   ")"
-0:38 - 1:0      "\n"
+0:38 - 1:0        "\n"
 
 ==================
 extglob literal runs preserve process substitutions and tilde payload slashes
@@ -1495,7 +1495,7 @@ extglob literal runs preserve process substitutions and tilde payload slashes
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:39     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:39       and_or: and_or
 0:0  - 0:39         pipeline: pipeline
 0:0  - 0:39           command: command
@@ -1567,7 +1567,7 @@ extglob literal runs preserve process substitutions and tilde payload slashes
 0:36 - 0:37                         literal `c`
 0:37 - 0:38                       ")"
 0:38 - 0:39                   "}"
-0:39 - 1:0      "\n"
+0:39 - 1:0        "\n"
 
 ==================
 crossing extglobs inside bracket payloads retain brace ownership
@@ -1579,7 +1579,7 @@ a=([@({a,b),c}] [[:@({a,b),c}:]] [[.@({a,b),c}.]] [[=@({a,b),c}=]])
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:67     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:67       and_or: and_or
 0:0  - 0:67         pipeline: pipeline
 0:0  - 0:67           command: command
@@ -1676,7 +1676,7 @@ a=([@({a,b),c}] [[:@({a,b),c}:]] [[.@({a,b),c}.]] [[=@({a,b),c}=]])
 0:64 - 0:65                           "]"
 0:65 - 0:66                       "]"
 0:66 - 0:67                   ")"
-0:67 - 1:0      "\n"
+0:67 - 1:0        "\n"
 
 ==================
 brace alternatives retain lexical word extents across pattern boundaries
@@ -1688,7 +1688,7 @@ brace alternatives retain lexical word extents across pattern boundaries
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:65     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:32       and_or: and_or
 0:0  - 0:32         pipeline: pipeline
 0:0  - 0:32           command: command
@@ -1767,7 +1767,7 @@ brace alternatives retain lexical word extents across pattern boundaries
 0:57 - 0:60                 literal ` e]`
 0:61 - 0:65               argument: word
 0:61 - 0:65                 literal `tail`
-0:65 - 1:0      "\n"
+0:65 - 1:0        "\n"
 
 ==================
 brace source inside patterns respects the enclosing word mode
@@ -1779,7 +1779,7 @@ x=[{a,b}]; case @({a,b}) in [{a,b}]) :;; esac; [[ x == @({a,b}) ]]; : ${v/@({a,b
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:86     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:9        and_or: and_or
 0:0  - 0:9          pipeline: pipeline
 0:0  - 0:9            command: command
@@ -1880,4 +1880,4 @@ x=[{a,b}]; case @({a,b}) in [{a,b}]) :;; esac; [[ x == @({a,b}) ]]; : ${v/@({a,b
 0:84 - 0:85                     replacement: parameter_word
 0:84 - 0:85                       literal `x`
 0:85 - 0:86                   "}"
-0:86 - 1:0      "\n"
+0:86 - 1:0        "\n"

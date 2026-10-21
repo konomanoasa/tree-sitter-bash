@@ -261,7 +261,7 @@ until test "$y"; do :; done
                           (double_quoted
                             (parameter_expansion
                               parameter: (variable_name))))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               (done_keyword))))))
     and_or: (and_or
@@ -280,7 +280,7 @@ until test "$y"; do :; done
                         (double_quoted
                           (parameter_expansion
                             parameter: (variable_name))))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op)))
             body: (do_group
               (do_keyword)
@@ -291,7 +291,7 @@ until test "$y"; do :; done
                       body: (simple_command
                         name: (word
                           (literal))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               (done_keyword))))))
     and_or: (and_or
@@ -310,7 +310,7 @@ until test "$y"; do :; done
                         (double_quoted
                           (parameter_expansion
                             parameter: (variable_name))))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op)))
             body: (do_group
               (do_keyword)
@@ -321,7 +321,7 @@ until test "$y"; do :; done
                       body: (simple_command
                         name: (word
                           (literal))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               (done_keyword))))))))
 

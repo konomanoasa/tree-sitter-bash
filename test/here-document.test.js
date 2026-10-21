@@ -7,6 +7,7 @@ import {
   createParser,
   parseNodes,
 } from "./support/parser.js";
+import { nestedHereDocuments } from "./support/workloads.js";
 
 const delimiterCases = [
   {
@@ -146,6 +147,27 @@ for (const grammar of grammars) {
           insert: "other",
           valid: true,
         });
+      }
+    });
+    test("edits before nested here documents preserve fresh trees after insertion and undo", () => {
+      for (const depth of [5, 6, 8]) {
+        for (const [open, close] of [
+          ["$(", ")"],
+          ["$( { ", "}; )"],
+          ["${ ", "}"],
+        ]) {
+          for (const following of ["", "echo next\n"]) {
+            const seed = nestedHereDocuments(depth, { open, close, following });
+            for (const remove of ["echo BEFORE", "cat <<OUT"]) {
+              assertEditRoundTrip(parser, {
+                seed,
+                remove,
+                insert: ` ${remove}`,
+                valid: true,
+              });
+            }
+          }
+        }
       }
     });
     test("moving a substitution close before its body rejects and repairs locally", () => {

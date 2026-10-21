@@ -382,7 +382,7 @@ run value
                             (double_quoted
                               (parameter_expansion
                                 parameter: (positional_parameter))))))))
-                  terminator: (separator
+                  separator: (separator
                     operator: (separator_op))))
               redirect: (io_redirect
                 body: (io_file
@@ -482,7 +482,7 @@ Disabled extglob permits an adjacent punctuation function name
                         body: (simple_command
                           name: (word
                             (literal))))))
-                  terminator: (separator
+                  separator: (separator
                     operator: (separator_op)))))))))))
 
 ==================
@@ -495,7 +495,7 @@ escaped command and function names advance through each source escape
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:46     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:7        and_or: and_or
 0:0  - 0:7          pipeline: pipeline
 0:0  - 0:7            command: command
@@ -517,14 +517,14 @@ escaped command and function names advance through each source escape
 0:15 - 0:21               body: function_body
 0:15 - 0:21                 body: brace_group
 0:15 - 0:16                   "{"
-0:16 - 0:19                   body: list
+0:16 - 0:20                   body: list
 0:17 - 0:18                     and_or: and_or
 0:17 - 0:18                       pipeline: pipeline
 0:17 - 0:18                         command: command
 0:17 - 0:18                           body: simple_command
 0:17 - 0:18                             name: word
 0:17 - 0:18                               literal `:`
-0:18 - 0:19                     terminator: separator
+0:18 - 0:19                     separator: separator
 0:18 - 0:19                       operator: separator_op
 0:18 - 0:19                         ";"
 0:20 - 0:21                   "}"
@@ -539,18 +539,18 @@ escaped command and function names advance through each source escape
 0:40 - 0:46               body: function_body
 0:40 - 0:46                 body: brace_group
 0:40 - 0:41                   "{"
-0:41 - 0:44                   body: list
+0:41 - 0:45                   body: list
 0:42 - 0:43                     and_or: and_or
 0:42 - 0:43                       pipeline: pipeline
 0:42 - 0:43                         command: command
 0:42 - 0:43                           body: simple_command
 0:42 - 0:43                             name: word
 0:42 - 0:43                               literal `:`
-0:43 - 0:44                     terminator: separator
+0:43 - 0:44                     separator: separator
 0:43 - 0:44                       operator: separator_op
 0:43 - 0:44                         ";"
 0:45 - 0:46                   "}"
-0:46 - 1:0      "\n"
+0:46 - 1:0        "\n"
 
 ==================
 quoted and explicit function names retain reserved spellings
@@ -562,7 +562,7 @@ quoted and explicit function names retain reserved spellings
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:70     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:14       and_or: and_or
 0:0  - 0:14         pipeline: pipeline
 0:0  - 0:14           command: command
@@ -573,14 +573,14 @@ quoted and explicit function names retain reserved spellings
 0:8  - 0:14               body: function_body
 0:8  - 0:14                 body: brace_group
 0:8  - 0:9                    "{"
-0:9  - 0:12                   body: list
+0:9  - 0:13                   body: list
 0:10 - 0:11                     and_or: and_or
 0:10 - 0:11                       pipeline: pipeline
 0:10 - 0:11                         command: command
 0:10 - 0:11                           body: simple_command
 0:10 - 0:11                             name: word
 0:10 - 0:11                               literal `:`
-0:11 - 0:12                     terminator: separator
+0:11 - 0:12                     separator: separator
 0:11 - 0:12                       operator: separator_op
 0:11 - 0:12                         ";"
 0:13 - 0:14                   "}"
@@ -596,14 +596,14 @@ quoted and explicit function names retain reserved spellings
 0:23 - 0:29               body: function_body
 0:23 - 0:29                 body: brace_group
 0:23 - 0:24                   "{"
-0:24 - 0:27                   body: list
+0:24 - 0:28                   body: list
 0:25 - 0:26                     and_or: and_or
 0:25 - 0:26                       pipeline: pipeline
 0:25 - 0:26                         command: command
 0:25 - 0:26                           body: simple_command
 0:25 - 0:26                             name: word
 0:25 - 0:26                               literal `:`
-0:26 - 0:27                     terminator: separator
+0:26 - 0:27                     separator: separator
 0:26 - 0:27                       operator: separator_op
 0:26 - 0:27                         ";"
 0:28 - 0:29                   "}"
@@ -618,14 +618,14 @@ quoted and explicit function names retain reserved spellings
 0:42 - 0:48               body: function_body
 0:42 - 0:48                 body: brace_group
 0:42 - 0:43                   "{"
-0:43 - 0:46                   body: list
+0:43 - 0:47                   body: list
 0:44 - 0:45                     and_or: and_or
 0:44 - 0:45                       pipeline: pipeline
 0:44 - 0:45                         command: command
 0:44 - 0:45                           body: simple_command
 0:44 - 0:45                             name: word
 0:44 - 0:45                               literal `:`
-0:45 - 0:46                     terminator: separator
+0:45 - 0:46                     separator: separator
 0:45 - 0:46                       operator: separator_op
 0:45 - 0:46                         ";"
 0:47 - 0:48                   "}"
@@ -640,18 +640,18 @@ quoted and explicit function names retain reserved spellings
 0:64 - 0:70               body: function_body
 0:64 - 0:70                 body: brace_group
 0:64 - 0:65                   "{"
-0:65 - 0:68                   body: list
+0:65 - 0:69                   body: list
 0:66 - 0:67                     and_or: and_or
 0:66 - 0:67                       pipeline: pipeline
 0:66 - 0:67                         command: command
 0:66 - 0:67                           body: simple_command
 0:66 - 0:67                             name: word
 0:66 - 0:67                               literal `:`
-0:67 - 0:68                     terminator: separator
+0:67 - 0:68                     separator: separator
 0:67 - 0:68                       operator: separator_op
 0:67 - 0:68                         ";"
 0:69 - 0:70                   "}"
-0:70 - 1:0      "\n"
+0:70 - 1:0        "\n"
 
 ==================
 function names accept non-assignment equals signs and extglob patterns
@@ -663,7 +663,7 @@ function names accept non-assignment equals signs and extglob patterns
 ------------------
 
 0:0   - 1:0     program
-0:0   - 0:132     commands: list
+0:0   - 1:0       commands: list
 0:0   - 0:11        and_or: and_or
 0:0   - 0:11          pipeline: pipeline
 0:0   - 0:11            command: command
@@ -674,14 +674,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:5   - 0:11                body: function_body
 0:5   - 0:11                  body: brace_group
 0:5   - 0:6                     "{"
-0:6   - 0:9                     body: list
+0:6   - 0:10                    body: list
 0:7   - 0:8                       and_or: and_or
 0:7   - 0:8                         pipeline: pipeline
 0:7   - 0:8                           command: command
 0:7   - 0:8                             body: simple_command
 0:7   - 0:8                               name: word
 0:7   - 0:8                                 literal `:`
-0:8   - 0:9                       terminator: separator
+0:8   - 0:9                       separator: separator
 0:8   - 0:9                         operator: separator_op
 0:8   - 0:9                           ";"
 0:10  - 0:11                    "}"
@@ -697,14 +697,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:19  - 0:25                body: function_body
 0:19  - 0:25                  body: brace_group
 0:19  - 0:20                    "{"
-0:20  - 0:23                    body: list
+0:20  - 0:24                    body: list
 0:21  - 0:22                      and_or: and_or
 0:21  - 0:22                        pipeline: pipeline
 0:21  - 0:22                          command: command
 0:21  - 0:22                            body: simple_command
 0:21  - 0:22                              name: word
 0:21  - 0:22                                literal `:`
-0:22  - 0:23                      terminator: separator
+0:22  - 0:23                      separator: separator
 0:22  - 0:23                        operator: separator_op
 0:22  - 0:23                          ";"
 0:24  - 0:25                    "}"
@@ -720,14 +720,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:35  - 0:41                body: function_body
 0:35  - 0:41                  body: brace_group
 0:35  - 0:36                    "{"
-0:36  - 0:39                    body: list
+0:36  - 0:40                    body: list
 0:37  - 0:38                      and_or: and_or
 0:37  - 0:38                        pipeline: pipeline
 0:37  - 0:38                          command: command
 0:37  - 0:38                            body: simple_command
 0:37  - 0:38                              name: word
 0:37  - 0:38                                literal `:`
-0:38  - 0:39                      terminator: separator
+0:38  - 0:39                      separator: separator
 0:38  - 0:39                        operator: separator_op
 0:38  - 0:39                          ";"
 0:40  - 0:41                    "}"
@@ -743,14 +743,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:53  - 0:59                body: function_body
 0:53  - 0:59                  body: brace_group
 0:53  - 0:54                    "{"
-0:54  - 0:57                    body: list
+0:54  - 0:58                    body: list
 0:55  - 0:56                      and_or: and_or
 0:55  - 0:56                        pipeline: pipeline
 0:55  - 0:56                          command: command
 0:55  - 0:56                            body: simple_command
 0:55  - 0:56                              name: word
 0:55  - 0:56                                literal `:`
-0:56  - 0:57                      terminator: separator
+0:56  - 0:57                      separator: separator
 0:56  - 0:57                        operator: separator_op
 0:56  - 0:57                          ";"
 0:58  - 0:59                    "}"
@@ -766,14 +766,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:69  - 0:75                body: function_body
 0:69  - 0:75                  body: brace_group
 0:69  - 0:70                    "{"
-0:70  - 0:73                    body: list
+0:70  - 0:74                    body: list
 0:71  - 0:72                      and_or: and_or
 0:71  - 0:72                        pipeline: pipeline
 0:71  - 0:72                          command: command
 0:71  - 0:72                            body: simple_command
 0:71  - 0:72                              name: word
 0:71  - 0:72                                literal `:`
-0:72  - 0:73                      terminator: separator
+0:72  - 0:73                      separator: separator
 0:72  - 0:73                        operator: separator_op
 0:72  - 0:73                          ";"
 0:74  - 0:75                    "}"
@@ -789,14 +789,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:84  - 0:90                body: function_body
 0:84  - 0:90                  body: brace_group
 0:84  - 0:85                    "{"
-0:85  - 0:88                    body: list
+0:85  - 0:89                    body: list
 0:86  - 0:87                      and_or: and_or
 0:86  - 0:87                        pipeline: pipeline
 0:86  - 0:87                          command: command
 0:86  - 0:87                            body: simple_command
 0:86  - 0:87                              name: word
 0:86  - 0:87                                literal `:`
-0:87  - 0:88                      terminator: separator
+0:87  - 0:88                      separator: separator
 0:87  - 0:88                        operator: separator_op
 0:87  - 0:88                          ";"
 0:89  - 0:90                    "}"
@@ -812,14 +812,14 @@ function names accept non-assignment equals signs and extglob patterns
 0:104 - 0:110               body: function_body
 0:104 - 0:110                 body: brace_group
 0:104 - 0:105                   "{"
-0:105 - 0:108                   body: list
+0:105 - 0:109                   body: list
 0:106 - 0:107                     and_or: and_or
 0:106 - 0:107                       pipeline: pipeline
 0:106 - 0:107                         command: command
 0:106 - 0:107                           body: simple_command
 0:106 - 0:107                             name: word
 0:106 - 0:107                               literal `:`
-0:107 - 0:108                     terminator: separator
+0:107 - 0:108                     separator: separator
 0:107 - 0:108                       operator: separator_op
 0:107 - 0:108                         ";"
 0:109 - 0:110                   "}"
@@ -834,18 +834,18 @@ function names accept non-assignment equals signs and extglob patterns
 0:126 - 0:132               body: function_body
 0:126 - 0:132                 body: brace_group
 0:126 - 0:127                   "{"
-0:127 - 0:130                   body: list
+0:127 - 0:131                   body: list
 0:128 - 0:129                     and_or: and_or
 0:128 - 0:129                       pipeline: pipeline
 0:128 - 0:129                         command: command
 0:128 - 0:129                           body: simple_command
 0:128 - 0:129                             name: word
 0:128 - 0:129                               literal `:`
-0:129 - 0:130                     terminator: separator
+0:129 - 0:130                     separator: separator
 0:129 - 0:130                       operator: separator_op
 0:129 - 0:130                         ";"
 0:131 - 0:132                   "}"
-0:132 - 1:0       "\n"
+0:132 - 1:0         "\n"
 
 ==================
 function names and body redirections retain source ownership
@@ -857,7 +857,7 @@ function a-b() { :; } >out
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:26     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:26       and_or: and_or
 0:0  - 0:26         pipeline: pipeline
 0:0  - 0:26           command: command
@@ -869,14 +869,14 @@ function a-b() { :; } >out
 0:15 - 0:26               body: function_body
 0:15 - 0:21                 body: brace_group
 0:15 - 0:16                   "{"
-0:16 - 0:19                   body: list
+0:16 - 0:20                   body: list
 0:17 - 0:18                     and_or: and_or
 0:17 - 0:18                       pipeline: pipeline
 0:17 - 0:18                         command: command
 0:17 - 0:18                           body: simple_command
 0:17 - 0:18                             name: word
 0:17 - 0:18                               literal `:`
-0:18 - 0:19                     terminator: separator
+0:18 - 0:19                     separator: separator
 0:18 - 0:19                       operator: separator_op
 0:18 - 0:19                         ";"
 0:20 - 0:21                   "}"
@@ -885,7 +885,7 @@ function a-b() { :; } >out
 0:22 - 0:23                     ">"
 0:23 - 0:26                     filename: word
 0:23 - 0:26                       literal `out`
-0:26 - 1:0      "\n"
+0:26 - 1:0        "\n"
 
 ==================
 Unicode function names do not alias ASCII reserved spellings
@@ -897,7 +897,7 @@ Unicode function names do not alias ASCII reserved spellings
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:12     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:12       and_or: and_or
 0:0  - 0:12         pipeline: pipeline
 0:0  - 0:12           command: command
@@ -908,18 +908,18 @@ Unicode function names do not alias ASCII reserved spellings
 0:6  - 0:12               body: function_body
 0:6  - 0:12                 body: brace_group
 0:6  - 0:7                    "{"
-0:7  - 0:10                   body: list
+0:7  - 0:11                   body: list
 0:8  - 0:9                      and_or: and_or
 0:8  - 0:9                        pipeline: pipeline
 0:8  - 0:9                          command: command
 0:8  - 0:9                            body: simple_command
 0:8  - 0:9                              name: word
 0:8  - 0:9                                literal `:`
-0:9  - 0:10                     terminator: separator
+0:9  - 0:10                     separator: separator
 0:9  - 0:10                       operator: separator_op
 0:9  - 0:10                         ";"
 0:11 - 0:12                   "}"
-0:12 - 1:0      "\n"
+0:12 - 1:0        "\n"
 
 ==================
 command boundaries reject "f() { ! }\n"

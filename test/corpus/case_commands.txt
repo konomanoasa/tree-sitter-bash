@@ -227,7 +227,7 @@ case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:45     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:45       and_or: and_or
 0:0  - 0:45         pipeline: pipeline
 0:0  - 0:45           command: command
@@ -270,4 +270,4 @@ case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
 0:37 - 0:38                               "}"
 0:38 - 0:40                 terminator: dsemi `;;`
 0:41 - 0:45               esac_keyword `esac`
-0:45 - 1:0      "\n"
+0:45 - 1:0        "\n"

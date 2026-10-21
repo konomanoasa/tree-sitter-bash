@@ -77,7 +77,7 @@ leading redirects permit compound assignments before and after declaration names
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:45     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:45       and_or: and_or
 0:0  - 0:45         pipeline: pipeline
 0:0  - 0:45           command: command
@@ -118,7 +118,7 @@ leading redirects permit compound assignments before and after declaration names
 0:39 - 0:44                   element: word
 0:39 - 0:44                     literal `three`
 0:44 - 0:45                   ")"
-0:45 - 1:0      "\n"
+0:45 - 1:0        "\n"
 
 ==================
 redirect after an assignment bounds later subscripts to the word
@@ -167,7 +167,7 @@ x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:47     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:41       and_or: and_or
 0:0  - 0:41         pipeline: pipeline
 0:0  - 0:41           command: command
@@ -223,7 +223,7 @@ x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
 0:45 - 0:47                 value: array_assignment
 0:45 - 0:46                   "("
 0:46 - 0:47                   ")"
-0:47 - 1:0      "\n"
+0:47 - 1:0        "\n"
 
 ==================
 parenthesized assignment subscripts take precedence over function names: "a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }\n"
@@ -235,7 +235,7 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:59     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:10       and_or: and_or
 0:0  - 0:10         pipeline: pipeline
 0:0  - 0:10           command: command
@@ -290,14 +290,14 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
 0:37 - 0:43               body: function_body
 0:37 - 0:43                 body: brace_group
 0:37 - 0:38                   "{"
-0:38 - 0:41                   body: list
+0:38 - 0:42                   body: list
 0:39 - 0:40                     and_or: and_or
 0:39 - 0:40                       pipeline: pipeline
 0:39 - 0:40                         command: command
 0:39 - 0:40                           body: simple_command
 0:39 - 0:40                             name: word
 0:39 - 0:40                               literal `:`
-0:40 - 0:41                     terminator: separator
+0:40 - 0:41                     separator: separator
 0:40 - 0:41                       operator: separator_op
 0:40 - 0:41                         ";"
 0:42 - 0:43                   "}"
@@ -313,18 +313,18 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
 0:53 - 0:59               body: function_body
 0:53 - 0:59                 body: brace_group
 0:53 - 0:54                   "{"
-0:54 - 0:57                   body: list
+0:54 - 0:58                   body: list
 0:55 - 0:56                     and_or: and_or
 0:55 - 0:56                       pipeline: pipeline
 0:55 - 0:56                         command: command
 0:55 - 0:56                           body: simple_command
 0:55 - 0:56                             name: word
 0:55 - 0:56                               literal `:`
-0:56 - 0:57                     terminator: separator
+0:56 - 0:57                     separator: separator
 0:56 - 0:57                       operator: separator_op
 0:56 - 0:57                         ";"
 0:58 - 0:59                   "}"
-0:59 - 1:0      "\n"
+0:59 - 1:0        "\n"
 
 ==================
 parenthesized assignment subscripts take precedence over function names rejects "a[ () { :; }\n"

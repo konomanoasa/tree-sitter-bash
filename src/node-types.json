@@ -5189,10 +5189,6 @@
         "required": false,
         "types": [
           {
-            "type": "separator",
-            "named": true
-          },
-          {
             "type": "separator_op",
             "named": true
           }
@@ -6865,24 +6861,6 @@
         ]
       },
       "leading": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
-            "named": true
-          }
-        ]
-      },
-      "trailing": {
         "multiple": true,
         "required": false,
         "types": [

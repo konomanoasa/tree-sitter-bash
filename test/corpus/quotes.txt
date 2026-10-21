@@ -107,7 +107,7 @@ echo "@(a|b)" "{a,b}" "${x:-@(a|b)}" "${x:-<(echo hi)}"
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:55     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:55       and_or: and_or
 0:0  - 0:55         pipeline: pipeline
 0:0  - 0:55           command: command
@@ -148,7 +148,7 @@ echo "@(a|b)" "{a,b}" "${x:-@(a|b)}" "${x:-<(echo hi)}"
 0:43 - 0:53                       double_quote_text `<(echo hi)`
 0:53 - 0:54                     "}"
 0:54 - 0:55                   "\""
-0:55 - 1:0      "\n"
+0:55 - 1:0        "\n"
 
 ==================
 quoted parameter dollar quotes preserve source before expansion-time rescanning
@@ -160,7 +160,7 @@ quoted parameter dollar quotes preserve source before expansion-time rescanning
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:32     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:32       and_or: and_or
 0:0  - 0:32         pipeline: pipeline
 0:0  - 0:32           command: command
@@ -199,4 +199,4 @@ quoted parameter dollar quotes preserve source before expansion-time rescanning
 0:29 - 0:30                         "'"
 0:30 - 0:31                     "}"
 0:31 - 0:32                   "\""
-0:32 - 1:0      "\n"
+0:32 - 1:0        "\n"

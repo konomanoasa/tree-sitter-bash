@@ -250,7 +250,7 @@ x=1 ]]; echo ]] >]]
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:19     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:6        and_or: and_or
 0:0  - 0:6          pipeline: pipeline
 0:0  - 0:6            command: command
@@ -277,7 +277,7 @@ x=1 ]]; echo ]] >]]
 0:16 - 0:17                   ">"
 0:17 - 0:19                   filename: word
 0:17 - 0:19                     literal `]]`
-0:19 - 1:0      "\n"
+0:19 - 1:0        "\n"
 
 ==================
 command-name subscript boundaries stop at the first lexical bracket pair
@@ -289,7 +289,7 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\[ ] tail; 1a[ ] tail; a-b[ ] t
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:83     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:12       and_or: and_or
 0:0  - 0:12         pipeline: pipeline
 0:0  - 0:12           command: command
@@ -381,7 +381,7 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\[ ] tail; 1a[ ] tail; a-b[ ] t
 0:77 - 0:78                 literal `]`
 0:79 - 0:83               argument: word
 0:79 - 0:83                 literal `tail`
-0:83 - 1:0      "\n"
+0:83 - 1:0        "\n"
 
 ==================
 command-name subscripts retain whitespace and operators in one word
@@ -395,7 +395,7 @@ a[ ] one; a[(x)] two; a[;|
 ------------------
 
 0:0  - 2:0    program
-0:0  - 1:19     commands: list
+0:0  - 2:0      commands: list
 0:0  - 0:8        and_or: and_or
 0:0  - 0:8          pipeline: pipeline
 0:0  - 0:8            command: command
@@ -460,7 +460,7 @@ a[ ] one; a[(x)] two; a[;|
 1:13 - 1:14                   "]"
 1:15 - 1:19               argument: word
 1:15 - 1:19                 literal `four`
-1:19 - 2:0      "\n"
+1:19 - 2:0        "\n"
 
 ==================
 nested command-name subscript bounds survive assignments and redirections
@@ -472,7 +472,7 @@ a[$(>out x=y a[)] ) ] next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:26     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:26       and_or: and_or
 0:0  - 0:26         pipeline: pipeline
 0:0  - 0:26           command: command
@@ -513,7 +513,7 @@ a[$(>out x=y a[)] ) ] next
 0:20 - 0:21                   "]"
 0:22 - 0:26               argument: word
 0:22 - 0:26                 literal `next`
-0:26 - 1:0      "\n"
+0:26 - 1:0        "\n"
 
 ==================
 eval and let compound-shaped arguments remain ordinary words
@@ -627,7 +627,7 @@ eval a=(x y)
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:12     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:12       and_or: and_or
 0:0  - 0:12         pipeline: pipeline
 0:0  - 0:12           command: command
@@ -637,7 +637,7 @@ eval a=(x y)
 0:5  - 0:12               argument: word
 0:5  - 0:9                  literal `a=(x`
 0:10 - 0:12                 literal `y)`
-0:12 - 1:0      "\n"
+0:12 - 1:0        "\n"
 
 ==================
 quoting eval disables compound-shaped argument boundaries

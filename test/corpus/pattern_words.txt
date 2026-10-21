@@ -375,7 +375,7 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:56     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:14       and_or: and_or
 0:0  - 0:14         pipeline: pipeline
 0:0  - 0:14           command: command
@@ -429,14 +429,14 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
 0:35 - 0:41               body: function_body
 0:35 - 0:41                 body: brace_group
 0:35 - 0:36                   "{"
-0:36 - 0:39                   body: list
+0:36 - 0:40                   body: list
 0:37 - 0:38                     and_or: and_or
 0:37 - 0:38                       pipeline: pipeline
 0:37 - 0:38                         command: command
 0:37 - 0:38                           body: simple_command
 0:37 - 0:38                             name: word
 0:37 - 0:38                               literal `:`
-0:38 - 0:39                     terminator: separator
+0:38 - 0:39                     separator: separator
 0:38 - 0:39                       operator: separator_op
 0:38 - 0:39                         ";"
 0:40 - 0:41                   "}"
@@ -452,18 +452,18 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
 0:50 - 0:56               body: function_body
 0:50 - 0:56                 body: brace_group
 0:50 - 0:51                   "{"
-0:51 - 0:54                   body: list
+0:51 - 0:55                   body: list
 0:52 - 0:53                     and_or: and_or
 0:52 - 0:53                       pipeline: pipeline
 0:52 - 0:53                         command: command
 0:52 - 0:53                           body: simple_command
 0:52 - 0:53                             name: word
 0:52 - 0:53                               literal `:`
-0:53 - 0:54                     terminator: separator
+0:53 - 0:54                     separator: separator
 0:53 - 0:54                       operator: separator_op
 0:53 - 0:54                         ";"
 0:55 - 0:56                   "}"
-0:56 - 1:0      "\n"
+0:56 - 1:0        "\n"
 
 ==================
 extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"

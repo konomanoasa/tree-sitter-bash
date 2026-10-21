@@ -616,9 +616,12 @@ const newlineListElements = ($) => [
   $._blank_line,
   $._comment_line,
 ];
-const ledNewlineList = ($, lead) =>
-  prec.right(seq(lead, repeat(choice(...newlineListElements($)))));
-
+const commandListNewlines = ($) =>
+  choice(
+    $._separator_led_newline_list,
+    seq($._term_continuation, $._newline_list),
+    seq(optional($._term_boundary), $._newline_list),
+  );
 const boundaryLineComment = ($, comment) =>
   seq($._comment_boundary, optional($._horizontal_layout), comment);
 
@@ -684,7 +687,7 @@ const closedCompoundList = ($) =>
     optional($._closing_layout),
   );
 const completeCommandsTail = ($) =>
-  seq($.list, optional($._linebreak), optional($._free_trailing_layout));
+  seq($.list, optional($._free_trailing_layout));
 
 const linebreakLedCommandsBody = ($) =>
   seq(
@@ -1447,8 +1450,6 @@ export default function defineGrammar(name) {
     conflicts: ($) => [
       [$._list],
       [$._term],
-      [$._compound_list],
-      [$.list],
       [$._conditional_expression, $.conditional_binary_expression],
       [$._sequential_newline_separator, $._linebreak],
       [$._complete_command],
@@ -1460,11 +1461,7 @@ export default function defineGrammar(name) {
           optional(field("leading", $._linebreak)),
           optional($._horizontal_layout),
           choice(
-            seq(
-              field("commands", $.list),
-              optional(field("trailing", $._linebreak)),
-              optional($._free_trailing_layout),
-            ),
+            seq(field("commands", $.list), optional($._free_trailing_layout)),
             optional(trailingComment($)),
           ),
         ),
@@ -1541,18 +1538,22 @@ export default function defineGrammar(name) {
       list: ($) =>
         seq(
           field("command", $._complete_command),
-          repeat(
-            seq(
-              choice(
-                field("separator", $._separator_led_newline_list),
-                seq($._term_continuation, field("separator", $._newline_list)),
-                field("separator", $._here_document_led_newline_list),
+          optional($._complete_commands_tail),
+          optional($._term_boundary),
+        ),
+
+      _complete_commands_tail: ($) =>
+        prec.right(
+          seq(
+            field("separator", commandListNewlines($)),
+            optional($._horizontal_layout),
+            optional(
+              seq(
+                field("command", $._complete_command),
+                optional($._complete_commands_tail),
               ),
-              optional($._horizontal_layout),
-              field("command", $._complete_command),
             ),
           ),
-          optional($._term_boundary),
         ),
 
       _complete_command: ($) =>
@@ -1786,13 +1787,7 @@ export default function defineGrammar(name) {
       _operator_separator: ($) =>
         separatorOperatorLayout($, field("operator", $.separator_op)),
 
-      _newline_separator: ($) => field("newlines", $._newline_list),
-
-      _separator_led_newline_separator: ($) =>
-        field("newlines", $._separator_led_newline_list),
-
-      _here_document_led_separator: ($) =>
-        field("newlines", $._here_document_led_newline_list),
+      _newline_separator: ($) => field("newlines", commandListNewlines($)),
 
       _sequential_operator_separator: ($) =>
         separatorOperatorLayout($, physical($, $._punct_semicolon, ";")),
@@ -1802,31 +1797,23 @@ export default function defineGrammar(name) {
       _term: ($) =>
         seq(
           field("and_or", $.and_or),
-          repeat(
-            seq(
-              choice(
-                field(
-                  "separator",
-                  alias($._separator_led_newline_separator, $.separator),
-                ),
-                seq(
-                  optional($._horizontal_layout),
-                  field("separator", alias($._operator_separator, $.separator)),
-                ),
-                seq(
-                  $._term_continuation,
-                  field("separator", alias($._newline_separator, $.separator)),
-                ),
-                field(
-                  "separator",
-                  alias($._here_document_led_separator, $.separator),
-                ),
-              ),
-              optional($._horizontal_layout),
-              field("and_or", $.and_or),
-            ),
-          ),
+          optional($._term_tail),
           optional($._term_boundary),
+        ),
+
+      _term_tail: ($) =>
+        prec.right(
+          seq(
+            choice(
+              seq(
+                optional($._horizontal_layout),
+                field("separator", alias($._operator_separator, $.separator)),
+              ),
+              field("separator", alias($._newline_separator, $.separator)),
+            ),
+            optional($._horizontal_layout),
+            optional(seq(field("and_or", $.and_or), optional($._term_tail))),
+          ),
         ),
 
       _compound_list: ($) =>
@@ -1834,15 +1821,6 @@ export default function defineGrammar(name) {
           optional(field("leading", $._linebreak)),
           optional($._horizontal_layout),
           field("body", $._term),
-          optional(
-            choice(
-              seq(
-                optional($._horizontal_layout),
-                field("terminator", alias($._operator_separator, $.separator)),
-              ),
-              field("terminator", alias($._newline_separator, $.separator)),
-            ),
-          ),
         ),
 
       _and_if: ($) => alias($._and_if_lexeme, $.and_if),
@@ -3555,10 +3533,13 @@ export default function defineGrammar(name) {
         prec.right(repeat1(choice(...newlineListElements($)))),
 
       _separator_led_newline_list: ($) =>
-        ledNewlineList($, seq($._separator_newline, $._layout_newline)),
-
-      _here_document_led_newline_list: ($) =>
-        ledNewlineList($, $.here_document_sequence),
+        prec.right(
+          seq(
+            $._separator_newline,
+            $._layout_newline,
+            repeat(choice(...newlineListElements($))),
+          ),
+        ),
 
       _linebreak: ($) => $._newline_list,
 

@@ -452,7 +452,7 @@ time -p ! coproc worker { :; } |& cat
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:37     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:37       and_or: and_or
 0:0  - 0:37         pipeline: pipeline
 0:0  - 0:7            timing: timing
@@ -466,14 +466,14 @@ time -p ! coproc worker { :; } |& cat
 0:17 - 0:23                 literal `worker`
 0:24 - 0:30               body: brace_group
 0:24 - 0:25                 "{"
-0:25 - 0:28                 body: list
+0:25 - 0:29                 body: list
 0:26 - 0:27                   and_or: and_or
 0:26 - 0:27                     pipeline: pipeline
 0:26 - 0:27                       command: command
 0:26 - 0:27                         body: simple_command
 0:26 - 0:27                           name: word
 0:26 - 0:27                             literal `:`
-0:27 - 0:28                   terminator: separator
+0:27 - 0:28                   separator: separator
 0:27 - 0:28                     operator: separator_op
 0:27 - 0:28                       ";"
 0:29 - 0:30                 "}"
@@ -482,7 +482,7 @@ time -p ! coproc worker { :; } |& cat
 0:34 - 0:37             body: simple_command
 0:34 - 0:37               name: word
 0:34 - 0:37                 literal `cat`
-0:37 - 1:0      "\n"
+0:37 - 1:0        "\n"
 
 ==================
 coprocess assignment-shaped arguments preserve their argument role: "coproc worker a=(\"x y\" $p $(printf z)) x+=y declare -a b+=(2) >out tail\n"
@@ -494,7 +494,7 @@ coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:71     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:71       and_or: and_or
 0:0  - 0:71         pipeline: pipeline
 0:0  - 0:71           command: command
@@ -557,7 +557,7 @@ coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
 0:63 - 0:66                       literal `out`
 0:67 - 0:71                 argument: word
 0:67 - 0:71                   literal `tail`
-0:71 - 1:0      "\n"
+0:71 - 1:0        "\n"
 
 ==================
 coprocess assignment-shaped arguments preserve their argument role: "coproc declare a=(1)\n"
@@ -569,7 +569,7 @@ coproc declare a=(1)
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:20     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -585,7 +585,7 @@ coproc declare a=(1)
 0:18 - 0:19                     element: word
 0:18 - 0:19                       literal `1`
 0:19 - 0:20                     ")"
-0:20 - 1:0      "\n"
+0:20 - 1:0        "\n"
 
 ==================
 coprocess array after ordinary argument "coproc worker tail a=(1)\n"
@@ -815,7 +815,7 @@ if :; then coproc "$name" fi
                     body: (simple_command
                       name: (word
                         (literal))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op)))
             (then_keyword)
             consequence: (list

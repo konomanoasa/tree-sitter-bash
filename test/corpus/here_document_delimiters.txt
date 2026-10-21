@@ -31,12 +31,12 @@ $( [[ x ]] )
                                   (conditional_open)
                                   (word
                                     (literal))
-                                  (conditional_close)))))))))))))))))
-  (here_document_sequence
-    (here_document_line_end )
-    (here_document
-      (here_document_end
-        (here_document_end_text )))))
+                                  (conditional_close))))))))))))))))
+    (here_document_sequence
+      (here_document_line_end )
+      (here_document
+        (here_document_end
+          (here_document_end_text ))))))
 
 ==================
 here document delimiter extglob
@@ -66,14 +66,14 @@ x
                       (extglob_alternative
                         (literal))
                       (extglob_alternative
-                        (literal))))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                        (literal)))))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (here_document_body
+          (here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 here document ANSI-C Unicode delimiter
@@ -101,14 +101,14 @@ EOF
                   (word
                     (dollar_single_quoted
                       (dollar_single_quote_escape)
-                      (dollar_single_quote_text)))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (quoted_here_document_body
-        (quoted_here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                      (dollar_single_quote_text))))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (quoted_here_document_body
+          (quoted_here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 here document ANSI-C hex width
@@ -136,14 +136,14 @@ E4OF
                   (word
                     (dollar_single_quoted
                       (dollar_single_quote_escape)
-                      (dollar_single_quote_text)))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (quoted_here_document_body
-        (quoted_here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                      (dollar_single_quote_text))))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (quoted_here_document_body
+          (quoted_here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 ANSI-C unknown escape delimiter
@@ -171,14 +171,14 @@ x
                   (word
                     (dollar_single_quoted
                       (dollar_single_quote_escape)
-                      (dollar_single_quote_escape)))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (quoted_here_document_body
-        (quoted_here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                      (dollar_single_quote_escape))))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (quoted_here_document_body
+          (quoted_here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 ANSI-C NUL truncates only the quoted segment
@@ -208,14 +208,14 @@ ab
                     (dollar_single_quoted
                       (dollar_single_quote_escape)
                       (dollar_single_quote_text))
-                    (literal))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (quoted_here_document_body
-        (quoted_here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                    (literal)))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (quoted_here_document_body
+          (quoted_here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 delimiter quotes are removed without parameter expansion
@@ -247,14 +247,14 @@ ${x:-a}
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (double_quoted
-                            (double_quote_text))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                            (double_quote_text)))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 delimiter quotes are removed without command execution
@@ -292,14 +292,14 @@ $(echo a)
                                       (literal))
                                     argument: (word
                                       (double_quoted
-                                        (double_quote_text))))))))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                                        (double_quote_text)))))))))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 quotes inside unquoted parameter spelling are retained
@@ -330,15 +330,15 @@ ${x:-"a"}
                       operator: (parameter_value_operator)
                       word: (parameter_word
                         (double_quoted
-                          (double_quote_text)))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (parameter_expansion
-          parameter: (variable_name)))
-      end: (here_document_end
-        (here_document_end_text)))))
+                          (double_quote_text))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (parameter_expansion
+            parameter: (variable_name)))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 quotes inside unquoted substitution spelling are retained
@@ -375,15 +375,15 @@ $(echo "a")
                                     (literal))
                                   argument: (word
                                     (double_quoted
-                                      (double_quote_text)))))))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (parameter_expansion
-          parameter: (variable_name)))
-      end: (here_document_end
-        (here_document_end_text)))))
+                                      (double_quote_text))))))))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (parameter_expansion
+            parameter: (variable_name)))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 empty quoted delimiter ends at empty line
@@ -409,13 +409,13 @@ body
                 operator: (dless)
                 end: (here_end
                   word: (word
-                    (single_quoted))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end))))
+                    (single_quoted)))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end)))))
 
 ==================
 quoted parameter with nested blanks
@@ -447,14 +447,14 @@ ${x:-a b}
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (double_quoted
-                            (double_quote_text))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                            (double_quote_text)))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 quoted command with nested blanks
@@ -492,14 +492,14 @@ $(echo a b)
                                       (literal))
                                     argument: (word
                                       (double_quoted
-                                        (double_quote_text))))))))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                                        (double_quote_text)))))))))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 unquoted parameter name
@@ -526,14 +526,14 @@ $x
                 end: (here_end
                   word: (word
                     (parameter_expansion
-                      parameter: (variable_name)))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                      parameter: (variable_name))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 locale quote delimiter prefixes are removed without expanding their contents
@@ -581,24 +581,24 @@ $name
                   word: (word
                     (locale_quoted
                       (parameter_expansion
-                        parameter: (variable_name))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                        parameter: (variable_name)))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text)))
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text)))
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 here document delimiter words preserve process substitution source
@@ -645,15 +645,15 @@ pre<(printf x)>(:)post
                                 body: (simple_command
                                   name: (word
                                     (literal)))))))))
-                    (literal))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (parameter_expansion
-          parameter: (variable_name)))
-      end: (here_document_end
-        (here_document_end_text)))))
+                    (literal)))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (parameter_expansion
+            parameter: (variable_name)))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 here document outer quoting controls extglob quote removal
@@ -699,20 +699,20 @@ $w
                         (double_quoted
                           (double_quote_text)))
                       alternative: (extglob_alternative
-                        (literal))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (parameter_expansion
-          parameter: (variable_name)))
-      end: (here_document_end
-        (here_document_end_text)))
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                        (literal)))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (parameter_expansion
+            parameter: (variable_name)))
+        end: (here_document_end
+          (here_document_end_text)))
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 brace substitution delimiter prefixes normalize layout before quote removal
@@ -749,7 +749,7 @@ ${|printf x; }
                               body: (simple_command
                                 name: (word
                                   (literal))))))
-                        terminator: (separator
+                        separator: (separator
                           operator: (separator_op))))))))
             redirect: (io_redirect
               body: (io_here
@@ -768,21 +768,21 @@ ${|printf x; }
                                 argument: (word
                                   (double_quoted
                                     (double_quote_text)))))))
-                        terminator: (separator
-                          operator: (separator_op)))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (here_document_body
-        (parameter_expansion
-          parameter: (variable_name)))
-      end: (here_document_end
-        (here_document_end_text)))
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                        separator: (separator
+                          operator: (separator_op))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (here_document_body
+          (parameter_expansion
+            parameter: (variable_name)))
+        end: (here_document_end
+          (here_document_end_text)))
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 Quoted parameter delimiter with extquote enabled
@@ -814,14 +814,14 @@ ${x:-ab}
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (dollar_single_quoted
-                            (dollar_single_quote_text))))))))))))))
-  trailing: (here_document_sequence
-    line_end: (here_document_line_end)
-    document: (here_document
-      body: (quoted_here_document_body
-        (quoted_here_document_text))
-      end: (here_document_end
-        (here_document_end_text)))))
+                            (dollar_single_quote_text)))))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text))
+        end: (here_document_end
+          (here_document_end_text))))))
 
 ==================
 here document delimiter: quoted array parameter pattern
@@ -836,7 +836,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -884,7 +884,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: here string within a command substitution
@@ -899,7 +899,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:19       and_or: and_or
 0:0  - 0:19         pipeline: pipeline
 0:0  - 0:19           command: command
@@ -946,7 +946,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: current shell prefix normalizes horizontal blanks
@@ -961,7 +961,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:25       and_or: and_or
 0:0  - 0:25         pipeline: pipeline
 0:0  - 0:25           command: command
@@ -976,7 +976,7 @@ printf after
 0:7  - 0:25                       current_shell_substitution
 0:7  - 0:8                          "$"
 0:8  - 0:9                          "{"
-0:9  - 0:23                         body: list
+0:9  - 0:24                         body: list
 0:12 - 0:22                           and_or: and_or
 0:12 - 0:22                             pipeline: pipeline
 0:12 - 0:22                               command: command
@@ -988,7 +988,7 @@ printf after
 0:19 - 0:20                                       "\""
 0:20 - 0:21                                       double_quote_text `x`
 0:21 - 0:22                                       "\""
-0:22 - 0:23                           terminator: separator
+0:22 - 0:23                           separator: separator
 0:22 - 0:23                             operator: separator_op
 0:22 - 0:23                               ";"
 0:24 - 0:25                         "}"
@@ -1010,7 +1010,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: current shell prefix normalizes its newline
@@ -1026,7 +1026,7 @@ printf after
 ------------------
 
 0:0  - 5:0    program
-0:0  - 4:12     commands: list
+0:0  - 5:0      commands: list
 0:0  - 1:6        and_or: and_or
 0:0  - 1:6          pipeline: pipeline
 0:0  - 1:6            command: command
@@ -1041,7 +1041,7 @@ printf after
 0:7  - 1:6                        current_shell_substitution
 0:7  - 0:8                          "$"
 0:8  - 0:9                          "{"
-0:9  - 1:4                          body: list
+0:9  - 1:5                          body: list
 0:9  - 1:0                            "\n"
 1:2  - 1:3                            and_or: and_or
 1:2  - 1:3                              pipeline: pipeline
@@ -1049,7 +1049,7 @@ printf after
 1:2  - 1:3                                  body: simple_command
 1:2  - 1:3                                    name: word
 1:2  - 1:3                                      literal `:`
-1:3  - 1:4                            terminator: separator
+1:3  - 1:4                            separator: separator
 1:3  - 1:4                              operator: separator_op
 1:3  - 1:4                                ";"
 1:5  - 1:6                          "}"
@@ -1071,7 +1071,7 @@ printf after
 4:0  - 4:6                  literal `printf`
 4:7  - 4:12               argument: word
 4:7  - 4:12                 literal `after`
-4:12 - 5:0      "\n"
+4:12 - 5:0        "\n"
 
 ==================
 here document delimiter: reply prefix removes leading command layout
@@ -1087,7 +1087,7 @@ printf after
 ------------------
 
 0:0  - 5:0    program
-0:0  - 4:12     commands: list
+0:0  - 5:0      commands: list
 0:0  - 1:5        and_or: and_or
 0:0  - 1:5          pipeline: pipeline
 0:0  - 1:5            command: command
@@ -1103,7 +1103,7 @@ printf after
 0:7  - 0:8                          "$"
 0:8  - 0:9                          "{"
 0:9  - 0:10                         "|"
-0:10 - 1:3                          body: list
+0:10 - 1:4                          body: list
 0:12 - 1:0                            "\n"
 1:1  - 1:2                            and_or: and_or
 1:1  - 1:2                              pipeline: pipeline
@@ -1111,7 +1111,7 @@ printf after
 1:1  - 1:2                                  body: simple_command
 1:1  - 1:2                                    name: word
 1:1  - 1:2                                      literal `:`
-1:2  - 1:3                            terminator: separator
+1:2  - 1:3                            separator: separator
 1:2  - 1:3                              operator: separator_op
 1:2  - 1:3                                ";"
 1:4  - 1:5                          "}"
@@ -1133,7 +1133,7 @@ printf after
 4:0  - 4:6                  literal `printf`
 4:7  - 4:12               argument: word
 4:7  - 4:12                 literal `after`
-4:12 - 5:0      "\n"
+4:12 - 5:0        "\n"
 
 ==================
 here document delimiter: reply prefix normalization precedes quote removal
@@ -1148,7 +1148,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:27       and_or: and_or
 0:0  - 0:27         pipeline: pipeline
 0:0  - 0:27           command: command
@@ -1167,7 +1167,7 @@ printf after
 0:9  - 0:10                         "$"
 0:10 - 0:11                         "{"
 0:11 - 0:12                         "|"
-0:12 - 0:25                         body: list
+0:12 - 0:26                         body: list
 0:14 - 0:24                           and_or: and_or
 0:14 - 0:24                             pipeline: pipeline
 0:14 - 0:24                               command: command
@@ -1179,7 +1179,7 @@ printf after
 0:21 - 0:22                                       "\""
 0:22 - 0:23                                       double_quote_text `x`
 0:23 - 0:24                                       "\""
-0:24 - 0:25                           terminator: separator
+0:24 - 0:25                           separator: separator
 0:24 - 0:25                             operator: separator_op
 0:24 - 0:25                               ";"
 0:26 - 0:27                         "}"
@@ -1199,7 +1199,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: double quoted brace prefix preserves nested ANSI-C quotes
@@ -1214,7 +1214,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:26       and_or: and_or
 0:0  - 0:26         pipeline: pipeline
 0:0  - 0:26           command: command
@@ -1231,7 +1231,7 @@ printf after
 0:8  - 0:25                         current_shell_substitution
 0:8  - 0:9                            "$"
 0:9  - 0:10                           "{"
-0:10 - 0:23                           body: list
+0:10 - 0:24                           body: list
 0:11 - 0:22                             and_or: and_or
 0:11 - 0:22                               pipeline: pipeline
 0:11 - 0:22                                 command: command
@@ -1244,7 +1244,7 @@ printf after
 0:19 - 0:20                                         "'"
 0:20 - 0:21                                         dollar_single_quote_text `x`
 0:21 - 0:22                                         "'"
-0:22 - 0:23                             terminator: separator
+0:22 - 0:23                             separator: separator
 0:22 - 0:23                               operator: separator_op
 0:22 - 0:23                                 ";"
 0:24 - 0:25                           "}"
@@ -1265,7 +1265,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: single quoted brace source retains its blanks
@@ -1280,7 +1280,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:18       and_or: and_or
 0:0  - 0:18         pipeline: pipeline
 0:0  - 0:18           command: command
@@ -1312,7 +1312,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C quoted brace source retains decoded blanks
@@ -1327,7 +1327,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -1362,7 +1362,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: input process substitution word
@@ -1377,7 +1377,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:29       and_or: and_or
 0:0  - 0:29         pipeline: pipeline
 0:0  - 0:29           command: command
@@ -1426,7 +1426,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: output process substitution word
@@ -1441,7 +1441,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:11       and_or: and_or
 0:0  - 0:11         pipeline: pipeline
 0:0  - 0:11           command: command
@@ -1483,7 +1483,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: extglob internal quotes and escapes
@@ -1498,7 +1498,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -1542,7 +1542,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: outer quote removes extglob quotes and escapes
@@ -1557,7 +1557,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:22       and_or: and_or
 0:0  - 0:22         pipeline: pipeline
 0:0  - 0:22           command: command
@@ -1602,7 +1602,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: trailing quote applies to earlier command substitution
@@ -1617,7 +1617,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:24       and_or: and_or
 0:0  - 0:24         pipeline: pipeline
 0:0  - 0:24           command: command
@@ -1665,7 +1665,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: outer quote applies to parameter source
@@ -1680,7 +1680,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:20       and_or: and_or
 0:0  - 0:20         pipeline: pipeline
 0:0  - 0:20           command: command
@@ -1722,7 +1722,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: outer quote applies to backquote source
@@ -1737,7 +1737,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:23       and_or: and_or
 0:0  - 0:23         pipeline: pipeline
 0:0  - 0:23           command: command
@@ -1784,7 +1784,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C quote inside process substitution
@@ -1799,7 +1799,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:24       and_or: and_or
 0:0  - 0:24         pipeline: pipeline
 0:0  - 0:24           command: command
@@ -1849,7 +1849,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C apostrophe retains canonical quoting
@@ -1864,7 +1864,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:19       and_or: and_or
 0:0  - 0:19         pipeline: pipeline
 0:0  - 0:19           command: command
@@ -1909,7 +1909,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C NUL ends its quoted value
@@ -1924,7 +1924,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:19       and_or: and_or
 0:0  - 0:19         pipeline: pipeline
 0:0  - 0:19           command: command
@@ -1969,7 +1969,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: locale prefix inside command substitution
@@ -1984,7 +1984,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:23       and_or: and_or
 0:0  - 0:23         pipeline: pipeline
 0:0  - 0:23           command: command
@@ -2032,7 +2032,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C decoding precedes quoted parameter quote removal
@@ -2047,7 +2047,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:22       and_or: and_or
 0:0  - 0:22         pipeline: pipeline
 0:0  - 0:22           command: command
@@ -2092,7 +2092,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: ANSI-C quote inside a double quoted command substitution
@@ -2107,7 +2107,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:26       and_or: and_or
 0:0  - 0:26         pipeline: pipeline
 0:0  - 0:26           command: command
@@ -2158,7 +2158,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: backquote preserves nested ANSI-C spelling
@@ -2173,7 +2173,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:23       and_or: and_or
 0:0  - 0:23         pipeline: pipeline
 0:0  - 0:23           command: command
@@ -2222,7 +2222,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: current shell substitution has its own quote context
@@ -2237,7 +2237,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:29       and_or: and_or
 0:0  - 0:29         pipeline: pipeline
 0:0  - 0:29           command: command
@@ -2254,7 +2254,7 @@ printf after
 0:8  - 0:28                         current_shell_substitution
 0:8  - 0:9                            "$"
 0:9  - 0:10                           "{"
-0:10 - 0:26                           body: list
+0:10 - 0:27                           body: list
 0:11 - 0:25                             and_or: and_or
 0:11 - 0:25                               pipeline: pipeline
 0:11 - 0:25                                 command: command
@@ -2269,7 +2269,7 @@ printf after
 0:21 - 0:23                                         dollar_single_quote_escape `\\t`
 0:23 - 0:24                                         dollar_single_quote_text `b`
 0:24 - 0:25                                         "'"
-0:25 - 0:26                             terminator: separator
+0:25 - 0:26                             separator: separator
 0:25 - 0:26                               operator: separator_op
 0:25 - 0:26                                 ";"
 0:27 - 0:28                           "}"
@@ -2290,7 +2290,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: reply substitution has its own quote context
@@ -2305,7 +2305,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:29       and_or: and_or
 0:0  - 0:29         pipeline: pipeline
 0:0  - 0:29           command: command
@@ -2323,7 +2323,7 @@ printf after
 0:8  - 0:9                            "$"
 0:9  - 0:10                           "{"
 0:10 - 0:11                           "|"
-0:11 - 0:26                           body: list
+0:11 - 0:27                           body: list
 0:11 - 0:25                             and_or: and_or
 0:11 - 0:25                               pipeline: pipeline
 0:11 - 0:25                                 command: command
@@ -2338,7 +2338,7 @@ printf after
 0:21 - 0:23                                         dollar_single_quote_escape `\\t`
 0:23 - 0:24                                         dollar_single_quote_text `b`
 0:24 - 0:25                                         "'"
-0:25 - 0:26                             terminator: separator
+0:25 - 0:26                             separator: separator
 0:25 - 0:26                               operator: separator_op
 0:25 - 0:26                                 ";"
 0:27 - 0:28                           "}"
@@ -2359,7 +2359,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: Unicode escape retains its double quoted backslash
@@ -2374,7 +2374,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:25       and_or: and_or
 0:0  - 0:25         pipeline: pipeline
 0:0  - 0:25           command: command
@@ -2422,7 +2422,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: control escape before the closing quote stays literal
@@ -2437,7 +2437,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:13       and_or: and_or
 0:0  - 0:13         pipeline: pipeline
 0:0  - 0:13           command: command
@@ -2471,7 +2471,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 here document delimiter: control escape of an escaped quote keeps the quote
@@ -2486,7 +2486,7 @@ printf after
 ------------------
 
 0:0  - 4:0    program
-0:0  - 3:12     commands: list
+0:0  - 4:0      commands: list
 0:0  - 0:15       and_or: and_or
 0:0  - 0:15         pipeline: pipeline
 0:0  - 0:15           command: command
@@ -2520,7 +2520,7 @@ printf after
 3:0  - 3:6                  literal `printf`
 3:7  - 3:12               argument: word
 3:7  - 3:12                 literal `after`
-3:12 - 4:0      "\n"
+3:12 - 4:0        "\n"
 
 ==================
 delimiter quoting is local to its word inside quoted command substitution
@@ -2537,7 +2537,7 @@ ${v:-'x'}
 ------------------
 
 0:0  - 6:0    program
-0:0  - 5:2      commands: list
+0:0  - 6:0      commands: list
 0:0  - 5:2        and_or: and_or
 0:0  - 5:2          pipeline: pipeline
 0:0  - 5:2            command: command
@@ -2551,7 +2551,7 @@ ${v:-'x'}
 0:3  - 0:4                      "$"
 0:4  - 0:5                      "("
 0:5  - 5:0                      body: command_substitution_body
-0:5  - 0:38                       list
+0:5  - 5:0                        list
 0:5  - 0:38                         and_or: and_or
 0:5  - 0:38                           pipeline: pipeline
 0:5  - 0:38                             command: command
@@ -2595,23 +2595,23 @@ ${v:-'x'}
 0:35 - 0:36                                               dollar_single_quote_text `x`
 0:36 - 0:37                                               "'"
 0:37 - 0:38                                           "}"
-0:38 - 5:0                        here_document_sequence
-0:38 - 1:0                          line_end: here_document_line_end
-0:38 - 0:39                           `\n`
-1:0  - 3:0                          document: here_document
-1:0  - 2:0                            body: here_document_body
-1:0  - 1:6                              parameter_expansion
-1:0  - 1:1                                "$"
-1:1  - 1:6                                parameter: variable_name `first`
-2:0  - 3:0                            end: here_document_end
-2:0  - 2:10                             here_document_end_text `@('a\tb'|c)`
-3:0  - 5:0                          document: here_document
-3:0  - 4:0                            body: here_document_body
-3:0  - 3:7                              parameter_expansion
-3:0  - 3:1                                "$"
-3:1  - 3:7                                parameter: variable_name `second`
-4:0  - 5:0                            end: here_document_end
-4:0  - 4:9                              here_document_end_text `${v:-'x'}`
+0:38 - 5:0                          separator: here_document_sequence
+0:38 - 1:0                            line_end: here_document_line_end
+0:38 - 0:39                             `\n`
+1:0  - 3:0                            document: here_document
+1:0  - 2:0                              body: here_document_body
+1:0  - 1:6                                parameter_expansion
+1:0  - 1:1                                  "$"
+1:1  - 1:6                                  parameter: variable_name `first`
+2:0  - 3:0                              end: here_document_end
+2:0  - 2:10                               here_document_end_text `@('a\tb'|c)`
+3:0  - 5:0                            document: here_document
+3:0  - 4:0                              body: here_document_body
+3:0  - 3:7                                parameter_expansion
+3:0  - 3:1                                  "$"
+3:1  - 3:7                                  parameter: variable_name `second`
+4:0  - 5:0                              end: here_document_end
+4:0  - 4:9                                here_document_end_text `${v:-'x'}`
 5:0  - 5:1                      ")"
 5:1  - 5:2                    "\""
-5:2  - 6:0      "\n"
+5:2  - 6:0        "\n"

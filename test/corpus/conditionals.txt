@@ -466,7 +466,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
                         (double_quoted
                           (parameter_expansion
                             parameter: (variable_name))))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op)))
             (then_keyword)
             consequence: (list
@@ -478,7 +478,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
                         (literal))
                       argument: (word
                         (literal))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op)))
             alternative: (else_part
               (elif_keyword)
@@ -493,7 +493,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
                           (double_quoted
                             (parameter_expansion
                               parameter: (variable_name))))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               (then_keyword)
               consequence: (list
@@ -503,7 +503,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
                       body: (simple_command
                         name: (word
                           (literal))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               alternative: (else_part
                 (else_keyword)
@@ -516,7 +516,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
                             (literal))
                           argument: (word
                             (literal))))))
-                  terminator: (separator
+                  separator: (separator
                     operator: (separator_op)))))
             (fi_keyword)))))))
 
@@ -569,14 +569,14 @@ body
                                                 (dollar_single_quoted
                                                   (dollar_single_quote_text))))))
                                         alternative: (extglob_alternative
-                                          (literal))))))))))))
-                    (here_document_sequence
-                      line_end: (here_document_line_end)
-                      document: (here_document
-                        body: (here_document_body
-                          (here_document_text))
-                        end: (here_document_end
-                          (here_document_end_text))))))))
+                                          (literal)))))))))))
+                      separator: (here_document_sequence
+                        line_end: (here_document_line_end)
+                        document: (here_document
+                          body: (here_document_body
+                            (here_document_text))
+                          end: (here_document_end
+                            (here_document_end_text)))))))))
             (conditional_close)))))))
 
 ==================
@@ -589,7 +589,7 @@ punctuation reserved words introduce conditional groups and negated subshells
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:20     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:11       and_or: and_or
 0:0  - 0:11         pipeline: pipeline
 0:0  - 0:11           command: command
@@ -620,7 +620,7 @@ punctuation reserved words introduce conditional groups and negated subshells
 0:17 - 0:18                         name: word
 0:17 - 0:18                           literal `:`
 0:19 - 0:20               ")"
-0:20 - 1:0      "\n"
+0:20 - 1:0        "\n"
 
 ==================
 adjacent parentheses distinguish extglob from command and conditional negation
@@ -632,7 +632,7 @@ adjacent parentheses distinguish extglob from command and conditional negation
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:42     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:6        and_or: and_or
 0:0  - 0:6          pipeline: pipeline
 0:0  - 0:6            command: command
@@ -696,7 +696,7 @@ adjacent parentheses distinguish extglob from command and conditional negation
 0:37 - 0:38                     literal `x`
 0:38 - 0:39                   ")"
 0:40 - 0:42               conditional_close `]]`
-0:42 - 1:0      "\n"
+0:42 - 1:0        "\n"
 
 ==================
 conditional precedence owns pattern and regex operands
@@ -708,7 +708,7 @@ conditional precedence owns pattern and regex operands
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:44     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:44       and_or: and_or
 0:0  - 0:44         pipeline: pipeline
 0:0  - 0:44           command: command
@@ -764,7 +764,7 @@ conditional precedence owns pattern and regex operands
 0:39 - 0:40                             parameter: variable_name `z`
 0:40 - 0:41                           "\""
 0:42 - 0:44               conditional_close `]]`
-0:44 - 1:0      "\n"
+0:44 - 1:0        "\n"
 
 ==================
 bare conditions allow a newline before the closing delimiter

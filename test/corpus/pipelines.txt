@@ -392,7 +392,7 @@ quoted negation and joined substitutions remain pipeline command words
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:34     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:34       and_or: and_or
 0:0  - 0:34         pipeline: pipeline
 0:0  - 0:1            command: command
@@ -446,7 +446,7 @@ quoted negation and joined substitutions remain pipeline command words
 0:32 - 0:33                               name: word
 0:32 - 0:33                                 literal `:`
 0:33 - 0:34                   ")"
-0:34 - 1:0      "\n"
+0:34 - 1:0        "\n"
 
 ==================
 command boundaries reject ": | ! :\n"

@@ -236,7 +236,7 @@ for (const grammar of grammars) {
         source: "cat {f\\\nd}<<EOF\nbody\nEOF\n",
         languages: ["bash", "bash_default"],
         expected:
-          "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) redirect: (io_redirect number: (io_variable name: (variable_name)) body: (io_here operator: (dless) end: (here_end word: (word (literal)))))))))) trailing: (here_document_sequence line_end: (here_document_line_end) document: (here_document body: (here_document_body (here_document_text)) end: (here_document_end (here_document_end_text)))))",
+          "(program commands: (list and_or: (and_or pipeline: (pipeline command: (command body: (simple_command name: (word (literal)) redirect: (io_redirect number: (io_variable name: (variable_name)) body: (io_here operator: (dless) end: (here_end word: (word (literal))))))))) separator: (here_document_sequence line_end: (here_document_line_end) document: (here_document body: (here_document_body (here_document_text)) end: (here_document_end (here_document_end_text))))))",
         continuations: ["0:6-0:7"],
       },
       {

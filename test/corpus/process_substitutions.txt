@@ -130,7 +130,7 @@ descriptor spellings remain word prefixes before process substitutions
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:42     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:42       and_or: and_or
 0:0  - 0:42         pipeline: pipeline
 0:0  - 0:42           command: command
@@ -189,4 +189,4 @@ descriptor spellings remain word prefixes before process substitutions
 0:40 - 0:41                               argument: word
 0:40 - 0:41                                 literal `y`
 0:41 - 0:42                   ")"
-0:42 - 1:0      "\n"
+0:42 - 1:0        "\n"

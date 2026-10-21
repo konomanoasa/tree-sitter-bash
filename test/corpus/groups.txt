@@ -32,7 +32,7 @@ groups own nested lists and following redirects
                         (literal))
                       argument: (word
                         (literal))))))
-              terminator: (separator
+              separator: (separator
                 operator: (separator_op))))
           redirect: (io_redirect
             body: (io_file

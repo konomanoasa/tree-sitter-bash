@@ -615,7 +615,7 @@ for (($'a;b';$"c)d";$'e')); do :; done
                       body: (simple_command
                         name: (word
                           (literal))))))
-                terminator: (separator
+                separator: (separator
                   operator: (separator_op)))
               (done_keyword))))))))
 
@@ -800,7 +800,7 @@ echo $((0x$y)) $((0xg))
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:23     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:23       and_or: and_or
 0:0  - 0:23         pipeline: pipeline
 0:0  - 0:23           command: command
@@ -828,7 +828,7 @@ echo $((0x$y)) $((0xg))
 0:18 - 0:21                     arithmetic_source_fragment `0xg`
 0:21 - 0:22                   ")"
 0:22 - 0:23                   ")"
-0:23 - 1:0      "\n"
+0:23 - 1:0        "\n"
 
 ==================
 arithmetic source preserves ANSI-C and locale quotes without evaluating them
@@ -840,7 +840,7 @@ echo $(( $'a\'日' + $"$x" ))
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:29     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:29       and_or: and_or
 0:0  - 0:29         pipeline: pipeline
 0:0  - 0:29           command: command
@@ -870,7 +870,7 @@ echo $(( $'a\'日' + $"$x" ))
 0:25 - 0:26                       "\""
 0:27 - 0:28                   ")"
 0:28 - 0:29                   ")"
-0:29 - 1:0      "\n"
+0:29 - 1:0        "\n"
 
 ==================
 a dollar separated from arithmetic quoting remains a source fragment
@@ -883,7 +883,7 @@ echo $(( $
 ------------------
 
 0:0  - 2:0    program
-0:0  - 1:10     commands: list
+0:0  - 2:0      commands: list
 0:0  - 1:10       and_or: and_or
 0:0  - 1:10         pipeline: pipeline
 0:0  - 1:10           command: command
@@ -905,7 +905,7 @@ echo $(( $
 1:6  - 1:7                      arithmetic_source_fragment `$`
 1:8  - 1:9                    ")"
 1:9  - 1:10                   ")"
-1:10 - 2:0      "\n"
+1:10 - 2:0        "\n"
 
 ==================
 an assignment in a conditional alternative stays arithmetic source

@@ -145,7 +145,7 @@ special parameter indirection preserves operators and targets
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:30     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:30       and_or: and_or
 0:0  - 0:30         pipeline: pipeline
 0:0  - 0:30           command: command
@@ -186,7 +186,7 @@ special parameter indirection preserves operators and targets
 0:27 - 0:28                   parameter: special_parameter `!`
 0:28 - 0:29                   operator: parameter_value_operator `-`
 0:29 - 0:30                   "}"
-0:30 - 1:0      "\n"
+0:30 - 1:0        "\n"
 
 ==================
 parameter arrays and length
@@ -567,7 +567,7 @@ case toggle operators and pattern boundaries
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:25     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:25       and_or: and_or
 0:0  - 0:25         pipeline: pipeline
 0:0  - 0:25           command: command
@@ -606,7 +606,7 @@ case toggle operators and pattern boundaries
 0:23 - 0:24                       tilde_expansion
 0:23 - 0:24                         "~"
 0:24 - 0:25                   "}"
-0:25 - 1:0      "\n"
+0:25 - 1:0        "\n"
 
 ==================
 case conversion and transformations
@@ -1426,7 +1426,7 @@ substring operands share arithmetic precedence and conditional fields
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:27     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:27       and_or: and_or
 0:0  - 0:27         pipeline: pipeline
 0:0  - 0:27           command: command
@@ -1460,7 +1460,7 @@ substring operands share arithmetic precedence and conditional fields
 0:24 - 0:25                         arithmetic_number `2`
 0:25 - 0:26                     "}"
 0:26 - 0:27                   "\""
-0:27 - 1:0      "\n"
+0:27 - 1:0        "\n"
 
 ==================
 parameter replacement and substring operands retain separate fields
@@ -1472,7 +1472,7 @@ echo ${x//[a/]/日} ${x:(a?b:c):2}
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:34     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:34       and_or: and_or
 0:0  - 0:34         pipeline: pipeline
 0:0  - 0:34           command: command
@@ -1513,7 +1513,7 @@ echo ${x//[a/]/日} ${x:(a?b:c):2}
 0:32 - 0:33                     length: substring_source
 0:32 - 0:33                       arithmetic_number `2`
 0:33 - 0:34                   "}"
-0:34 - 1:0      "\n"
+0:34 - 1:0        "\n"
 
 ==================
 substring fields distinguish absent operands from whitespace source
@@ -1526,7 +1526,7 @@ substring fields distinguish absent operands from whitespace source
 ------------------
 
 0:0  - 2:0    program
-0:0  - 1:1      commands: list
+0:0  - 2:0      commands: list
 0:0  - 1:1        and_or: and_or
 0:0  - 1:1          pipeline: pipeline
 0:0  - 1:1            command: command
@@ -1562,7 +1562,7 @@ substring fields distinguish absent operands from whitespace source
 0:22 - 1:0                      length: substring_source
 0:22 - 0:24                       ` \n`
 1:0  - 1:1                    "}"
-1:1  - 2:0      "\n"
+1:1  - 2:0        "\n"
 
 ==================
 substring operands retain source without requiring valid arithmetic
@@ -1575,7 +1575,7 @@ substring operands retain source without requiring valid arithmetic
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:37     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:37       and_or: and_or
 0:0  - 0:37         pipeline: pipeline
 0:0  - 0:37           command: command
@@ -1635,7 +1635,7 @@ substring operands retain source without requiring valid arithmetic
 0:34 - 0:35                         arithmetic_operator `:`
 0:35 - 0:36                         arithmetic_number `2`
 0:36 - 0:37                   "}"
-0:37 - 1:0      "\n"
+0:37 - 1:0        "\n"
 
 ==================
 unterminated parameter extglobs remain source within their expansion
@@ -1648,7 +1648,7 @@ echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:45     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:34       and_or: and_or
 0:0  - 0:34         pipeline: pipeline
 0:0  - 0:34           command: command
@@ -1696,7 +1696,7 @@ echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
 0:36 - 0:40                 literal `echo`
 0:41 - 0:45               argument: word
 0:41 - 0:45                 literal `next`
-0:45 - 1:0      "\n"
+0:45 - 1:0        "\n"
 
 ==================
 array and substring sources preserve Bash dollar quotes
@@ -1709,7 +1709,7 @@ a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:47     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:11       and_or: and_or
 0:0  - 0:11         pipeline: pipeline
 0:0  - 0:11           command: command
@@ -1780,7 +1780,7 @@ a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
 0:44 - 0:45                           double_quote_text `2`
 0:45 - 0:46                           "\""
 0:46 - 0:47                   "}"
-0:47 - 1:0      "\n"
+0:47 - 1:0        "\n"
 
 ==================
 nested parameter operators preserve each enclosing word boundary
@@ -1793,7 +1793,7 @@ nested parameter operators preserve each enclosing word boundary
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:72     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:72       and_or: and_or
 0:0  - 0:72         pipeline: pipeline
 0:0  - 0:72           command: command
@@ -1875,7 +1875,7 @@ nested parameter operators preserve each enclosing word boundary
 0:69 - 0:70                         double_quote_text `d`
 0:70 - 0:71                         "\""
 0:71 - 0:72                   "}"
-0:72 - 1:0      "\n"
+0:72 - 1:0        "\n"
 
 ==================
 substring source keeps incomplete lexemes and each operand's known structure
@@ -1887,7 +1887,7 @@ substring source keeps incomplete lexemes and each operand's known structure
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:42     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:42       and_or: and_or
 0:0  - 0:42         pipeline: pipeline
 0:0  - 0:42           command: command
@@ -1947,7 +1947,7 @@ substring source keeps incomplete lexemes and each operand's known structure
 0:38 - 0:39                                 "\""
 0:39 - 0:40                           "]"
 0:41 - 0:42                   "}"
-0:42 - 1:0      "\n"
+0:42 - 1:0        "\n"
 
 ==================
 substring boundaries resume outside quoted and nested expansion sources
@@ -1959,7 +1959,7 @@ substring boundaries resume outside quoted and nested expansion sources
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:70     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:70       and_or: and_or
 0:0  - 0:70         pipeline: pipeline
 0:0  - 0:70           command: command
@@ -2061,7 +2061,7 @@ substring boundaries resume outside quoted and nested expansion sources
 0:67 - 0:68                                       literal `2`
 0:68 - 0:69                         "\`"
 0:69 - 0:70                   "}"
-0:70 - 1:0      "\n"
+0:70 - 1:0        "\n"
 
 ==================
 name enumeration prefixes keep stars and end at operators
@@ -2074,7 +2074,7 @@ name enumeration prefixes keep stars and end at operators
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:59     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:59       and_or: and_or
 0:0  - 0:59         pipeline: pipeline
 0:0  - 0:59           command: command
@@ -2142,7 +2142,7 @@ name enumeration prefixes keep stars and end at operators
 0:57 - 0:58                   word: parameter_word
 0:57 - 0:58                     pattern_star_source `*`
 0:58 - 0:59                   "}"
-0:59 - 1:0      "\n"
+0:59 - 1:0        "\n"
 
 ==================
 name enumeration prefixes protect operators only inside closed subscripts
@@ -2197,7 +2197,7 @@ name enumeration leaves the backslash before its final operator in the prefix
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:19     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:19       and_or: and_or
 0:0  - 0:19         pipeline: pipeline
 0:0  - 0:19           command: command
@@ -2225,7 +2225,7 @@ name enumeration leaves the backslash before its final operator in the prefix
 0:16 - 0:17                     operator: parameter_names_operator `@`
 0:17 - 0:18                     "}"
 0:18 - 0:19                   "\""
-0:19 - 1:0      "\n"
+0:19 - 1:0        "\n"
 
 ==================
 name enumeration retains nested expansions rejected by Bash

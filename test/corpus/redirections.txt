@@ -244,14 +244,14 @@ EOF
                 (dless)
                 (here_end
                   (word
-                    (literal))))))))))
-  (here_document_sequence
-    (here_document_line_end)
-    (here_document
-      (here_document_body
-        (here_document_text))
-      (here_document_end
-        (here_document_end_text)))))
+                    (literal)))))))))
+    (here_document_sequence
+      (here_document_line_end)
+      (here_document
+        (here_document_body
+          (here_document_text))
+        (here_document_end
+          (here_document_end_text))))))
 
 ==================
 descriptor spellings before process substitution remain word prefixes
@@ -363,7 +363,7 @@ redirection descriptors and here string operators retain exact ranges
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:31     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:31       and_or: and_or
 0:0  - 0:31         pipeline: pipeline
 0:0  - 0:31           command: command
@@ -400,7 +400,7 @@ redirection descriptors and here string operators retain exact ranges
 0:28 - 0:29                         "$"
 0:29 - 0:30                         parameter: variable_name `x`
 0:30 - 0:31                       "\""
-0:31 - 1:0      "\n"
+0:31 - 1:0        "\n"
 
 ==================
 descriptor duplication operators accept an adjacent numeric operand
@@ -413,7 +413,7 @@ descriptor duplication operators accept an adjacent numeric operand
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:17     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:17       and_or: and_or
 0:0  - 0:17         pipeline: pipeline
 0:0  - 0:17           command: command
@@ -440,7 +440,7 @@ descriptor duplication operators accept an adjacent numeric operand
 0:13 - 0:14                   ">"
 0:14 - 0:17                   filename: word
 0:14 - 0:17                     literal `log`
-0:17 - 1:0      "\n"
+0:17 - 1:0        "\n"
 
 ==================
 numeric descriptors stop at the signed 32 bit lexical boundary
@@ -502,7 +502,7 @@ quoted separated and invalid descriptor spellings remain ordinary words
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:80     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:80       and_or: and_or
 0:0  - 0:80         pipeline: pipeline
 0:0  - 0:80           command: command
@@ -576,7 +576,7 @@ quoted separated and invalid descriptor spellings remain ordinary words
 0:76 - 0:77                   ">"
 0:77 - 0:80                   filename: word
 0:77 - 0:80                     literal `out`
-0:80 - 1:0      "\n"
+0:80 - 1:0        "\n"
 
 ==================
 numeric descriptor cannot be a redirect operand ": >2>out\n"

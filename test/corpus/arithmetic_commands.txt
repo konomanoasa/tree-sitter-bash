@@ -53,7 +53,7 @@ repeated arithmetic signs before numbers form nested unary expressions
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:13     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:13       and_or: and_or
 0:0  - 0:13         pipeline: pipeline
 0:0  - 0:13           command: command
@@ -74,7 +74,7 @@ repeated arithmetic signs before numbers form nested unary expressions
 0:10 - 0:11                     operand: arithmetic_number `1`
 0:11 - 0:12               ")"
 0:12 - 0:13               ")"
-0:13 - 1:0      "\n"
+0:13 - 1:0        "\n"
 
 ==================
 repeated arithmetic signs distinguish groups from prefix and postfix updates
@@ -217,7 +217,7 @@ an escaped ANSI-C quote keeps the arithmetic command boundary
 ------------------
 
 0:0  - 1:0    program
-0:0  - 0:27     commands: list
+0:0  - 1:0      commands: list
 0:0  - 0:13       and_or: and_or
 0:0  - 0:13         pipeline: pipeline
 0:0  - 0:13           command: command
@@ -244,4 +244,4 @@ an escaped ANSI-C quote keeps the arithmetic command boundary
 0:15 - 0:21                 literal `printf`
 0:22 - 0:27               argument: word
 0:22 - 0:27                 literal `AFTER`
-0:27 - 1:0      "\n"
+0:27 - 1:0        "\n"

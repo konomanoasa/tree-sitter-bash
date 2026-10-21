@@ -442,9 +442,9 @@ Braced substitutions balance groups after command prefixes
                                       body: (simple_command
                                         name: (word
                                           (literal))))))
-                                terminator: (separator
+                                separator: (separator
                                   operator: (separator_op)))))))
-                      terminator: (separator
+                      separator: (separator
                         operator: (separator_op)))))))))))
     and_or: (and_or
       pipeline: (pipeline
@@ -474,9 +474,9 @@ Braced substitutions balance groups after command prefixes
                                         body: (simple_command
                                           name: (word
                                             (literal))))))
-                                  terminator: (separator
+                                  separator: (separator
                                     operator: (separator_op))))))))
-                      terminator: (separator
+                      separator: (separator
                         operator: (separator_op)))))))))))))
 
 ==================
@@ -516,7 +516,7 @@ Conditional words and regex groups preserve enclosing braced substitutions
                                 right: (conditional_pattern
                                   (literal)))
                               (conditional_close)))))
-                      terminator: (separator
+                      separator: (separator
                         operator: (separator_op)))))))))))
     and_or: (and_or
       pipeline: (pipeline
@@ -557,7 +557,7 @@ Conditional words and regex groups preserve enclosing braced substitutions
                                               (one_char_or_coll_elem_ere
                                                 (ordinary_character))))))))))
                               (conditional_close)))))
-                      terminator: (separator
+                      separator: (separator
                         operator: (separator_op)))))))))))))
 
 ==================
@@ -593,7 +593,7 @@ Braced command lookahead distinguishes quoted commands and literal closing brace
                                 (literal))
                               argument: (word
                                 (literal))))))
-                      terminator: (separator
+                      separator: (separator
                         operator: (separator_op)))))))))))
     and_or: (and_or
       pipeline: (pipeline
@@ -618,7 +618,7 @@ Braced command lookahead distinguishes quoted commands and literal closing brace
                                 argument: (word
                                   (single_quoted
                                     (single_quote_content)))))))
-                        terminator: (separator
+                        separator: (separator
                           operator: (separator_op))))))))))))))
 
 ==================
@@ -658,9 +658,9 @@ E
                                       name: (word
                                         (literal))
                                       argument: (word
-                                        (literal))))))))))))
-                  (comment
-                    (comment_text)))))
+                                        (literal)))))))))))
+                    separator: (comment
+                      (comment_text))))))
             argument: (word
               (command_substitution
                 body: (command_substitution_body
@@ -681,11 +681,11 @@ E
                               operator: (dless)
                               end: (here_end
                                 word: (word
-                                  (literal)))))))))
-                  (here_document_sequence
-                    line_end: (here_document_line_end)
-                    document: (here_document
-                      body: (here_document_body
-                        (here_document_text))
-                      end: (here_document_end
-                        (here_document_end_text)))))))))))))
+                                  (literal))))))))
+                    separator: (here_document_sequence
+                      line_end: (here_document_line_end)
+                      document: (here_document
+                        body: (here_document_body
+                          (here_document_text))
+                        end: (here_document_end
+                          (here_document_end_text))))))))))))))

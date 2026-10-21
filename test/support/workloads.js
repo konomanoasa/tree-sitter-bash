@@ -11,6 +11,17 @@ const hereDocumentBodyCharacters = [4096, 32768, 262144];
 const localCommandRows = [1200, 2400, 4800];
 const functionRows = 1200;
 const commentRows = 4800;
+const hereDocumentByteNestingDepth = 8;
+
+export function nestedHereDocuments(
+  depth,
+  { body = "x", following = "", open = "$(", close = ")" } = {},
+) {
+  for (let level = depth; level > 0; level -= 1) {
+    body = `${open}cat <<END${level}\n${body}\nEND${level}\n${following}${close}`;
+  }
+  return `echo BEFORE\ncat <<OUT\n${body}\nOUT\necho AFTER\n`;
+}
 
 export const workloads = [
   {
@@ -293,6 +304,24 @@ export const workloads = [
     name: "substitution-local here document bytes",
     sizes: hereDocumentBodyCharacters,
     source: (n) => `: "$(cat <<E\nx${"a".repeat(n)}\nE\n)"\n`,
+  },
+  {
+    name: "nested here document depth",
+    sizes: normalNestingDepths,
+    source: (n) => nestedHereDocuments(n),
+  },
+  {
+    name: "nested here document depth with following commands",
+    sizes: normalNestingDepths,
+    source: (n) => nestedHereDocuments(n, { following: "echo next\n" }),
+  },
+  {
+    name: "nested here document bytes",
+    sizes: hereDocumentBodyCharacters,
+    source: (n) =>
+      nestedHereDocuments(hereDocumentByteNestingDepth, {
+        body: `x${"a".repeat(n)}`,
+      }),
   },
   {
     name: "substitution depth",
