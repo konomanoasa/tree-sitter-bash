@@ -28,6 +28,8 @@ struct LogicalLexer {
   enum SourceResult result;
   size_t consumed;
   size_t mark;
+  /* Bracket fallback chains after the pattern literal classified here. */
+  uint32_t bracket_chains;
   bool bounded;
 };
 
@@ -243,10 +245,6 @@ static inline bool logical_fork(
     if (!stage->has_pending) {
       continue;
     }
-    if (index >= inherited_stage_count) {
-      source_snapshot_clear(&snapshot);
-      return false;
-    }
     /* Do not reemit characters already emitted by the parent. */
     for (
       size_t logical = 0; logical < parent->cursor.logical_count; logical += 1
@@ -258,6 +256,10 @@ static inline bool logical_fork(
         stage->has_pending = false;
         break;
       }
+    }
+    if (stage->has_pending && index >= inherited_stage_count) {
+      source_snapshot_clear(&snapshot);
+      return false;
     }
   }
   size_t count = inherited_stage_count + suffix_count;

@@ -340,6 +340,147 @@ Incomplete collating range endpoints keep the bracket close while complete symbo
                       value: (pattern_collating_symbol_character_source))))))))))))
 
 ==================
+Unclosed class and collating openings inside a bracket stay members
+:language(bash)
+:language(bash_default)
+==================
+: [[:]] [[:a]:] [[.]] [[:a[=b=]c:]d] [[.a]b.]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_equivalence_class_source
+                    value: (pattern_equivalence_class_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_collating_symbol_source
+                    value: (pattern_collating_symbol_character_source)
+                    value: (pattern_collating_symbol_character_source)
+                    value: (pattern_collating_symbol_character_source)))))))))))
+
+==================
+Unterminated brackets with nested openings are re-read from the next bracket
+:language(bash)
+:language(bash_default)
+==================
+: a[.[.[=[=b=] [:[=\[:digit:] [[:a-[.b.]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (literal)
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source))))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (escaped_character)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source))))
+            argument: (word
+              (literal)
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source))))))))))
+
+==================
+Bracket elements stay structured in case patterns and assignments
+:language(bash)
+:language(bash_default)
+==================
+case x in [a[:alpha:]]) ;; esac; x=[a[.b.]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (case_clause
+            (case_keyword)
+            word: (word (literal))
+            in: (in_keyword)
+            item: (case_item
+              patterns: (pattern_list
+                word: (word
+                  (pattern_bracket_source
+                    members: (pattern_bracket_members_source
+                      member: (pattern_bracket_character_source)
+                      member: (pattern_character_class_source
+                        content: (pattern_character_class_content_source))))))
+              terminator: (dsemi))
+            (esac_keyword)))))
+    separator: (separator_op)
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            assignment: (assignment_word
+              name: (variable_name)
+              value: (assignment_value
+                (pattern_bracket_source
+                  members: (pattern_bracket_members_source
+                    member: (pattern_bracket_character_source)
+                    member: (pattern_collating_symbol_source
+                      value: (pattern_collating_symbol_character_source))))))))))))
+
+==================
 Dollar-prefixed extglobs retain literal prefixes and pattern operators
 :language(bash)
 ==================
@@ -364,6 +505,109 @@ Dollar-prefixed extglobs retain literal prefixes and pattern operators
               (extglob_pattern
                 (extglob_operator)
                 (extglob_alternative (literal))))))))))
+
+==================
+Extglobs inside a bracket fallback count as members
+:language(bash)
+==================
+: [a$?(b)[c] [@(<(b))][c]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word (literal))
+            (word
+              (literal)
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative (literal)))
+              (literal))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (process_substitution
+                    (command_substitution_body
+                      (list
+                        (and_or
+                          (pipeline
+                            (command
+                              (simple_command
+                                (word (literal)))))))))))
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))))))))
+
+==================
+Process substitutions, locale strings, and braces count as bracket fallback members
+:language(bash)
+:language(bash_default)
+==================
+: [<(b)][c] [$"b"<(x)][c] [{a,b}<(x)][c]
+
+------------------
+
+(program
+  (list
+    (and_or
+      (pipeline
+        (command
+          (simple_command
+            (word (literal))
+            (word
+              (literal)
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word (literal)))))))))
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (literal)
+              (locale_quoted (double_quote_text))
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word (literal)))))))))
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))
+            (word
+              (literal)
+              (brace_expansion
+                (brace_alternative (literal))
+                (brace_alternative (literal)))
+              (process_substitution
+                (command_substitution_body
+                  (list
+                    (and_or
+                      (pipeline
+                        (command
+                          (simple_command
+                            (word (literal)))))))))
+              (literal)
+              (pattern_bracket_source
+                (pattern_bracket_members_source
+                  (pattern_bracket_character_source))))))))))
 
 ==================
 extglob suffixes stay in command words beside function definitions
@@ -563,3 +807,76 @@ conditional patterns keep blanks inside bracket expressions within extglob group
                   (extglob_alternative
                     (literal)))))
             (conditional_close)))))))
+
+==================
+Empty class, equivalence, and collating elements retain their complete boundaries
+:language(bash)
+:language(bash_default)
+==================
+: [[::]] [[..]] [[==]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_character_class_source))))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_collating_symbol_source))))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_equivalence_class_source))))))))))
+
+==================
+Only empty collating symbols form special range endpoints
+:language(bash)
+:language(bash_default)
+==================
+: [A-[..]] [A-[::]] [A-[==]]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_collating_symbol_source)))))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_bracket_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))
+            argument: (word
+              (pattern_bracket_source
+                members: (pattern_bracket_members_source
+                  member: (pattern_bracket_range_source
+                    start: (pattern_bracket_character_source)
+                    operator: (pattern_bracket_range_operator_source)
+                    end: (pattern_bracket_character_source))
+                  member: (pattern_bracket_character_source)
+                  member: (pattern_bracket_character_source)))
+              (literal))))))))

@@ -20,7 +20,7 @@
 #define TREE_SITTER_SERIALIZATION_BUFFER_SIZE 1024
 #endif
 
-#define SCANNER_SERIALIZATION_VERSION 40
+#define SCANNER_SERIALIZATION_VERSION 42
 #define SCANNER_STATE_CAPACITY (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - 1)
 #define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 /* `function` is the longest reserved word; the buffers hold a terminator. */
@@ -93,6 +93,7 @@ enum TokenType {
   COMMAND_SUBSTITUTION_BODY_BEGIN,
   PATTERN_BRACKET_CHARACTER,
   PARAMETER_PATTERN_BRACKET_CHARACTER,
+  ASSIGNMENT_PATTERN_BRACKET_CHARACTER,
   PATTERN_BRACKET_HYPHEN,
   PATTERN_BRACKET_RANGE_OPERATOR,
   WORD_TILDE_END,
@@ -486,6 +487,8 @@ enum BracketInput {
   BRACKET_INPUT_DOT,
   BRACKET_INPUT_EQUALS,
   BRACKET_INPUT_OPEN,
+  BRACKET_INPUT_CLASS_OPEN,
+  BRACKET_INPUT_COLLATING_OPEN,
   BRACKET_INPUT_CLOSE,
   BRACKET_INPUT_NEGATION,
   BRACKET_INPUT_MEMBER,
@@ -493,8 +496,7 @@ enum BracketInput {
 };
 
 enum BracketClassStage {
-  BRACKET_CLASS_EMPTY,
-  BRACKET_CLASS_FILLED,
+  BRACKET_CLASS_UNMARKED,
   BRACKET_CLASS_MARKED,
   BRACKET_CLASS_STAGE_COUNT,
 };
@@ -511,7 +513,6 @@ enum BracketPhase {
   BRACKET_PHASE_RANGE_CLASS = BRACKET_PHASE_CLASS +
     (BRACKET_INPUT_EQUALS + 1) * BRACKET_CLASS_STAGE_COUNT,
   BRACKET_PHASE_COUNT = BRACKET_PHASE_RANGE_CLASS + BRACKET_CLASS_STAGE_COUNT,
-  BRACKET_PHASE_INCOMPLETE = BRACKET_PHASE_COUNT,
   BRACKET_PHASE_COMPLETE,
 };
 
@@ -539,6 +540,7 @@ static enum BracketInput bracket_input(int32_t character) {
   }
 }
 
+/* bracket_open_input guarantees a closer for every class phase. */
 static unsigned bracket_phase_after(unsigned phase, enum BracketInput input) {
   if (phase >= BRACKET_PHASE_CLASS) {
     bool endpoint = phase >= BRACKET_PHASE_RANGE_CLASS;
@@ -546,50 +548,47 @@ static unsigned bracket_phase_after(unsigned phase, enum BracketInput input) {
     unsigned marker =
       endpoint ? BRACKET_INPUT_DOT : (phase - base) / BRACKET_CLASS_STAGE_COUNT;
     unsigned stage = (phase - base) % BRACKET_CLASS_STAGE_COUNT;
-    if (input == BRACKET_INPUT_CLOSE) {
-      if (stage == BRACKET_CLASS_MARKED) {
-        return !endpoint && marker == BRACKET_INPUT_DOT
-          ? BRACKET_PHASE_MEMBERS
-          : BRACKET_PHASE_AFTER_RANGE;
-      }
-      if (marker != BRACKET_INPUT_DOT) {
-        return BRACKET_PHASE_INCOMPLETE;
-      }
+    if (input == BRACKET_INPUT_CLOSE && stage == BRACKET_CLASS_MARKED) {
+      return endpoint ? BRACKET_PHASE_AFTER_RANGE : BRACKET_PHASE_MEMBERS;
     }
     return base +
       (endpoint ? 0 : marker * BRACKET_CLASS_STAGE_COUNT) +
-      (stage != BRACKET_CLASS_EMPTY && input == marker ? BRACKET_CLASS_MARKED
-                                                       : BRACKET_CLASS_FILLED);
+      (input == marker ? BRACKET_CLASS_MARKED : BRACKET_CLASS_UNMARKED);
   }
   if (phase == BRACKET_PHASE_RANGE_OPENED) {
-    if (input == BRACKET_INPUT_DOT) return BRACKET_PHASE_RANGE_CLASS;
-    phase = BRACKET_PHASE_AFTER_RANGE;
+    return input == BRACKET_INPUT_DOT ? BRACKET_PHASE_RANGE_CLASS
+                                      : BRACKET_PHASE_AFTER_RANGE;
+  }
+  if (phase == BRACKET_PHASE_OPENED) {
+    return input <= BRACKET_INPUT_EQUALS
+      ? BRACKET_PHASE_CLASS + input * BRACKET_CLASS_STAGE_COUNT
+      : BRACKET_PHASE_MEMBERS;
   }
   if (phase == BRACKET_PHASE_RANGE) {
-    return input == BRACKET_INPUT_OPEN ? BRACKET_PHASE_RANGE_OPENED
-      : input == BRACKET_INPUT_CLOSE   ? BRACKET_PHASE_COMPLETE
-                                       : BRACKET_PHASE_AFTER_RANGE;
+    switch (input) {
+      case BRACKET_INPUT_CLOSE:
+        return BRACKET_PHASE_COMPLETE;
+      case BRACKET_INPUT_COLLATING_OPEN:
+        return BRACKET_PHASE_RANGE_OPENED;
+      default:
+        return BRACKET_PHASE_AFTER_RANGE;
+    }
   }
   switch (input) {
     case BRACKET_INPUT_HYPHEN:
-      return phase == BRACKET_PHASE_MEMBERS || phase == BRACKET_PHASE_OPENED
-        ? BRACKET_PHASE_RANGE
-        : BRACKET_PHASE_MEMBERS;
-    case BRACKET_INPUT_OPEN:
+      return phase == BRACKET_PHASE_MEMBERS ? BRACKET_PHASE_RANGE
+                                            : BRACKET_PHASE_MEMBERS;
+    case BRACKET_INPUT_CLASS_OPEN:
+    case BRACKET_INPUT_COLLATING_OPEN:
       return BRACKET_PHASE_OPENED;
     case BRACKET_INPUT_CLOSE:
-      return phase == BRACKET_PHASE_NEGATION || phase == BRACKET_PHASE_FIRST
-        ? BRACKET_PHASE_MEMBERS
-        : BRACKET_PHASE_COMPLETE;
+      return phase <= BRACKET_PHASE_FIRST ? BRACKET_PHASE_MEMBERS
+                                          : BRACKET_PHASE_COMPLETE;
     case BRACKET_INPUT_NEGATION:
       return phase == BRACKET_PHASE_NEGATION ? BRACKET_PHASE_FIRST
                                              : BRACKET_PHASE_MEMBERS;
-    case BRACKET_INPUT_MEMBER:
-      return BRACKET_PHASE_MEMBERS;
     default:
-      return phase == BRACKET_PHASE_OPENED
-        ? BRACKET_PHASE_CLASS + input * BRACKET_CLASS_STAGE_COUNT
-        : BRACKET_PHASE_MEMBERS;
+      return BRACKET_PHASE_MEMBERS;
   }
 }
 
@@ -606,10 +605,17 @@ static uint32_t bracket_chains_after(uint32_t chains, enum BracketInput input) {
   return next;
 }
 
+static bool bracket_input_opens(enum BracketInput input) {
+  return input == BRACKET_INPUT_OPEN ||
+    input == BRACKET_INPUT_CLASS_OPEN ||
+    input == BRACKET_INPUT_COLLATING_OPEN;
+}
+
 static uint32_t
-bracket_chains_after_literal(uint32_t chains, int32_t character) {
-  chains = bracket_chains_after(chains, bracket_input(character));
-  return character == '[' ? chains | (1u << BRACKET_PHASE_NEGATION) : chains;
+bracket_chains_after_literal(uint32_t chains, enum BracketInput input) {
+  chains = bracket_chains_after(chains, input);
+  return bracket_input_opens(input) ? chains | (1u << BRACKET_PHASE_NEGATION)
+                                    : chains;
 }
 
 struct HereDocument {
@@ -657,6 +663,36 @@ static enum QuoteMode quote_parameter(enum QuoteMode parent) {
   return parent == QUOTE_PLAIN ? QUOTE_PLAIN : QUOTE_PARAMETER;
 }
 
+/* What bracket passes learned about the word being read, as raw positions
+   from the current scan start: one past the next `[` opening a class or
+   collating symbol (or past the bracket end), zero when unknown; the range
+   of `.` markers with no collating closer; and the `]` closing the collating
+   symbols opened from `collating_closer_from` on, zero when unknown. */
+struct BracketCache {
+  size_t element_remaining;
+  size_t collating_absent_start;
+  size_t collating_absent_end;
+  size_t collating_closer_from;
+  size_t collating_closer_end;
+};
+
+static bool
+collating_absent_in(const struct BracketCache *cache, size_t marker) {
+  return cache->collating_absent_start <= marker &&
+    marker < cache->collating_absent_end;
+}
+
+static bool
+collating_closes_in(const struct BracketCache *cache, size_t marker) {
+  return cache->collating_closer_end != 0 &&
+    cache->collating_closer_from <= marker &&
+    marker + 2 <= cache->collating_closer_end;
+}
+
+static bool collating_cached(const struct BracketCache *cache) {
+  return cache->collating_absent_end != 0 || cache->collating_closer_end != 0;
+}
+
 struct SourceContext {
   enum TokenType opener;
   size_t stage_count;
@@ -666,8 +702,7 @@ struct SourceContext {
   size_t regex_depth;
   size_t word_remaining;
   size_t brace_suppressed_remaining;
-  size_t collating_absent_start;
-  size_t collating_absent_end;
+  struct BracketCache bracket;
   size_t assignment_head_remaining;
   size_t arithmetic_field_remaining;
   bool regex_started;
@@ -691,6 +726,8 @@ struct Scanner {
   struct SourceContext *contexts;
   size_t context_count;
   struct LexicalEmission emission;
+  /* For words outside any context; contexts keep their own. */
+  struct BracketCache bracket;
   bool assignment_tilde_allowed;
   bool here_document_end_line_consumed;
 };
@@ -823,7 +860,9 @@ enum ScannerFlag {
   SCANNER_FLAG_SEQUENCE_END_PENDING = 1,
   SCANNER_FLAG_AT_LINE_START = 2,
   SCANNER_FLAG_ASSIGNMENT_TILDE_ALLOWED = 4,
-  SCANNER_FLAG_MASK = 7,
+  SCANNER_FLAG_ELEMENT_REMAINING = 8,
+  SCANNER_FLAG_COLLATING = 16,
+  SCANNER_FLAG_MASK = 31,
 };
 
 enum ContextFlag {
@@ -833,7 +872,8 @@ enum ContextFlag {
   CONTEXT_FLAG_PATTERN_REGION = 8,
   CONTEXT_FLAG_RAW_ARGUMENT = 16,
   CONTEXT_FLAG_RAW_ELEMENT_START = 32,
-  CONTEXT_FLAG_COLLATING_ABSENT = 64,
+  CONTEXT_FLAG_COLLATING = 64,
+  CONTEXT_FLAG_ELEMENT_REMAINING = 128,
 };
 
 enum EmissionFlag {
@@ -950,8 +990,9 @@ static bool serialize_source_snapshot(
 }
 
 static unsigned context_flag_mask(enum TokenType opener) {
-  const unsigned common =
-    CONTEXT_FLAG_LOCAL_DISABLED | CONTEXT_FLAG_COLLATING_ABSENT;
+  const unsigned common = CONTEXT_FLAG_LOCAL_DISABLED |
+    CONTEXT_FLAG_COLLATING |
+    CONTEXT_FLAG_ELEMENT_REMAINING;
   if (opener == REGEX_START) return common | CONTEXT_FLAG_REGEX_STARTED;
   if (opener == COMMAND_WORD_START || opener == ASSIGNMENT_ARGUMENT_START)
     return common | CONTEXT_FLAG_RAW_ARGUMENT | CONTEXT_FLAG_RAW_ELEMENT_START;
@@ -962,6 +1003,28 @@ static unsigned context_flag_mask(enum TokenType opener) {
       CONTEXT_FLAG_RAW_ARGUMENT |
       CONTEXT_FLAG_RAW_ELEMENT_START;
   return common;
+}
+
+static unsigned bracket_cache_flags(
+  const struct BracketCache *cache,
+  unsigned element,
+  unsigned collating
+) {
+  return (cache->element_remaining != 0 ? element : 0) |
+    (collating_cached(cache) ? collating : 0);
+}
+
+static bool serialize_bracket_cache(
+  struct StateWriter *writer,
+  const struct BracketCache *cache
+) {
+  return (cache->element_remaining == 0 ||
+           write_state_size(writer, cache->element_remaining)) &&
+    (!collating_cached(cache) ||
+      (write_state_size(writer, cache->collating_absent_start) &&
+        write_state_size(writer, cache->collating_absent_end) &&
+        write_state_size(writer, cache->collating_closer_from) &&
+        write_state_size(writer, cache->collating_closer_end)));
 }
 
 static bool serialize_source_contexts(
@@ -999,11 +1062,13 @@ static bool serialize_source_contexts(
           (context->pattern_region ? CONTEXT_FLAG_PATTERN_REGION : 0) |
           (context->raw_argument ? CONTEXT_FLAG_RAW_ARGUMENT : 0) |
           (context->raw_element_start ? CONTEXT_FLAG_RAW_ELEMENT_START : 0) |
-          (context->collating_absent_end ? CONTEXT_FLAG_COLLATING_ABSENT : 0)
+          bracket_cache_flags(
+            &context->bracket,
+            CONTEXT_FLAG_ELEMENT_REMAINING,
+            CONTEXT_FLAG_COLLATING
+          )
       ) ||
-      (context->collating_absent_end != 0 &&
-        (!write_state_size(writer, context->collating_absent_start) ||
-          !write_state_size(writer, context->collating_absent_end)))
+      !serialize_bracket_cache(writer, &context->bracket)
     ) {
       return false;
     }
@@ -1038,8 +1103,14 @@ static bool serialize_scanner_state(
     (scanner->sequence_end_pending ? SCANNER_FLAG_SEQUENCE_END_PENDING : 0) |
     (scanner->active.at_line_start ? SCANNER_FLAG_AT_LINE_START : 0) |
     (scanner->assignment_tilde_allowed ? SCANNER_FLAG_ASSIGNMENT_TILDE_ALLOWED
-                                       : 0);
+                                       : 0) |
+    bracket_cache_flags(
+      &scanner->bracket,
+      SCANNER_FLAG_ELEMENT_REMAINING,
+      SCANNER_FLAG_COLLATING
+    );
   return write_state_byte(writer, flags) &&
+    serialize_bracket_cache(writer, &scanner->bracket) &&
     write_state_size(writer, scanner->backquote_depth) &&
     write_state_size(writer, scanner->substitution_depth) &&
     write_state_size(writer, scanner->active.backquote_depth) &&
@@ -1248,6 +1319,30 @@ static bool deserialize_source_snapshot(
   return true;
 }
 
+static bool deserialize_bracket_cache(
+  struct SerializedScannerState *state,
+  struct BracketCache *cache,
+  bool element,
+  bool collating
+) {
+  if (
+    element &&
+    (!read_size(state, &cache->element_remaining) ||
+      cache->element_remaining == 0)
+  )
+    return false;
+  return !collating ||
+    (read_size(state, &cache->collating_absent_start) &&
+      read_size(state, &cache->collating_absent_end) &&
+      read_size(state, &cache->collating_closer_from) &&
+      read_size(state, &cache->collating_closer_end) &&
+      collating_cached(cache) &&
+      (cache->collating_absent_end == 0 ||
+        cache->collating_absent_start < cache->collating_absent_end) &&
+      (cache->collating_closer_end == 0 ||
+        cache->collating_closer_from + 2 <= cache->collating_closer_end));
+}
+
 static bool deserialize_context_fields(
   struct SerializedScannerState *state,
   struct SourceContext *context
@@ -1290,12 +1385,12 @@ static bool deserialize_context_fields(
     (flags & ~context_flag_mask(context->opener)) != 0
   )
     return false;
-  if (
-    (flags & CONTEXT_FLAG_COLLATING_ABSENT) != 0 &&
-    (!read_size(state, &context->collating_absent_start) ||
-      !read_size(state, &context->collating_absent_end) ||
-      context->collating_absent_start >= context->collating_absent_end)
-  )
+  if (!deserialize_bracket_cache(
+        state,
+        &context->bracket,
+        (flags & CONTEXT_FLAG_ELEMENT_REMAINING) != 0,
+        (flags & CONTEXT_FLAG_COLLATING) != 0
+      ))
     return false;
   context->local_disabled = (flags & CONTEXT_FLAG_LOCAL_DISABLED) != 0;
   context->regex_started = (flags & CONTEXT_FLAG_REGEX_STARTED) != 0;
@@ -1412,6 +1507,12 @@ static bool deserialize_scanner_state(
   if (
     !read_byte(&state, &flags) ||
     (flags & ~SCANNER_FLAG_MASK) != 0 ||
+    !deserialize_bracket_cache(
+      &state,
+      &scanner->bracket,
+      (flags & SCANNER_FLAG_ELEMENT_REMAINING) != 0,
+      (flags & SCANNER_FLAG_COLLATING) != 0
+    ) ||
     !read_size(&state, &scanner->backquote_depth) ||
     !read_size(&state, &scanner->substitution_depth) ||
     !read_size(&state, &scanner->active.backquote_depth) ||
@@ -3011,7 +3112,6 @@ static enum TokenType pattern_context(const struct Scanner *scanner) {
   return context == NULL ? TOKEN_COUNT : context->opener;
 }
 
-/* Openers that continue the word they appear in. */
 static bool is_word_piece_opener(enum TokenType opener) {
   return opener == BRACE_OPEN ||
     opener == BRACE_LITERAL_OPEN ||
@@ -3133,139 +3233,288 @@ static size_t bracket_context_index(const struct Scanner *scanner) {
   return count == 0 ? SIZE_MAX : count - 1;
 }
 
-static bool
-collating_absent(const struct Scanner *scanner, const TSLexer *lexer) {
+static const struct BracketCache *bracket_cache(const struct Scanner *scanner) {
   size_t index = bracket_context_index(scanner);
-  if (index == SIZE_MAX) return false;
-  const struct SourceContext *context = &scanner->contexts[index];
-  size_t position = lexer_raw_position(lexer);
-  return context->collating_absent_start <= position &&
-    position < context->collating_absent_end;
+  return index == SIZE_MAX ? &scanner->bracket
+                           : &scanner->contexts[index].bracket;
+}
+
+enum BracketStep {
+  BRACKET_STEP_END,
+  BRACKET_STEP_PLAIN,
+  BRACKET_STEP_MEMBER,
+};
+
+/* `close` is the first plain `]` from `close_from`; `closer` is its
+   preceding class marker. */
+struct BracketScan {
+  enum PatternMode mode;
+  enum BracketInput opener;
+  struct BracketCache cache;
+  size_t close_from;
+  size_t close;
+  size_t closer;
+  int32_t closer_marker;
+  size_t element;
+};
+
+static struct BracketScan bracket_scan(enum PatternMode mode) {
+  return (struct BracketScan){
+    .mode = mode,
+    .close_from = SIZE_MAX,
+    .close = SIZE_MAX,
+    .closer = SIZE_MAX,
+    .element = SIZE_MAX,
+  };
+}
+
+/* Quoted atoms and brace expansions are opaque members and get consumed;
+   plain characters stay at the lexer. */
+static enum BracketStep bracket_step(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  enum PatternMode mode
+) {
+  int32_t character = lexer->lookahead;
+  if (
+    is_bracket_literal_boundary(scanner, lexer, mode) ||
+    brace_boundary(scanner, lexer) ||
+    (extglob_context(scanner) &&
+      !parameter_pattern_context(scanner) &&
+      is_one_of(character, "()"))
+  )
+    return BRACKET_STEP_END;
+  enum BracketAtom atom = skip_bracket_quoted_atom(scanner, lexer);
+  if (atom == BRACKET_ATOM_END) return BRACKET_STEP_END;
+  if (atom == BRACKET_ATOM_MEMBER) return BRACKET_STEP_MEMBER;
+  if (character == '{' && word_source_context(scanner, true) != NULL) {
+    size_t start = probe_position(lexer);
+    if (scan_brace_expansion(scanner, lexer, NULL)) return BRACKET_STEP_MEMBER;
+    probe_seek(lexer, start);
+  }
+  return BRACKET_STEP_PLAIN;
+}
+
+/* Bash closes `[:` and `[=` at the first `]` when a separate marker directly
+   precedes it. The lexer stands after the opening marker. */
+static bool class_closer_follows(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  struct BracketScan *scan,
+  int32_t marker
+) {
+  if (assignment_tilde_follows(scanner, lexer, scan->mode, marker))
+    return false;
+  size_t query = lexer_raw_position(lexer);
+  if (query < scan->close_from || query > scan->close) {
+    size_t start = probe_position(lexer);
+    scan->close_from = query;
+    scan->close = SIZE_MAX;
+    scan->closer = SIZE_MAX;
+    for (;;) {
+      enum BracketStep step = bracket_step(scanner, lexer, scan->mode);
+      if (step == BRACKET_STEP_END) break;
+      if (step == BRACKET_STEP_MEMBER) {
+        scan->closer = SIZE_MAX;
+        continue;
+      }
+      int32_t character = lexer->lookahead;
+      if (character == ']') {
+        scan->close = lexer_raw_position(lexer);
+        break;
+      }
+      scan->closer =
+        is_one_of(character, ":=") ? lexer_raw_position(lexer) : SIZE_MAX;
+      scan->closer_marker = character;
+      lexer->advance(lexer, false);
+      if (assignment_tilde_follows(scanner, lexer, scan->mode, character))
+        break;
+    }
+    probe_seek(lexer, start);
+  }
+  return scan->close != SIZE_MAX &&
+    scan->closer != SIZE_MAX &&
+    scan->closer_marker == marker &&
+    scan->closer >= query;
+}
+
+/* Bash closes `[.` at the first separate `.]`, even past `]`. The lexer
+   stands at the opening `.`. */
+static bool collating_closer_follows(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  struct BracketScan *scan
+) {
+  size_t marker = lexer_raw_position(lexer);
+  const struct BracketCache *known = bracket_cache(scanner);
+  if (
+    collating_absent_in(known, marker) ||
+    collating_absent_in(&scan->cache, marker)
+  )
+    return false;
+  if (
+    collating_closes_in(known, marker) ||
+    collating_closes_in(&scan->cache, marker)
+  )
+    return true;
+  size_t start = probe_position(lexer);
+  lexer->advance(lexer, false);
+  bool marked = false;
+  bool found = false;
+  while (!assignment_tilde_follows(scanner, lexer, scan->mode, '.')) {
+    enum BracketStep step = bracket_step(scanner, lexer, scan->mode);
+    if (step == BRACKET_STEP_END) break;
+    if (step == BRACKET_STEP_MEMBER) {
+      marked = false;
+      continue;
+    }
+    int32_t character = lexer->lookahead;
+    if (character == ']' && marked) {
+      found = true;
+      break;
+    }
+    marked = character == '.';
+    lexer->advance(lexer, false);
+    if (assignment_tilde_follows(scanner, lexer, scan->mode, character)) break;
+  }
+  if (found) {
+    scan->cache.collating_closer_from = marker;
+    scan->cache.collating_closer_end = lexer_raw_position(lexer);
+  } else if (scan->cache.collating_absent_end == 0) {
+    scan->cache.collating_absent_start = marker;
+    scan->cache.collating_absent_end = lexer_raw_position(lexer);
+  }
+  probe_seek(lexer, start);
+  return found;
+}
+
+static enum BracketInput bracket_open_input(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  struct BracketScan *scan
+) {
+  size_t start = probe_position(lexer);
+  lexer->advance(lexer, false);
+  int32_t marker = lexer->lookahead;
+  enum BracketInput input = BRACKET_INPUT_OPEN;
+  if (marker == '.') {
+    if (collating_closer_follows(scanner, lexer, scan))
+      input = BRACKET_INPUT_COLLATING_OPEN;
+  } else if (marker == ':' || marker == '=') {
+    lexer->advance(lexer, false);
+    if (class_closer_follows(scanner, lexer, scan, marker))
+      input = BRACKET_INPUT_CLASS_OPEN;
+  }
+  probe_seek(lexer, start);
+  return input;
+}
+
+static void scan_bracket_members(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  struct BracketScan *scan,
+  unsigned phase,
+  uint32_t *chains,
+  bool *complete,
+  bool until_element
+) {
+  scan->element = SIZE_MAX;
+  for (;;) {
+    enum BracketStep step = bracket_step(scanner, lexer, scan->mode);
+    if (step == BRACKET_STEP_END) break;
+    int32_t character = lexer->lookahead;
+    enum BracketInput input = step == BRACKET_STEP_MEMBER ? BRACKET_INPUT_MEMBER
+      : character == '[' ? bracket_open_input(scanner, lexer, scan)
+                         : bracket_input(character);
+    unsigned next = bracket_phase_after(phase, input);
+    if (
+      scan->element == SIZE_MAX &&
+      (next == BRACKET_PHASE_OPENED || next == BRACKET_PHASE_RANGE_OPENED)
+    ) {
+      scan->element = lexer_raw_position(lexer);
+      if (until_element) break;
+    }
+    phase = next;
+    *chains = bracket_chains_after(*chains, input);
+    if (phase >= BRACKET_PHASE_COUNT) break;
+    if (step == BRACKET_STEP_PLAIN) {
+      lexer->advance(lexer, false);
+      if (assignment_tilde_follows(scanner, lexer, scan->mode, character))
+        break;
+    }
+    if ((*chains & (1u << phase)) != 0) break;
+  }
+  *complete = phase == BRACKET_PHASE_COMPLETE;
+  if (scan->element == SIZE_MAX) scan->element = lexer_raw_position(lexer);
 }
 
 static bool scan_pattern_bracket(
   const struct Scanner *scanner,
   TSLexer *lexer,
-  enum PatternMode mode,
+  struct BracketScan *scan,
   uint32_t *chains,
-  bool *complete,
-  size_t absent[2]
+  bool *complete
 ) {
-  if (lexer->lookahead != '[') {
-    return false;
-  }
-  struct LookaheadLexer *lookahead = (struct LookaheadLexer *)lexer;
+  if (lexer->lookahead != '[') return false;
+  scan->opener = *chains == 0 ? BRACKET_INPUT_OPEN
+                              : bracket_open_input(scanner, lexer, scan);
   lexer->advance(lexer, false);
-  size_t opener_end = lookahead->position;
-  unsigned phase = BRACKET_PHASE_NEGATION;
-  size_t fallback_end = 0;
-  uint32_t fallback_chains = 0;
-  size_t collating_start = 0;
-  *chains = bracket_chains_after(*chains, BRACKET_INPUT_OPEN);
-  while (!is_bracket_literal_boundary(scanner, lexer, mode)) {
-    int32_t character = lexer->lookahead;
-    if (
-      brace_boundary(scanner, lexer) ||
-      (extglob_context(scanner) &&
-        !parameter_pattern_context(scanner) &&
-        is_one_of(character, "()"))
-    )
-      break;
-    enum BracketAtom atom = skip_bracket_quoted_atom(scanner, lexer);
-    if (atom == BRACKET_ATOM_END) {
-      break;
-    }
-    if (
-      atom == BRACKET_ATOM_PLAIN &&
-      character == '{' &&
-      word_source_context(scanner, true) != NULL
-    ) {
-      size_t start = lookahead->position;
-      if (scan_brace_expansion(scanner, lexer, NULL))
-        atom = BRACKET_ATOM_MEMBER;
-      else lookahead_seek(lookahead, start);
-    }
-    enum BracketInput input = atom == BRACKET_ATOM_MEMBER
-      ? BRACKET_INPUT_MEMBER
-      : bracket_input(character);
-    if (phase == BRACKET_PHASE_RANGE_OPENED && input == BRACKET_INPUT_DOT) {
-      if (collating_absent(scanner, lexer)) phase = BRACKET_PHASE_AFTER_RANGE;
-      else collating_start = lexer_raw_position(lexer);
-    }
-    if (phase >= BRACKET_PHASE_RANGE_CLASS && input == BRACKET_INPUT_CLOSE) {
-      if (phase == BRACKET_PHASE_RANGE_CLASS + BRACKET_CLASS_MARKED) {
-        fallback_end = 0;
-      } else if (fallback_end == 0) {
-        fallback_end = lookahead->position;
-        fallback_chains = bracket_chains_after(*chains, input);
-      }
-    }
-    phase = bracket_phase_after(phase, input);
-    *chains = bracket_chains_after(*chains, input);
-    if (phase >= BRACKET_PHASE_COUNT) {
-      break;
-    }
-    if (atom == BRACKET_ATOM_PLAIN) {
-      lexer->advance(lexer, false);
-      if (assignment_tilde_follows(scanner, lexer, mode, character)) {
-        break;
-      }
-    }
-    if ((*chains & (1u << phase)) != 0) {
-      break;
-    }
-  }
-  *complete = phase == BRACKET_PHASE_COMPLETE;
-  if (!*complete && fallback_end != 0) {
-    if (
-      absent != NULL &&
-      !lookahead_is_pending(lexer) &&
-      (*chains & (1u << phase)) == 0
-    ) {
-      absent[0] = collating_start;
-      absent[1] = lexer_raw_position(lexer);
-    }
-    lookahead_seek(lookahead, fallback_end);
-    *chains = fallback_chains;
-    *complete = true;
-  }
-  size_t end = lookahead->position;
-  lookahead_seek(lookahead, opener_end);
+  size_t opener_end = probe_position(lexer);
+  *chains = bracket_chains_after(*chains, scan->opener);
+  scan_bracket_members(
+    scanner,
+    lexer,
+    scan,
+    BRACKET_PHASE_NEGATION,
+    chains,
+    complete,
+    false
+  );
+  size_t end = probe_position(lexer);
+  probe_seek(lexer, opener_end);
   lexer->mark_end(lexer);
-  lookahead_seek(lookahead, end);
+  probe_seek(lexer, end);
   return true;
 }
 
-static bool
-pattern_range_collating_follows(const struct Scanner *scanner, TSLexer *lexer) {
-  size_t start = probe_position(lexer);
-  bool result = false;
-  lexer->advance(lexer, false);
-  if (lexer->lookahead == '.' && !collating_absent(scanner, lexer)) {
-    lexer->advance(lexer, false);
-    bool content = false;
-    bool marked = false;
-    bool parameter = parameter_pattern_context(scanner);
-    while (!pattern_boundary(scanner, lexer, parameter)) {
-      int32_t ch = lexer->lookahead;
-      enum BracketAtom atom = skip_bracket_quoted_atom(scanner, lexer);
-      if (atom == BRACKET_ATOM_END) break;
-      if (atom == BRACKET_ATOM_MEMBER) {
-        content = true;
-        marked = false;
-        continue;
-      }
-      if (marked && ch == ']') {
-        result = true;
-        break;
-      }
-      marked = content && ch == '.';
-      content = true;
-      lexer->advance(lexer, false);
-    }
+static enum PatternMode
+pattern_mode(const struct Scanner *scanner, bool parameter, bool assignment) {
+  switch (pattern_context(scanner)) {
+    case PARAMETER_REPLACE_BEGIN:
+      return PATTERN_REPLACEMENT;
+    case ASSIGNMENT_TILDE_START:
+      return PATTERN_ASSIGNMENT_TILDE;
+    case WORD_TILDE_START:
+      return PATTERN_WORD_TILDE;
+    case PARAMETER_TILDE_START:
+      return PATTERN_PARAMETER_TILDE;
+    default:
+      return parameter ? PATTERN_PARAMETER
+        : assignment   ? PATTERN_ASSIGNMENT
+                       : PATTERN_WORD;
   }
-  probe_seek(lexer, start);
-  return result;
+}
+
+/* Cache omission affects performance only. */
+static void record_bracket_scan(
+  struct Scanner *scanner,
+  const struct BracketScan *scan,
+  bool element
+) {
+  size_t index = bracket_context_index(scanner);
+  struct BracketCache *cache =
+    index == SIZE_MAX ? &scanner->bracket : &scanner->contexts[index].bracket;
+  struct BracketCache saved = *cache;
+  if (scan->cache.collating_absent_end != 0) {
+    cache->collating_absent_start = scan->cache.collating_absent_start;
+    cache->collating_absent_end = scan->cache.collating_absent_end;
+  }
+  if (scan->cache.collating_closer_end != 0) {
+    cache->collating_closer_from = scan->cache.collating_closer_from;
+    cache->collating_closer_end = scan->cache.collating_closer_end;
+  }
+  if (element) cache->element_remaining = scan->element + 1;
+  if (!scanner_state_fits(scanner)) *cache = saved;
 }
 
 static bool scan_pattern_bracket_hyphen(
@@ -7904,30 +8153,53 @@ static bool pattern_range_endpoint(const bool *valid) {
     !valid[PATTERN_INITIAL_RIGHT_BRACKET_BEGIN];
 }
 
-static bool scan_pattern_special_left_bracket(
-  const struct Scanner *scanner,
+static bool pattern_element_here(
+  struct Scanner *scanner,
   TSLexer *lexer,
   const bool *valid
 ) {
-  if (
-    pattern_range_endpoint(valid) &&
-    !pattern_range_collating_follows(scanner, lexer)
-  )
-    return false;
-  if (lexer->lookahead != '[') {
-    return false;
+  size_t start = probe_position(lexer);
+  lexer->advance(lexer, false);
+  bool marked = is_one_of(lexer->lookahead, ":.=");
+  probe_seek(lexer, start);
+  if (!marked) return false;
+  size_t position = lexer_raw_position(lexer);
+  size_t element = bracket_cache(scanner)->element_remaining;
+  if (element <= position) {
+    struct BracketScan scan = bracket_scan(pattern_mode(
+      scanner,
+      parameter_pattern_context(scanner),
+      valid[ASSIGNMENT_PATTERN_BRACKET_CHARACTER]
+    ));
+    uint32_t chains = 0;
+    bool complete;
+    scan_bracket_members(
+      scanner,
+      lexer,
+      &scan,
+      pattern_range_endpoint(valid) ? BRACKET_PHASE_RANGE
+                                    : BRACKET_PHASE_MEMBERS,
+      &chains,
+      &complete,
+      true
+    );
+    probe_seek(lexer, start);
+    if (lookahead_is_pending(lexer)) return false;
+    record_bracket_scan(scanner, &scan, true);
+    element = scan.element + 1;
   }
+  return element == position + 1;
+}
 
+static bool scan_pattern_special_left_bracket(
+  struct Scanner *scanner,
+  TSLexer *lexer,
+  const bool *valid
+) {
+  if (lexer->lookahead != '[' || !pattern_element_here(scanner, lexer, valid))
+    return false;
   lexer->advance(lexer, false);
   lexer->mark_end(lexer);
-  if (
-    lexer->lookahead != ':' &&
-    lexer->lookahead != '.' &&
-    lexer->lookahead != '='
-  ) {
-    return false;
-  }
-
   lexer->result_symbol = PATTERN_SPECIAL_LEFT_BRACKET;
   return true;
 }
@@ -8546,8 +8818,6 @@ dispatch_subscript_closing_boundary(TSLexer *lexer, const bool *valid) {
   return dispatch_retreat(lexer, position);
 }
 
-/* The expression or source start a classified arithmetic scan selects;
-   TOKEN_COUNT when the scan is pending or invalid or the start is not valid. */
 static enum TokenType arithmetic_start_symbol(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -8936,6 +9206,7 @@ static enum DispatchResult dispatch_pattern_pieces(
     return dispatch_outcome(scan_pattern_bracket_hyphen(scanner, lexer, valid));
   const enum TokenType bracket_characters[] = {
     PARAMETER_PATTERN_BRACKET_CHARACTER,
+    ASSIGNMENT_PATTERN_BRACKET_CHARACTER,
     PATTERN_BRACKET_CHARACTER,
   };
   for (size_t index = 0; index < ARRAY_COUNT(bracket_characters); index += 1) {
@@ -9281,7 +9552,8 @@ source_context_push(struct Scanner *scanner, enum TokenType opener) {
     scanner->context_count == 0 ? NULL : top_context(scanner);
   if (
     previous != NULL &&
-    previous->collating_absent_end == 0 &&
+    !collating_cached(&previous->bracket) &&
+    previous->bracket.element_remaining == 0 &&
     opener != REGEX_START &&
     !is_word_context(opener) &&
     !is_arithmetic_field_context(opener) &&
@@ -9332,8 +9604,7 @@ static bool source_context_pop(struct Scanner *scanner) {
     return false;
   }
   struct SourceContext context = *top;
-  top->collating_absent_start = 0;
-  top->collating_absent_end = 0;
+  top->bracket = (struct BracketCache){0};
   if (--top->count == 0) {
     scanner->context_count -= 1;
   }
@@ -9545,21 +9816,6 @@ source_context_commit(struct Scanner *scanner, enum TokenType symbol) {
     default:
       return true;
   }
-}
-
-static uint32_t
-bracket_chains_after_token(const struct LogicalLexer *input, uint32_t chains) {
-  for (size_t index = 0; index < input->cursor.logical_count; index += 1) {
-    const struct SourceCharacter *character = &input->cursor.logical[index];
-    if (character->origin.end <= 0) {
-      continue;
-    }
-    if ((size_t)character->origin.end + input->base > input->mark) {
-      break;
-    }
-    chains = bracket_chains_after_literal(chains, character->value);
-  }
-  return chains;
 }
 
 static bool continuation_before_mark(const struct LogicalLexer *input) {
@@ -9828,15 +10084,29 @@ static bool emit_physical_run(
   return accepted;
 }
 
+static size_t cut_remaining(size_t remaining, size_t cut) {
+  return remaining > cut ? remaining - cut : 0;
+}
+
+static void cut_bracket_cache(struct BracketCache *cache, size_t cut) {
+  cache->element_remaining = cut_remaining(cache->element_remaining, cut);
+  cache->collating_absent_start =
+    cut_remaining(cache->collating_absent_start, cut);
+  cache->collating_absent_end = cut_remaining(cache->collating_absent_end, cut);
+  cache->collating_closer_from =
+    cut_remaining(cache->collating_closer_from, cut);
+  cache->collating_closer_end = cut_remaining(cache->collating_closer_end, cut);
+  if (cache->collating_closer_from + 2 > cache->collating_closer_end) {
+    cache->collating_closer_from = 0;
+    cache->collating_closer_end = 0;
+  }
+}
+
 static void consume_context_remaining(struct Scanner *scanner, size_t cut) {
+  cut_bracket_cache(&scanner->bracket, cut);
   for (size_t index = 0; index < scanner->context_count; index++) {
     struct SourceContext *context = &scanner->contexts[index];
-    context->collating_absent_start = context->collating_absent_start > cut
-      ? context->collating_absent_start - cut
-      : 0;
-    context->collating_absent_end = context->collating_absent_end > cut
-      ? context->collating_absent_end - cut
-      : 0;
+    cut_bracket_cache(&context->bracket, cut);
     if (is_word_context(context->opener)) {
       context->brace_suppressed_remaining =
         context->brace_suppressed_remaining > cut
@@ -10552,47 +10822,28 @@ static bool is_tilde_context(enum TokenType opener) {
     opener == PARAMETER_TILDE_START;
 }
 
+static struct BracketScan
+literal_bracket_scan(const struct Scanner *scanner, enum TokenType literal) {
+  return bracket_scan(pattern_mode(
+    scanner,
+    literal == PARAMETER_LITERAL_BEGIN || parameter_pattern_context(scanner),
+    literal == ASSIGNMENT_LITERAL_BEGIN
+  ));
+}
+
 static bool lexical_pattern_probe(
   struct Scanner *scanner,
   struct LogicalLexer *input,
-  enum TokenType literal_symbol,
+  struct BracketScan *scan,
   uint32_t *chains,
   bool *complete
 ) {
   struct LogicalPosition position = logical_position(input);
-  bool parameter = literal_symbol == PARAMETER_LITERAL_BEGIN ||
-    parameter_pattern_context(scanner);
-  bool assignment = literal_symbol == ASSIGNMENT_LITERAL_BEGIN;
-  enum PatternMode mode = parameter ? PATTERN_PARAMETER
-    : assignment                    ? PATTERN_ASSIGNMENT
-                                    : PATTERN_WORD;
-  enum TokenType context = pattern_context(scanner);
-  if (context == PARAMETER_REPLACE_BEGIN) {
-    mode = PATTERN_REPLACEMENT;
-  } else if (context == ASSIGNMENT_TILDE_START) {
-    mode = PATTERN_ASSIGNMENT_TILDE;
-  } else if (context == WORD_TILDE_START) {
-    mode = PATTERN_WORD_TILDE;
-  } else if (context == PARAMETER_TILDE_START) {
-    mode = PATTERN_PARAMETER_TILDE;
-  }
   struct LookaheadLexer lookahead = {0};
-  size_t absent[2] = {0};
   bool accepted = lookahead_begin(&lookahead, &input->lexer) &&
-    scan_pattern_bracket(
-      scanner,
-      &lookahead.lexer,
-      mode,
-      chains,
-      complete,
-      absent
-    ) &&
+    scan_pattern_bracket(scanner, &lookahead.lexer, scan, chains, complete) &&
     !lookahead_is_pending(&lookahead.lexer);
-  size_t index = bracket_context_index(scanner);
-  if (accepted && index != SIZE_MAX && absent[0] < absent[1]) {
-    scanner->contexts[index].collating_absent_start = absent[0];
-    scanner->contexts[index].collating_absent_end = absent[1];
-  }
+  if (accepted) record_bracket_scan(scanner, scan, *complete);
   lookahead_clear(&lookahead);
   logical_restore_position(input, &position);
   return accepted;
@@ -10625,7 +10876,6 @@ static bool lexical_pattern_content(
   enum TokenType closer = text ? PATTERN_CHARACTER_CLASS_END_COLON
     : marker == '.'            ? PUNCT_DOT
                                : PUNCT_EQUALS;
-  // The grammar exposes the closer only after content.
   bool has_content = valid[closer];
   bool consumed = false;
   while (
@@ -10887,6 +11137,7 @@ static bool parameter_extglob_follows(
     TSLexer *probe = &lookahead.lexer;
     probe->advance(probe, false);
     size_t depth = 0;
+    struct BracketScan scan = bracket_scan(mode);
     while (!is_bracket_literal_boundary(scanner, probe, mode)) {
       enum BracketAtom atom = skip_bracket_quoted_atom(scanner, probe);
       if (atom == BRACKET_ATOM_END) break;
@@ -10899,10 +11150,9 @@ static bool parameter_extglob_follows(
           scan_pattern_bracket(
             scanner,
             probe,
-            mode,
+            &scan,
             &chains,
-            &bracket_complete,
-            NULL
+            &bracket_complete
           ) &&
           bracket_complete
         ) {
@@ -10936,8 +11186,6 @@ static bool extglob_pattern_follows(
     parameter_extglob_follows(scanner, input, valid);
 }
 
-/* Walks an extglob pattern body up to `end`; false when a brace expansion
-   or brace boundary makes it part of a brace alternative. */
 static bool extglob_pattern_nested(
   struct Scanner *scanner,
   struct LookaheadLexer *lookahead,
@@ -11018,6 +11266,25 @@ extglob_source_nested(struct Scanner *scanner, struct LogicalLexer *input) {
   return nested;
 }
 
+/* Literals accepted here must also advance bracket fallback chains. */
+static bool accept_word_start(
+  const struct Scanner *scanner,
+  struct LogicalLexer *input,
+  enum TokenType symbol,
+  size_t length
+) {
+  TSLexer *lexer = &input->lexer;
+  uint32_t chains = fallback_chains(scanner);
+  for (; length > 1; length -= 1) {
+    chains =
+      bracket_chains_after_literal(chains, bracket_input(lexer->lookahead));
+    lexer->advance(lexer, false);
+  }
+  input->bracket_chains =
+    bracket_chains_after_literal(chains, bracket_input(lexer->lookahead));
+  return accept_character(lexer, symbol);
+}
+
 static bool bash_word_start(
   struct Scanner *scanner,
   struct LogicalLexer *input,
@@ -11026,6 +11293,7 @@ static bool bash_word_start(
   TSLexer *lexer = &input->lexer;
   int32_t ch = lexer->lookahead, next = logical_peek(input);
   enum TokenType symbol = TOKEN_COUNT;
+  size_t length = 1;
   if (ch == '$' && is_one_of(next, "?*@!")) {
     struct LogicalPosition position = logical_position(input);
     lexer->advance(lexer, false);
@@ -11041,7 +11309,8 @@ static bool bash_word_start(
       };
       enum TokenType literal =
         first_valid_symbol(valid, literals, ARRAY_COUNT(literals));
-      if (literal != TOKEN_COUNT) return accept_character(lexer, literal);
+      if (literal != TOKEN_COUNT)
+        return accept_word_start(scanner, input, literal, 1);
     }
   }
   if (ch == '$' && next == '"') {
@@ -11058,6 +11327,7 @@ static bool bash_word_start(
         ASSIGNMENT_LITERAL_BEGIN,
         PATTERN_CLASS_CONTENT_BEGIN,
         PATTERN_BRACKET_CHARACTER,
+        ASSIGNMENT_PATTERN_BRACKET_CHARACTER,
         PATTERN_COLLATING_CHARACTER_BEGIN,
         PATTERN_EQUIVALENCE_CHARACTER_BEGIN
       };
@@ -11065,10 +11335,11 @@ static bool bash_word_start(
       if (
         symbol != TOKEN_COUNT &&
         symbol != PATTERN_BRACKET_CHARACTER &&
+        symbol != ASSIGNMENT_PATTERN_BRACKET_CHARACTER &&
         symbol != PATTERN_COLLATING_CHARACTER_BEGIN &&
         symbol != PATTERN_EQUIVALENCE_CHARACTER_BEGIN
       )
-        lexer->advance(lexer, false);
+        length = 2;
     }
   } else if (
     ch == '{' && valid[BRACE_OPEN] && brace_expansion_follows(scanner, input)
@@ -11076,7 +11347,7 @@ static bool bash_word_start(
     symbol = BRACE_OPEN;
   }
   if (symbol == TOKEN_COUNT) return false;
-  return valid[symbol] && accept_character(lexer, symbol);
+  return valid[symbol] && accept_word_start(scanner, input, symbol, length);
 }
 
 static bool bash_word_boundary(
@@ -11793,6 +12064,7 @@ static bool lexical_pattern_literal(
     symbol != EXTGLOB_TEXT_BEGIN && is_tilde_context(pattern_context(scanner));
   bool consumed = false;
   uint32_t chains = fallback_chains(scanner);
+  struct BracketScan scan = literal_bracket_scan(scanner, symbol);
   bool enters_fallback = false;
   const struct SourceContext *raw = raw_word_context(scanner);
   bool element_start = raw != NULL && raw->raw_element_start;
@@ -11832,6 +12104,7 @@ static bool lexical_pattern_literal(
     ) {
       break;
     }
+    enum BracketInput kind = bracket_input(character);
     if (character == '[') {
       if (
         consumed && (symbol == EXTGLOB_TEXT_BEGIN || symbol == BRACE_TEXT_BEGIN)
@@ -11840,16 +12113,17 @@ static bool lexical_pattern_literal(
       uint32_t after = chains;
       bool complete;
       if (
-        !lexical_pattern_probe(scanner, input, symbol, &after, &complete) ||
+        !lexical_pattern_probe(scanner, input, &scan, &after, &complete) ||
         complete
       ) {
         break;
       }
       enters_fallback = !in_bracket_fallback(scanner) && valid[fallback_symbol];
+      kind = scan.opener;
     }
     element_start =
       character == '(' || is_horizontal_blank(character) || character == '\n';
-    chains = bracket_chains_after_literal(chains, character);
+    chains = bracket_chains_after_literal(chains, kind);
     lexer->advance(lexer, false);
     bool tilde_prefix = assignment &&
       assignment_tilde_follows(scanner, lexer, PATTERN_ASSIGNMENT, character);
@@ -11859,6 +12133,7 @@ static bool lexical_pattern_literal(
       break;
     }
   }
+  input->bracket_chains = chains;
   lexer->result_symbol = (TSSymbol)(enters_fallback ? fallback_symbol : symbol);
   return consumed;
 }
@@ -11925,7 +12200,8 @@ static enum DispatchResult lexical_pattern_bracket_open(
                                       : LITERAL_BEGIN;
   uint32_t chains = fallback_chains(scanner);
   bool complete;
-  if (!lexical_pattern_probe(scanner, input, literal, &chains, &complete))
+  struct BracketScan scan = literal_bracket_scan(scanner, literal);
+  if (!lexical_pattern_probe(scanner, input, &scan, &chains, &complete))
     return DISPATCH_REJECTED;
   if (!complete) return DISPATCH_NEXT;
   return dispatch_outcome(accept_character(
@@ -11936,13 +12212,15 @@ static enum DispatchResult lexical_pattern_bracket_open(
 }
 
 static enum DispatchResult lexical_pattern_bracket_member(
-  const struct Scanner *scanner,
+  struct Scanner *scanner,
   struct LogicalLexer *input,
   const bool *valid
 ) {
   TSLexer *lexer = &input->lexer;
   enum TokenType member = valid[PARAMETER_PATTERN_BRACKET_CHARACTER]
     ? PARAMETER_PATTERN_BRACKET_CHARACTER
+    : valid[ASSIGNMENT_PATTERN_BRACKET_CHARACTER]
+    ? ASSIGNMENT_PATTERN_BRACKET_CHARACTER
     : PATTERN_BRACKET_CHARACTER;
   if (!valid[member]) return DISPATCH_NEXT;
   int32_t character = lexer->lookahead;
@@ -11959,16 +12237,12 @@ static enum DispatchResult lexical_pattern_bracket_member(
   )
     return DISPATCH_REJECTED;
   if (character == '[' && valid[PATTERN_SPECIAL_LEFT_BRACKET]) {
-    int32_t follower = logical_peek(input);
-    if (follower == ':' || follower == '.' || follower == '=') {
-      if (!pattern_range_endpoint(valid)) return DISPATCH_REJECTED;
-      struct LookaheadLexer probe = {0};
-      bool collating = lookahead_begin(&probe, lexer) &&
-        pattern_range_collating_follows(scanner, &probe.lexer);
-      lookahead_clear(&probe);
-      logical_rewind(input);
-      if (collating) return DISPATCH_REJECTED;
-    }
+    struct LookaheadLexer probe = {0};
+    bool element = lookahead_begin(&probe, lexer) &&
+      pattern_element_here(scanner, &probe.lexer, valid);
+    lookahead_clear(&probe);
+    logical_rewind(input);
+    if (element) return DISPATCH_REJECTED;
   }
   return dispatch_outcome(accept_character(lexer, member));
 }
@@ -12456,8 +12730,6 @@ classify_declaration_name(struct LogicalLexer *input, const bool *valid) {
   return classify_retreat(input);
 }
 
-/* The extent a raw argument's assignment form forces into one word: its
-   compound value, or in a coproc's lead its command-position head. */
 static size_t raw_argument_range(
   const struct Scanner *scanner,
   struct LogicalLexer *input,
@@ -13000,7 +13272,7 @@ static bool track_bracket_fallback(
 ) {
   struct LexicalEmission *emission = &scanner->emission;
   if (is_bracket_fallback_context(lexical_source_symbol(symbol))) {
-    emission->bracket_chains = bracket_chains_after_token(input, 0);
+    emission->bracket_chains = input->bracket_chains;
     emission->tracks_brackets = true;
     return true;
   }
@@ -13016,7 +13288,7 @@ static bool track_bracket_fallback(
     case LITERAL_BEGIN:
     case ASSIGNMENT_LITERAL_BEGIN:
     case PARAMETER_LITERAL_BEGIN:
-      chains = bracket_chains_after_token(input, chains);
+      chains = input->bracket_chains;
       break;
     case PATTERN_STAR_BEGIN:
     case PATTERN_QUESTION_BEGIN:
@@ -13024,8 +13296,13 @@ static bool track_bracket_fallback(
     case SQ_OPEN:
     case DQ_OPEN:
     case DOLLAR_SQ_DOLLAR:
+    case DOLLAR_DQ_DOLLAR:
     case DOLLAR_EXPANSION_START:
     case BACKQUOTE_START:
+    case PROCESS_IN_START:
+    case PROCESS_OUT_START:
+    case EXTGLOB_OPERATOR_BEGIN:
+    case BRACE_OPEN:
       chains = bracket_chains_after(chains, BRACKET_INPUT_MEMBER);
       break;
     case WORD_PATTERN_BRACKET_OPEN:
@@ -13033,8 +13310,9 @@ static bool track_bracket_fallback(
       struct LogicalPosition position = logical_position(input);
       logical_rewind(input);
       bool complete;
+      struct BracketScan scan = literal_bracket_scan(scanner, literal);
       bool scanned =
-        lexical_pattern_probe(scanner, input, literal, &chains, &complete);
+        lexical_pattern_probe(scanner, input, &scan, &chains, &complete);
       logical_restore_position(input, &position);
       if (!scanned || !complete) {
         return false;

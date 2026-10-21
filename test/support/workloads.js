@@ -197,6 +197,11 @@ export const workloads = [
     source: (n) => `: x${"[[:digit:]]".repeat(n)}\n`,
   },
   {
+    name: "pattern bracket empty special elements",
+    sizes: sequenceElementCounts,
+    source: (n) => `: [${"[::][..][==]".repeat(n)}x]\n`,
+  },
+  {
     name: "pattern bracket range class markers",
     sizes: sequenceElementCounts,
     source: (n) => `: x${"[A-[:digit:]]".repeat(n)}\n`,

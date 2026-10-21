@@ -6495,7 +6495,7 @@
     "fields": {
       "content": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "arithmetic_expansion",
@@ -6572,7 +6572,7 @@
     "fields": {
       "value": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "arithmetic_expansion",
@@ -6649,7 +6649,7 @@
     "fields": {
       "value": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "arithmetic_expansion",

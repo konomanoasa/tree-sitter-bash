@@ -239,6 +239,68 @@ echo "`echo \"a\"`" "${x:-`echo \"a\"`}" $((`echo \"1\"`)) ${!x`echo \"a\"`*}
             (conditional_close)))))))
 
 ==================
+command words after escaped backslashes and a continuation keep quoted segments
+:language(bash)
+:language(bash_default)
+==================
+echo `\\\
+\'a'`
+echo `x; \\\
+\'b' c`
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (escaped_character
+                                (line_continuation))
+                              (single_quoted
+                                (single_quote_content)))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (backquote_substitution
+                body: (backquote_substitution_body
+                  (list
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (literal))))))
+                    separator: (separator_op)
+                    and_or: (and_or
+                      pipeline: (pipeline
+                        command: (command
+                          body: (simple_command
+                            name: (word
+                              (escaped_character
+                                (line_continuation))
+                              (single_quoted
+                                (single_quote_content)))
+                            argument: (word
+                              (literal))))))))))))))))
+
+==================
 quoted parameter value operators preserve escaped backquote quotes
 :language(bash)
 :language(bash_default)

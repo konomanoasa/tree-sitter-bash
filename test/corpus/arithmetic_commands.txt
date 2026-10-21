@@ -208,6 +208,38 @@ arithmetic command invalid value
               (arithmetic_number ))))))))
 
 ==================
+hashes remain arithmetic command source across newlines
+:language(bash)
+:language(bash_default)
+==================
+(( 1 # c ))
+(( 1 # c
+ + 2 ))
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_command
+            expression: (arithmetic_source_expression
+              (arithmetic_number)
+              (arithmetic_source_fragment)
+              (arithmetic_variable))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (arithmetic_command
+            expression: (arithmetic_source_expression
+              (arithmetic_number)
+              (arithmetic_source_fragment)
+              (arithmetic_variable)
+              (arithmetic_operator)
+              (arithmetic_number))))))))
+
+==================
 an escaped ANSI-C quote keeps the arithmetic command boundary
 :language(bash)
 :cst

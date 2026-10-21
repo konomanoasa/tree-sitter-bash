@@ -1,4 +1,64 @@
 ==================
+coprocess scalar assignment-shaped arguments retain brace expansions
+:language(bash)
+:language(bash_default)
+==================
+coproc x y={a,b}
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (coproc
+            (coproc_keyword)
+            body: (simple_command
+              name: (word
+                (literal))
+              argument: (assignment_word
+                name: (variable_name)
+                value: (assignment_value
+                  (brace_expansion
+                    alternative: (brace_alternative
+                      (literal))
+                    alternative: (brace_alternative
+                      (literal))))))))))))
+
+==================
+coprocess braces crossing a subscript retain word structure and later compound arguments
+:language(bash)
+:language(bash_default)
+==================
+coproc worker x[{0]=a,1]=b} z=(one)
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (coproc
+            (coproc_keyword)
+            body: (simple_command
+              name: (word
+                (literal))
+              argument: (word
+                (literal)
+                (brace_expansion
+                  alternative: (brace_alternative
+                    (literal))
+                  alternative: (brace_alternative
+                    (literal))))
+              argument: (assignment_word
+                name: (variable_name)
+                value: (array_assignment
+                  element: (word
+                    (literal)))))))))))
+
+==================
 coproc named compound
 :language(bash)
 :language(bash_default)

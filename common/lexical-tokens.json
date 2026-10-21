@@ -115,6 +115,10 @@
       "scanner": "PARAMETER_PATTERN_BRACKET_CHARACTER"
     },
     {
+      "begin": "_assignment_pattern_bracket_character_begin",
+      "scanner": "ASSIGNMENT_PATTERN_BRACKET_CHARACTER"
+    },
+    {
       "begin": "_pattern_bracket_hyphen_begin",
       "scanner": "PATTERN_BRACKET_HYPHEN"
     },

@@ -326,6 +326,94 @@ until test "$y"; do :; done
               (done_keyword))))))))
 
 ==================
+compound commands close loop and if bodies after separators without a terminator
+:language(bash)
+:language(bash_default)
+==================
+while :; do :; ( : ) done
+if :; then :; { :; } fi
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (while_clause
+            (while_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op)))
+            body: (do_group
+              (do_keyword)
+              body: (list
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (simple_command
+                        name: (word
+                          (literal))))))
+                separator: (separator
+                  operator: (separator_op))
+                and_or: (and_or
+                  pipeline: (pipeline
+                    command: (command
+                      body: (subshell
+                        body: (list
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))))))))))))
+              (done_keyword))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (if_clause
+            (if_keyword)
+            condition: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op)))
+            (then_keyword)
+            consequence: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op))
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (brace_group
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))
+                        separator: (separator
+                          operator: (separator_op))))))))
+            (fi_keyword)))))))
+
+==================
 for brace body missing separator "for x { :; }\n"
 :language(bash)
 :error

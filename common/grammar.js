@@ -321,11 +321,6 @@ const parameterPatternCollatingSymbolSource = ($) =>
     $._parameter_pattern_collating_symbol_source,
     $.pattern_collating_symbol_source,
   );
-const parameterPatternBracketCharacter = ($) =>
-  alias(
-    $._parameter_pattern_bracket_character,
-    $.pattern_bracket_character_source,
-  );
 
 const parameterPatternSpecialSources = ($) => [
   alias(
@@ -782,7 +777,7 @@ const patternSpecialClassSource = ($, marker, characterSource) =>
     PATTERN_PRECEDENCE.specialElement,
     seq(
       patternSpecialStart($, marker),
-      patternSpecialValue($, characterSource),
+      optional(patternSpecialValue($, characterSource)),
       patternSpecialEnd($, marker),
     ),
   );
@@ -809,7 +804,7 @@ const patternCharacterClassSource = ($, content) =>
     PATTERN_PRECEDENCE.specialElement,
     seq(
       patternSpecialStart($, physical($, $._punct_colon, ":")),
-      patternCharacterClassBody($, content),
+      optional(patternCharacterClassBody($, content)),
       patternSpecialEnd(
         $,
         physical($, $._pattern_character_class_end_colon, ":"),
@@ -1070,6 +1065,39 @@ const patternInitialBracketRange = ($, endpoint) =>
     alias($._pattern_initial_right_bracket, $.pattern_bracket_character_source),
   );
 
+const patternBracketFamily = (kind, specials, opener, collating) => {
+  const name = (part) => `_${kind}_pattern_${part}`;
+  const character = ($) =>
+    alias($[name("bracket_character")], $.pattern_bracket_character_source);
+  return {
+    [name("bracket_expression")]: ($) =>
+      patternBracketExpression(
+        $,
+        alias($[name("bracket_list")], $.pattern_bracket_members_source),
+        opener($),
+      ),
+    [name("bracket_list")]: ($) =>
+      patternBracketList(
+        $,
+        $[name("bracket_member")],
+        alias($[name("initial_bracket_range")], $.pattern_bracket_range_source),
+      ),
+    [name("bracket_member")]: ($) =>
+      choice(
+        ...specials($),
+        alias($[name("bracket_range")], $.pattern_bracket_range_source),
+        ...patternBracketPlainAtoms($, character($)),
+      ),
+    [name("bracket_range")]: ($) =>
+      patternBracketRange($, $[name("bracket_range_endpoint")]),
+    [name("initial_bracket_range")]: ($) =>
+      patternInitialBracketRange($, $[name("bracket_range_endpoint")]),
+    [name("bracket_range_endpoint")]: ($) =>
+      choice(...patternBracketPlainAtoms($, character($)), collating($)),
+    [name("bracket_character")]: lexeme(name("bracket_character_begin")),
+  };
+};
+
 export default function defineGrammar(name) {
   return grammar({
     name,
@@ -1151,6 +1179,7 @@ export default function defineGrammar(name) {
         $._command_substitution_body_begin,
         $._pattern_bracket_character_begin,
         $._parameter_pattern_bracket_character_begin,
+        $._assignment_pattern_bracket_character_begin,
         $._pattern_bracket_hyphen_begin,
         $._pattern_bracket_range_operator_begin,
         $._word_tilde_end,
@@ -1703,8 +1732,14 @@ export default function defineGrammar(name) {
       _coproc_command_suffix: ($) =>
         choice(
           seq(
-            $._assignment_separator,
-            field("argument", $.assignment_word),
+            $._word_separator,
+            choice(
+              field(
+                "argument",
+                alias($._coproc_declaration_assignment_word, $.assignment_word),
+              ),
+              seq($._coproc_raw_argument_start, field("argument", $.word)),
+            ),
             optional($._coproc_command_suffix),
           ),
           seq(
@@ -1797,11 +1832,12 @@ export default function defineGrammar(name) {
       _term: ($) =>
         seq(
           field("and_or", $.and_or),
-          optional($._term_tail),
+          repeat(seq($._term_separator, field("and_or", $.and_or))),
+          optional($._term_separator),
           optional($._term_boundary),
         ),
 
-      _term_tail: ($) =>
+      _term_separator: ($) =>
         prec.right(
           seq(
             choice(
@@ -1812,7 +1848,6 @@ export default function defineGrammar(name) {
               field("separator", alias($._newline_separator, $.separator)),
             ),
             optional($._horizontal_layout),
-            optional(seq(field("and_or", $.and_or), optional($._term_tail))),
           ),
         ),
 
@@ -2426,7 +2461,10 @@ export default function defineGrammar(name) {
         choice(
           $._raw_layout,
           $._assignment_bracket_fallback,
-          $.pattern_bracket_source,
+          alias(
+            $._assignment_pattern_bracket_expression,
+            $.pattern_bracket_source,
+          ),
           alias($._assignment_literal, $.literal),
           $.pattern_star_source,
           $.pattern_question_source,
@@ -2541,7 +2579,10 @@ export default function defineGrammar(name) {
           $,
           $._assignment_fallback_literal,
           alias($._assignment_literal, $.literal),
-          $.pattern_bracket_source,
+          alias(
+            $._assignment_pattern_bracket_expression,
+            $.pattern_bracket_source,
+          ),
           $._assignment_bracket_fallback_end,
         ),
       _parameter_fallback_literal: lexeme("_parameter_fallback_literal_begin"),
@@ -2565,15 +2606,18 @@ export default function defineGrammar(name) {
           $.pattern_bracket_members_source,
           $._word_pattern_bracket_open,
         ),
-      _parameter_pattern_bracket_expression: ($) =>
-        patternBracketExpression(
-          $,
-          alias(
-            $._parameter_pattern_bracket_list,
-            $.pattern_bracket_members_source,
-          ),
-          $._parameter_pattern_bracket_open,
-        ),
+      ...patternBracketFamily(
+        "parameter",
+        parameterPatternSpecialSources,
+        ($) => $._parameter_pattern_bracket_open,
+        parameterPatternCollatingSymbolSource,
+      ),
+      ...patternBracketFamily(
+        "assignment",
+        wordPatternSpecialSources,
+        ($) => $._word_pattern_bracket_open,
+        ($) => $.pattern_collating_symbol_source,
+      ),
       pattern_bracket_negation_source: ($) =>
         prec(1, lexical($, $._pattern_negation_begin)),
       pattern_bracket_members_source: ($) =>
@@ -2586,16 +2630,6 @@ export default function defineGrammar(name) {
           ),
         ),
 
-      _parameter_pattern_bracket_list: ($) =>
-        patternBracketList(
-          $,
-          $._parameter_pattern_bracket_member,
-          alias(
-            $._parameter_pattern_initial_bracket_range,
-            $.pattern_bracket_range_source,
-          ),
-        ),
-
       _pattern_bracket_member: ($) =>
         choice(
           ...wordPatternSpecialSources($),
@@ -2603,30 +2637,11 @@ export default function defineGrammar(name) {
           ...patternBracketPlainAtoms($, $.pattern_bracket_character_source),
         ),
 
-      _parameter_pattern_bracket_member: ($) =>
-        choice(
-          ...parameterPatternSpecialSources($),
-          alias(
-            $._parameter_pattern_bracket_range,
-            $.pattern_bracket_range_source,
-          ),
-          ...patternBracketPlainAtoms($, parameterPatternBracketCharacter($)),
-        ),
-
       pattern_bracket_range_source: ($) =>
         patternBracketRange($, $._pattern_bracket_range_endpoint),
 
-      _parameter_pattern_bracket_range: ($) =>
-        patternBracketRange($, $._parameter_pattern_bracket_range_endpoint),
-
       _pattern_initial_bracket_range: ($) =>
         patternInitialBracketRange($, $._pattern_bracket_range_endpoint),
-
-      _parameter_pattern_initial_bracket_range: ($) =>
-        patternInitialBracketRange(
-          $,
-          $._parameter_pattern_bracket_range_endpoint,
-        ),
 
       _pattern_bracket_range_endpoint: ($) =>
         choice(
@@ -2634,17 +2649,8 @@ export default function defineGrammar(name) {
           $.pattern_collating_symbol_source,
         ),
 
-      _parameter_pattern_bracket_range_endpoint: ($) =>
-        choice(
-          ...patternBracketPlainAtoms($, parameterPatternBracketCharacter($)),
-          parameterPatternCollatingSymbolSource($),
-        ),
-
       pattern_bracket_character_source: lexeme(
         "_pattern_bracket_character_begin",
-      ),
-      _parameter_pattern_bracket_character: lexeme(
-        "_parameter_pattern_bracket_character_begin",
       ),
       _pattern_operator_bracket_character: ($) =>
         choice(

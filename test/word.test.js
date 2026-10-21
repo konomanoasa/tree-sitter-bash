@@ -227,33 +227,128 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
-    test("bracket range endpoints keep their classification across word and pattern contexts", () => {
+    test("bracket elements and range endpoints keep their classification across word and pattern contexts", () => {
       for (const [prefix, suffix] of [
         [": ", ""],
+        ["x=", ""],
         ["case x in ", ") :;; esac"],
         [': "${s#', '}"'],
+        [': "${s/', '/q}"'],
+        [": ${s:-", "}"],
         ["[[ x == ", " ]]"],
         ["[[ x == @(", "|q) ]]"],
       ]) {
-        for (const [pattern, bracket, ranges, classes] of [
+        for (const [pattern, bracket, ranges, elements] of [
           ["[A-[:digit:]]", "[A-[:digit:]", ["A-["], []],
           ["[A-[=Z=]]", "[A-[=Z=]", ["A-["], []],
-          ["[A-[.Z.]]", "[A-[.Z.]]", ["A-[.Z.]"], []],
+          [
+            "[A-[.Z.]]",
+            "[A-[.Z.]]",
+            ["A-[.Z.]"],
+            [["pattern_collating_symbol_source", "[.Z.]"]],
+          ],
           ["[A-[:]", "[A-[:]", ["A-["], []],
           ["[A-[=]", "[A-[=]", ["A-["], []],
           ["[A-[.]", "[A-[.]", ["A-["], []],
           ["[A-[.abc]", "[A-[.abc]", ["A-["], []],
-          ["[A-Z-[:digit:]]", "[A-Z-[:digit:]]", ["A-Z"], ["[:digit:]"]],
-          ["[-[:digit:]]", "[-[:digit:]]", [], ["[:digit:]"]],
-          ["[[.A.]-[:digit:]]", "[[.A.]-[:digit:]", ["[.A.]-["], []],
-          ["[[:digit:]-[]", "[[:digit:]-[]", [], ["[:digit:]"]],
+          [
+            "[A-Z-[:digit:]]",
+            "[A-Z-[:digit:]]",
+            ["A-Z"],
+            [["pattern_character_class_source", "[:digit:]"]],
+          ],
+          [
+            "[-[:digit:]]",
+            "[-[:digit:]]",
+            [],
+            [["pattern_character_class_source", "[:digit:]"]],
+          ],
+          [
+            "[[.A.]-[:digit:]]",
+            "[[.A.]-[:digit:]",
+            ["[.A.]-["],
+            [["pattern_collating_symbol_source", "[.A.]"]],
+          ],
+          [
+            "[[:digit:]-[]",
+            "[[:digit:]-[]",
+            [],
+            [["pattern_character_class_source", "[:digit:]"]],
+          ],
+          [
+            "[[::]]",
+            "[[::]]",
+            [],
+            [["pattern_character_class_source", "[::]"]],
+          ],
+          [
+            "[[..]]",
+            "[[..]]",
+            [],
+            [["pattern_collating_symbol_source", "[..]"]],
+          ],
+          [
+            "[[==]]",
+            "[[==]]",
+            [],
+            [["pattern_equivalence_class_source", "[==]"]],
+          ],
+          [
+            "[[::]a]",
+            "[[::]a]",
+            [],
+            [["pattern_character_class_source", "[::]"]],
+          ],
+          [
+            "[[..]a]",
+            "[[..]a]",
+            [],
+            [["pattern_collating_symbol_source", "[..]"]],
+          ],
+          [
+            "[[==]a]",
+            "[[==]a]",
+            [],
+            [["pattern_equivalence_class_source", "[==]"]],
+          ],
+          [
+            "[A-[..]]",
+            "[A-[..]]",
+            ["A-[..]"],
+            [["pattern_collating_symbol_source", "[..]"]],
+          ],
+          [
+            "[[..]-Z]",
+            "[[..]-Z]",
+            ["[..]-Z"],
+            [["pattern_collating_symbol_source", "[..]"]],
+          ],
+          ["[A-[::]]", "[A-[::]", ["A-["], []],
+          ["[A-[==]]", "[A-[==]", ["A-["], []],
+          [
+            "[[:\\\n:]]",
+            "[[:\\\n:]]",
+            [],
+            [["pattern_character_class_source", "[:\\\n:]"]],
+          ],
+          [
+            "[[.\\\n.]]",
+            "[[.\\\n.]]",
+            [],
+            [["pattern_collating_symbol_source", "[.\\\n.]"]],
+          ],
+          [
+            "[[=\\\n=]]",
+            "[[=\\\n=]]",
+            [],
+            [["pattern_equivalence_class_source", "[=\\\n=]"]],
+          ],
         ]) {
           const source = `${prefix}${pattern}${suffix}\necho AFTER\n`;
           const actual = nodes(source);
           for (const [type, expected] of [
             ["pattern_bracket_source", [bracket]],
             ["pattern_bracket_range_source", ranges],
-            ["pattern_character_class_source", classes],
           ]) {
             assert.deepEqual(
               actual
@@ -263,11 +358,36 @@ for (const grammar of grammars) {
               `${type}: ${source}`,
             );
           }
+          const specials = actual.filter(({ type }) =>
+            [
+              "pattern_character_class_source",
+              "pattern_collating_symbol_source",
+              "pattern_equivalence_class_source",
+            ].includes(type),
+          );
+          assert.deepEqual(
+            specials.map(({ type, text }) => [type, text]),
+            elements,
+            source,
+          );
+          for (const element of specials) {
+            if (!["[::]", "[..]", "[==]"].includes(element.text)) continue;
+            assert.equal(
+              actual.some(
+                ({ field, start, end }) =>
+                  ["content", "value"].includes(field) &&
+                  start >= element.start &&
+                  end <= element.end,
+              ),
+              false,
+              source,
+            );
+          }
         }
       }
     });
 
-    test("bracket range edits invalidate collating boundaries within their source contexts", () => {
+    test("bracket element and range edits invalidate boundaries within their source contexts", () => {
       for (const part of [
         "[A-[.abc][A-[.def]",
         '[A-[.abc]"q"[A-[.def]',
@@ -295,19 +415,39 @@ for (const grammar of grammars) {
         [': [A-[.abc]"q"[A-[.abc]\n', '"q"', '"q', false],
         ["[[ x == [A-[.abc] ]]\n", " ]]", "", false],
         ["[[ x == @(@([A-[.abc]|q)|r) ]]\n", "abc", "Z.]", true],
+        [": [[.a.]]\necho AFTER\n", "a", "", true],
+        [": [[::]]\necho AFTER\n", "::", ":alpha:", true],
+        [": [[==]]\necho AFTER\n", "==", "=a=", true],
+        [": [A-[.Z.]]\necho AFTER\n", "Z", "", true],
+        [": [A-[..]]\necho AFTER\n", "..]", ".]", true],
+        [": [[::]]\necho AFTER\n", "::]", ":]", true],
+        [": [[==]]\necho AFTER\n", "==]", "=]", true],
+        [": [[..]]\necho AFTER\n", "..", ".\\\n.", true],
+        [": [[::]]\necho AFTER\n", "::", ":\\\n:", true],
+        [": [[==]]\necho AFTER\n", "==", "=\\\n=", true],
+        [": [A-[.missing][A-[..]][A-[.tail]\necho AFTER\n", "..", ".Z.", true],
+        [": [A-[..]][A-[.missing][A-[..]]\necho AFTER\n", "..]", ".]", true],
+        [": [[.あ.]]\necho AFTER\n", "あ", "", true],
+        [`: "\${s#[A-[..]]}"\necho AFTER\n`, "..", ".Z.", true],
+        ["x=[[::]]\necho AFTER\n", "::", ":alpha:", true],
+        [": [[:]]\necho AFTER\n", "[:", "[::", true],
+        [": [[.]]\necho AFTER\n", "[.", "[..", true],
+        [": [[=]]\necho AFTER\n", "[=", "[==", true],
       ]) {
         assertEditRoundTrip(parser, { seed, remove, insert, valid });
       }
     });
 
-    test("declaration brace classification follows the assignment context", () => {
-      for (const name of [
+    test("declaration and coprocess argument braces follow the assignment context", () => {
+      for (const command of [
         "alias",
         "declare",
         "typeset",
         "export",
         "readonly",
         "local",
+        "coproc worker",
+        "coproc worker declare",
       ]) {
         for (const [argument, braces] of [
           ["x[{0,1}]={a,b}", ["{0,1}", "{a,b}"]],
@@ -316,7 +456,7 @@ for (const grammar of grammars) {
           ["x[$(echo {0,1})]={a,b}", ["{0,1}", "{a,b}"]],
           ["x=$(y={a,b}; echo $y) z={c,d}", ["{c,d}"]],
         ]) {
-          const source = `${name} ${argument}\nafter={e,f}\n`;
+          const source = `${command} ${argument}\nafter={e,f}\n`;
           assert.deepEqual(
             nodes(source)
               .filter(({ type }) => type === "brace_expansion")
@@ -328,7 +468,7 @@ for (const grammar of grammars) {
       }
     });
 
-    test("declaration braces follow edits to command names values and subscript boundaries", () => {
+    test("declaration and coprocess braces follow edits to command names values and subscript boundaries", () => {
       for (const [seed, remove, insert, valid] of [
         ["declare x={a,b}\n", "declare", "printf", true],
         ["declare x={a,b}\n", ",", "", true],
@@ -337,6 +477,12 @@ for (const grammar of grammars) {
         ["declare x[{0,1}]=v\n", "v", "({a,b})", true],
         ["declare x[{0,1}]=v\n", "{0,1}]=v", "{0]=a,1]=b}", true],
         ["declare x={a,b}\necho AFTER\n", "{a,b}", `\${bad!word}`, false],
+        ["coproc worker x={a,b}\n", "coproc worker ", "", true],
+        ["coproc worker x={a,b}\n", "worker", "declare", true],
+        ["coproc worker x={a,b}\n", "worker", "worker tail", true],
+        ["coproc worker x={a,b}\n", "worker", "worker >out", true],
+        ["coproc worker x={a,b}\n", "{a,b}", '"{a,b}"', true],
+        ["coproc worker x[{0,1}]=v z=(one)\n", "{0,1}]=v", "{0]=a,1]=b}", true],
       ]) {
         assertEditRoundTrip(parser, { seed, remove, insert, valid });
       }
@@ -536,6 +682,27 @@ for (const grammar of grammars) {
         }
       }
     });
+    test("arithmetic hashes preserve fresh trees through operator and newline edits", () => {
+      for (const seed of [
+        "echo $(( 1 # c\n + 2 ))\n",
+        "echo $[ 1 # c\n + 2 ]\n",
+        "(( 1 # c\n + 2 ))\n",
+      ]) {
+        for (const [remove, insert] of [
+          ["#", "+"],
+          ["c\n", "c"],
+        ]) {
+          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+        }
+      }
+      assertEditRoundTrip(parser, {
+        seed: "echo $(( 1 + $(printf 2 # c\n) ))\n",
+        remove: "c\n",
+        insert: "c",
+        valid: false,
+      });
+    });
+
     if (grammar.name === "bash") {
       test("a line continuation at the end of input becomes a trailing backslash", () => {
         assertEditRoundTrip(parser, {

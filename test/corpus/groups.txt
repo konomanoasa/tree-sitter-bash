@@ -58,6 +58,69 @@ groups own nested lists and following redirects
                 (literal)))))))))
 
 ==================
+compound commands close groups and subshells after separators without a terminator
+:language(bash)
+:language(bash_default)
+==================
+{ :; ( : ) }
+( :; { :; } )
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (brace_group
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op))
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (subshell
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))))))))))))
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (subshell
+            body: (list
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (simple_command
+                      name: (word
+                        (literal))))))
+              separator: (separator
+                operator: (separator_op))
+              and_or: (and_or
+                pipeline: (pipeline
+                  command: (command
+                    body: (brace_group
+                      body: (list
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            command: (command
+                              body: (simple_command
+                                name: (word
+                                  (literal))))))
+                        separator: (separator
+                          operator: (separator_op))))))))))))))
+
+==================
 closing reserved words cannot follow a compound redirection target
 :language(bash)
 :language(bash_default)

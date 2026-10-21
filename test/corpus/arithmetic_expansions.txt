@@ -113,6 +113,64 @@ echo $((0xg)) $((printf hi)) $(((x)=1)) $((1;2)) $((1/0))
                   right: (arithmetic_number))))))))))
 
 ==================
+hashes remain arithmetic source across expansion forms and newlines
+:language(bash)
+:language(bash_default)
+==================
+echo $(( 1 # c )) $[ 1 # c ] $(( 1 # c
+ + 2 )) $[ 1 # c
+ + 2 ]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_variable))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_variable))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_source_expression
+                  (arithmetic_number)
+                  (arithmetic_source_fragment)
+                  (arithmetic_variable)
+                  (arithmetic_operator)
+                  (arithmetic_number))))))))))
+
+==================
+comments in command substitutions inside arithmetic consume same-line closing delimiters
+:language(bash)
+:language(bash_default)
+:error
+==================
+echo $(( 1 + $(printf 2 # c) ))
+
+------------------
+
+==================
 empty arithmetic and quoted arithmetic remain expansions
 :language(bash)
 :language(bash_default)

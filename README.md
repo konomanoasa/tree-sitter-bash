@@ -13,14 +13,14 @@ GNU Bourne Again SHell 5.3.
 npm install @konomanoasa/tree-sitter-bash
 ```
 
-## Parsing Options
+## Parsing Option
 
 For Bash's default parsing behavior, where `extglob` is disabled, use
 `bash_default`.
 
-## Development
+[Parsing Policy](PARSING_POLICY.md)
 
-Development uses Node.js 24.21.0 or later.
+## Development
 
 ```sh
 npm install
@@ -34,7 +34,7 @@ npm test
 
 ## Used By
 
-[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode): Emacs major mode.
+[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode)
 
 ## License
 
