@@ -11827,9 +11827,13 @@ static bool lexical_regex_classify(
   return result == DISPATCH_ACCEPTED;
 }
 
+/* A subscript shields operators only when it closes before the parameter's
+   closing brace; `pending` is the lowest depth holding an unshielded one. */
 static bool
 parameter_names_follow(const struct Scanner *scanner, TSLexer *lexer) {
   bool prefix = false;
+  size_t depth = 0;
+  size_t pending = 0;
   lexer->advance(lexer, false);
   while (!lexer_at_eof(lexer) && !lookahead_is_pending(lexer)) {
     int32_t character = lexer->lookahead;
@@ -11838,19 +11842,19 @@ parameter_names_follow(const struct Scanner *scanner, TSLexer *lexer) {
     if (is_one_of(character, "*@")) {
       size_t start = probe_position(lexer);
       lexer->advance(lexer, false);
-      if (lexer->lookahead == '}') return prefix;
+      if (lexer->lookahead == '}') return prefix && pending == 0;
       probe_seek(lexer, start);
     }
-    if (is_one_of(character, ":-+=?#%/^,@")) return false;
-    if (character == '[') {
-      lexer->advance(lexer, false);
-      size_t after = probe_position(lexer);
-      if (
-        skip_embedded_construct(scanner, lexer, ']', false) !=
-        ARITHMETIC_VALIDATION_VALID
-      )
-        probe_seek(lexer, after);
-    } else if (is_one_of(character, "'\"`$")) {
+    if (is_one_of(character, ":-+=?#%/^,@")) {
+      if (depth == 0) return false;
+      if (pending == 0 || depth < pending) pending = depth;
+    } else if (character == '[') {
+      depth += 1;
+    } else if (character == ']' && depth > 0) {
+      depth -= 1;
+      if (pending > depth) pending = 0;
+    }
+    if (is_one_of(character, "'\"`$")) {
       if (!skip_bracket_member_expansion(scanner, lexer)) return false;
     } else {
       lexer->advance(lexer, false);
@@ -11858,7 +11862,8 @@ parameter_names_follow(const struct Scanner *scanner, TSLexer *lexer) {
         if (lexer_at_eof(lexer)) return false;
         int32_t escaped = lexer->lookahead;
         lexer->advance(lexer, false);
-        if (is_one_of(escaped, "*@") && lexer->lookahead == '}') return true;
+        if (is_one_of(escaped, "*@") && lexer->lookahead == '}')
+          return pending == 0;
       }
     }
     prefix = true;

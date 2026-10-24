@@ -952,6 +952,58 @@ coproc eval x[1 2]=(1 2) y[3 4]=5 z[6 7] w[8 9]
     separator: (newline_list)))
 
 ==================
+coproc name raw commands read compound assignment arguments as words
+:language(bash)
+:language(bash_default)
+==================
+coproc c eval x=(1 2) y=3
+coproc c x=1 let y=(1+2)
+
+------------------
+
+(program
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (coproc
+                  (coproc_keyword)
+                  body: (simple_command
+                    name: (word
+                      (literal))
+                    argument: (word
+                      (literal))
+                    argument: (word
+                      (literal)
+                      (literal))
+                    argument: (word
+                      (literal))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (coproc
+                  (coproc_keyword)
+                  body: (simple_command
+                    name: (word
+                      (literal))
+                    argument: (assignment_word
+                      name: (variable_name)
+                      value: (assignment_value
+                        (literal)))
+                    argument: (word
+                      (literal))
+                    argument: (word
+                      (literal))))))))))
+    separator: (newline_list)))
+
+==================
 coproc declaration unterminated leading subscript "coproc export x[\n"
 :language(bash)
 :language(bash_default)

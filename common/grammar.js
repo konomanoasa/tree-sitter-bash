@@ -1728,6 +1728,11 @@ export default function defineGrammar(name) {
           ),
           seq(
             $._word_separator,
+            field("argument", alias($._raw_command_word, $.word)),
+            optional($._raw_command_suffix),
+          ),
+          seq(
+            $._word_separator,
             field("argument", alias($._command_word, $.word)),
             optional($._cmd_suffix),
           ),

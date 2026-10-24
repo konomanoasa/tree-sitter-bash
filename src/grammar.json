@@ -2442,6 +2442,40 @@
                 "type": "ALIAS",
                 "content": {
                   "type": "SYMBOL",
+                  "name": "_raw_command_word"
+                },
+                "named": true,
+                "value": "word"
+              }
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_raw_command_suffix"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_word_separator"
+            },
+            {
+              "type": "FIELD",
+              "name": "argument",
+              "content": {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
                   "name": "_command_word"
                 },
                 "named": true,

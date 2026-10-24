@@ -2348,6 +2348,42 @@ name enumeration prefixes protect operators only inside closed subscripts
     separator: (newline_list)))
 
 ==================
+name enumeration keeps an unclosed prefix subscript before a later bracket
+:language(bash)
+:language(bash_default)
+==================
+: ${!x[*} ] ${!y[a:b]*}
+
+------------------
+
+(program
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal))
+                      operator: (parameter_names_operator)))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal))
+                      operator: (parameter_names_operator))))))))))
+    separator: (newline_list)))
+
+==================
 name enumeration operators after non-name prefix characters or unclosed subscripts are indirections "${!x.y:-*} ${!x!x-*} ${!xy[:-*}"
 :language(bash)
 :language(bash_default)
