@@ -9,65 +9,77 @@ conditional words retain adjacent operators and closing spellings
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_and_expression
-                (word
-                  (literal)
-                  (pattern_bracket_source
-                    (pattern_bracket_members_source
-                      (pattern_bracket_character_source)))
-                  (literal)
-                  (tilde_expansion))
-                (and_if)
-                (conditional_unary_expression
-                  (conditional_unary_operator)
-                  (word
-                    (parameter_expansion
-                      (variable_name))
-                    (literal))))
-              (and_if)
-              (conditional_binary_expression
-                (word
-                  (parameter_expansion
-                    (variable_name))
-                  (literal))
-                (conditional_match_operator)
-                (conditional_pattern
-                  (double_quoted
-                    (double_quote_text))
-                  (literal))))
-            (conditional_close)))))
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (word
-              (double_quoted
-                (double_quote_text))
-              (literal))
-            (conditional_close)))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (double_quoted
-                    (double_quote_text)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (conditional_and_expression
+                        (word
+                          (literal)
+                          (pattern_bracket_source
+                            (pattern_bracket_members_source
+                              (pattern_bracket_character_source)))
+                          (literal)
+                          (tilde_expansion))
+                        (and_if)
+                        (conditional_unary_expression
+                          (conditional_unary_operator)
+                          (word
+                            (parameter_expansion
+                              (variable_name))
+                            (literal))))
+                      (and_if)
+                      (conditional_binary_expression
+                        (word
+                          (parameter_expansion
+                            (variable_name))
+                          (literal))
+                        (conditional_match_operator)
+                        (conditional_pattern
+                          (double_quoted
+                            (double_quote_text))
+                          (literal))))
+                    (conditional_close)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (word
+                      (double_quoted
+                        (double_quote_text))
+                      (literal))
+                    (conditional_close)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (double_quoted
+                            (double_quote_text)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional punctuation still separates words without blanks
@@ -79,34 +91,39 @@ conditional punctuation still separates words without blanks
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_or_expression
-              (conditional_and_expression
-                (conditional_binary_expression
-                  (word
-                    (literal))
-                  (conditional_binary_operator)
-                  (word
-                    (literal)))
-                (and_if)
-                (conditional_group
-                  (conditional_binary_expression
-                    (word
-                      (double_quoted
-                        (double_quote_text)))
-                    (conditional_binary_operator)
-                    (word
-                      (double_quoted
-                        (double_quote_text))))))
-              (or_if)
-              (word
-                (literal)))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_or_expression
+                      (conditional_and_expression
+                        (conditional_binary_expression
+                          (word
+                            (literal))
+                          (conditional_binary_operator)
+                          (word
+                            (literal)))
+                        (and_if)
+                        (conditional_group
+                          (conditional_binary_expression
+                            (word
+                              (double_quoted
+                                (double_quote_text)))
+                            (conditional_binary_operator)
+                            (word
+                              (double_quoted
+                                (double_quote_text))))))
+                      (or_if)
+                      (word
+                        (literal)))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional precedence
@@ -118,32 +135,37 @@ conditional precedence
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_or_expression
-              (conditional_binary_expression
-                (word
-                  (literal ))
-                (conditional_binary_operator )
-                (word
-                  (literal )))
-              (or_if )
-              (conditional_group
-                (conditional_and_expression
-                  (conditional_unary_expression
-                    (conditional_unary_operator )
-                    (word
-                      (literal )))
-                  (and_if )
-                  (conditional_unary_expression
-                    (conditional_unary_operator )
-                    (word
-                      (literal))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_or_expression
+                      (conditional_binary_expression
+                        (word
+                          (literal))
+                        (conditional_binary_operator)
+                        (word
+                          (literal)))
+                      (or_if)
+                      (conditional_group
+                        (conditional_and_expression
+                          (conditional_unary_expression
+                            (conditional_unary_operator)
+                            (word
+                              (literal)))
+                          (and_if)
+                          (conditional_unary_expression
+                            (conditional_unary_operator)
+                            (word
+                              (literal))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional comparison and pattern
@@ -155,35 +177,40 @@ conditional comparison and pattern
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_binary_expression
-                (word
-                  (parameter_expansion
-                    (variable_name )))
-                (conditional_match_operator )
-                (conditional_pattern
-                  (extglob_pattern
-                    (extglob_operator )
-                    (extglob_alternative
-                      (literal ))
-                    (extglob_alternative
-                      (literal )))))
-              (and_if )
-              (conditional_negation
-                (conditional_not )
-                (conditional_unary_expression
-                  (conditional_unary_operator )
-                  (word
-                    (double_quoted
-                      (parameter_expansion
-                        (variable_name)))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (conditional_binary_expression
+                        (word
+                          (parameter_expansion
+                            (variable_name)))
+                        (conditional_match_operator)
+                        (conditional_pattern
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (literal))
+                            (extglob_alternative
+                              (literal)))))
+                      (and_if)
+                      (conditional_negation
+                        (conditional_not)
+                        (conditional_unary_expression
+                          (conditional_unary_operator)
+                          (word
+                            (double_quoted
+                              (parameter_expansion
+                                (variable_name)))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional compact ordering
@@ -195,27 +222,32 @@ conditional compact ordering
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_binary_expression
-                (word
-                  (literal ))
-                (conditional_binary_operator )
-                (word
-                  (literal )))
-              (and_if )
-              (conditional_binary_expression
-                (word
-                  (literal ))
-                (conditional_binary_operator )
-                (word
-                  (literal))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (conditional_binary_expression
+                        (word
+                          (literal))
+                        (conditional_binary_operator)
+                        (word
+                          (literal)))
+                      (and_if)
+                      (conditional_binary_expression
+                        (word
+                          (literal))
+                        (conditional_binary_operator)
+                        (word
+                          (literal))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional line breaks
@@ -230,29 +262,40 @@ conditional line breaks
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_unary_expression
-                (conditional_unary_operator )
-                (word
-                  (double_quoted
-                    (parameter_expansion
-                      (variable_name )))))
-              (and_if )
-              (conditional_binary_expression
-                (word
-                  (parameter_expansion
-                    (variable_name )))
-                (conditional_match_operator )
-                (conditional_pattern
-                  (pattern_star_source )
-                  (literal))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (linebreak
+                      (newline_list))
+                    (conditional_and_expression
+                      (conditional_unary_expression
+                        (conditional_unary_operator)
+                        (word
+                          (double_quoted
+                            (parameter_expansion
+                              (variable_name)))))
+                      (and_if)
+                      (linebreak
+                        (newline_list))
+                      (conditional_binary_expression
+                        (word
+                          (parameter_expansion
+                            (variable_name)))
+                        (conditional_match_operator)
+                        (conditional_pattern
+                          (pattern_star_source)
+                          (literal))))
+                    (linebreak
+                      (newline_list))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional comments
@@ -265,17 +308,24 @@ x ]]
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (comment
-              (comment_text ))
-            (word
-              (literal))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (linebreak
+                      (newline_list
+                        (comment
+                          (comment_text))))
+                    (word
+                      (literal))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional literal braces
@@ -287,19 +337,24 @@ conditional literal braces
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal ))
-              (conditional_match_operator )
-              (conditional_pattern
-                (literal)))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_match_operator)
+                      (conditional_pattern
+                        (literal)))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional quoted operators
@@ -311,21 +366,26 @@ conditional quoted operators
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (double_quoted
-                  (double_quote_text )))
-              (conditional_match_operator )
-              (conditional_pattern
-                (double_quoted
-                  (double_quote_text))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (double_quoted
+                          (double_quote_text)))
+                      (conditional_match_operator)
+                      (conditional_pattern
+                        (double_quoted
+                          (double_quote_text))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional word argument
@@ -337,19 +397,23 @@ echo [[ x ]]
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (literal ))
-            (word
-              (literal ))
-            (word
-              (literal ))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 conditional simple tests
@@ -361,46 +425,52 @@ test "$x" = y; [ -n "$x" ]; let "x++"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name ))))
-            (word
-              (literal ))
-            (word
-              (literal ))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (literal ))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name ))))
-            (word
-              (literal ))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (double_quoted
-                (double_quote_text )))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name))))
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name))))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (double_quote_text))))))))))
+    (newline_list)))
 
 ==================
 conditional newlines follow negation, groups, and complete terms
@@ -416,28 +486,41 @@ b == c
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_negation
-                (conditional_not)
-                (conditional_group
-                  (conditional_unary_expression
-                    (conditional_unary_operator)
-                    (word
-                      (literal)))))
-              (and_if)
-              (conditional_binary_expression
-                (word
-                  (literal))
-                (conditional_match_operator)
-                (conditional_pattern
-                  (literal))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (conditional_negation
+                        (conditional_not)
+                        (linebreak
+                          (newline_list))
+                        (conditional_group
+                          (conditional_unary_expression
+                            (conditional_unary_operator)
+                            (word
+                              (literal)))
+                          (linebreak
+                            (newline_list))))
+                      (and_if)
+                      (linebreak
+                        (newline_list))
+                      (conditional_binary_expression
+                        (word
+                          (literal))
+                        (conditional_match_operator)
+                        (conditional_pattern
+                          (literal))))
+                    (linebreak
+                      (newline_list))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditionals preserve condition consequence and alternatives
@@ -449,76 +532,91 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (if_clause
-            (if_keyword)
-            condition: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))
-                      argument: (word
-                        (double_quoted
-                          (parameter_expansion
-                            parameter: (variable_name))))))))
-              separator: (separator
-                operator: (separator_op)))
-            (then_keyword)
-            consequence: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))
-                      argument: (word
-                        (literal))))))
-              separator: (separator
-                operator: (separator_op)))
-            alternative: (else_part
-              (elif_keyword)
-              condition: (list
-                and_or: (and_or
-                  pipeline: (pipeline
-                    command: (command
-                      body: (simple_command
-                        name: (word
-                          (literal))
-                        argument: (word
-                          (double_quoted
-                            (parameter_expansion
-                              parameter: (variable_name))))))))
-                separator: (separator
-                  operator: (separator_op)))
-              (then_keyword)
-              consequence: (list
-                and_or: (and_or
-                  pipeline: (pipeline
-                    command: (command
-                      body: (simple_command
-                        name: (word
-                          (literal))))))
-                separator: (separator
-                  operator: (separator_op)))
-              alternative: (else_part
-                (else_keyword)
-                body: (list
-                  and_or: (and_or
-                    pipeline: (pipeline
-                      command: (command
-                        body: (simple_command
-                          name: (word
-                            (literal))
-                          argument: (word
-                            (literal))))))
-                  separator: (separator
-                    operator: (separator_op)))))
-            (fi_keyword)))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (if_clause
+                    (if_keyword)
+                    condition: (compound_list
+                      body: (term
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (double_quoted
+                                      (parameter_expansion
+                                        parameter: (variable_name)))))))))
+                        separator: (separator
+                          operator: (separator_op))))
+                    (then_keyword)
+                    consequence: (compound_list
+                      body: (term
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (literal)))))))
+                        separator: (separator
+                          operator: (separator_op))))
+                    alternative: (else_part
+                      (elif_keyword)
+                      condition: (compound_list
+                        body: (term
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              (pipe_sequence
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal))
+                                    argument: (word
+                                      (double_quoted
+                                        (parameter_expansion
+                                          parameter: (variable_name)))))))))
+                          separator: (separator
+                            operator: (separator_op))))
+                      (then_keyword)
+                      consequence: (compound_list
+                        body: (term
+                          and_or: (and_or
+                            pipeline: (pipeline
+                              (pipe_sequence
+                                command: (command
+                                  body: (simple_command
+                                    name: (word
+                                      (literal)))))))
+                          separator: (separator
+                            operator: (separator_op))))
+                      alternative: (else_part
+                        (else_keyword)
+                        body: (compound_list
+                          body: (term
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                (pipe_sequence
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal)))))))
+                            separator: (separator
+                              operator: (separator_op))))))
+                    (fi_keyword)))))))))
+    separator: (newline_list)))
 
 ==================
 Conditional pattern forces nested extglob with extquote enabled
@@ -533,51 +631,60 @@ body
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (conditional_command
-            (conditional_open)
-            condition: (conditional_binary_expression
-              left: (word
-                (literal))
-              operator: (conditional_match_operator)
-              right: (conditional_pattern
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              redirect: (io_redirect
-                                body: (io_here
-                                  operator: (dless)
-                                  end: (here_end
-                                    word: (word
-                                      (extglob_pattern
-                                        operator: (extglob_operator)
-                                        alternative: (extglob_alternative
-                                          (double_quoted
-                                            (parameter_expansion
-                                              parameter: (variable_name)
-                                              operator: (parameter_value_operator)
-                                              word: (parameter_word
-                                                (dollar_single_quoted
-                                                  (dollar_single_quote_text))))))
-                                        alternative: (extglob_alternative
-                                          (literal)))))))))))
-                      separator: (here_document_sequence
-                        line_end: (here_document_line_end)
-                        document: (here_document
-                          body: (here_document_body
-                            (here_document_text))
-                          end: (here_document_end
-                            (here_document_end_text)))))))))
-            (conditional_close)))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    condition: (conditional_binary_expression
+                      left: (word
+                        (literal))
+                      operator: (conditional_match_operator)
+                      right: (conditional_pattern
+                        (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            redirect: (io_redirect
+                                              body: (io_here
+                                                operator: (dless)
+                                                end: (here_end
+                                                  word: (word
+                                                    (extglob_pattern
+                                                      operator: (extglob_operator)
+                                                      alternative: (extglob_alternative
+                                                        (double_quoted
+                                                          (parameter_expansion
+                                                            parameter: (variable_name)
+                                                            operator: (parameter_value_operator)
+                                                            word: (parameter_word
+                                                              (dollar_single_quoted
+                                                                (dollar_single_quote_text))))))
+                                                      alternative: (extglob_alternative
+                                                        (literal))))))))))))))
+                              separator: (newline_list
+                                (here_document_sequence
+                                  line_end: (here_document_line_end)
+                                  document: (here_document
+                                    body: (here_document_body
+                                      (here_document_text))
+                                    end: (here_document_end
+                                      (here_document_end_text))))))))))
+                    (conditional_close)))))))))
+    separator: (newline_list)))
 
 ==================
 punctuation reserved words introduce conditional groups and negated subshells
@@ -589,38 +696,47 @@ punctuation reserved words introduce conditional groups and negated subshells
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:11       and_or: and_or
-0:0  - 0:11         pipeline: pipeline
-0:0  - 0:11           command: command
-0:0  - 0:11             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:8                condition: conditional_group
-0:3  - 0:4                  "("
-0:4  - 0:7                  expression: conditional_group
-0:4  - 0:5                    "("
-0:5  - 0:6                    expression: word
-0:5  - 0:6                      literal `x`
-0:6  - 0:7                    ")"
-0:7  - 0:8                  ")"
-0:9  - 0:11               conditional_close `]]`
-0:11 - 0:12       separator: separator_op
-0:11 - 0:12         ";"
-0:13 - 0:20       and_or: and_or
-0:13 - 0:20         pipeline: pipeline
-0:13 - 0:14           negation: bang `!`
-0:15 - 0:20           command: command
-0:15 - 0:20             body: subshell
-0:15 - 0:16               "("
-0:16 - 0:18               body: list
-0:17 - 0:18                 and_or: and_or
-0:17 - 0:18                   pipeline: pipeline
-0:17 - 0:18                     command: command
-0:17 - 0:18                       body: simple_command
-0:17 - 0:18                         name: word
-0:17 - 0:18                           literal `:`
-0:19 - 0:20               ")"
-0:20 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:20       command: complete_command
+0:0  - 0:20         body: list
+0:0  - 0:11           and_or: and_or
+0:0  - 0:11             pipeline: pipeline
+0:0  - 0:11               pipe_sequence
+0:0  - 0:11                 command: command
+0:0  - 0:11                   body: compound_command
+0:0  - 0:11                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:8                        condition: conditional_group
+0:3  - 0:4                          "("
+0:4  - 0:7                          expression: conditional_group
+0:4  - 0:5                            "("
+0:5  - 0:6                            expression: word
+0:5  - 0:6                              literal `x`
+0:6  - 0:7                            ")"
+0:7  - 0:8                          ")"
+0:9  - 0:11                       conditional_close `]]`
+0:11 - 0:12           separator: separator_op
+0:11 - 0:12             ";"
+0:13 - 0:20           and_or: and_or
+0:13 - 0:20             pipeline: pipeline
+0:13 - 0:14               negation: bang `!`
+0:15 - 0:20               pipe_sequence
+0:15 - 0:20                 command: command
+0:15 - 0:20                   body: compound_command
+0:15 - 0:20                     subshell
+0:15 - 0:16                       "("
+0:16 - 0:18                       body: compound_list
+0:17 - 0:18                         body: term
+0:17 - 0:18                           and_or: and_or
+0:17 - 0:18                             pipeline: pipeline
+0:17 - 0:18                               pipe_sequence
+0:17 - 0:18                                 command: command
+0:17 - 0:18                                   body: simple_command
+0:17 - 0:18                                     name: word
+0:17 - 0:18                                       literal `:`
+0:19 - 0:20                       ")"
+0:20 - 1:0        separator: newline_list
+0:20 - 1:0          "\n"
 
 ==================
 adjacent parentheses distinguish extglob from command and conditional negation
@@ -632,71 +748,83 @@ adjacent parentheses distinguish extglob from command and conditional negation
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:6        and_or: and_or
-0:0  - 0:6          pipeline: pipeline
-0:0  - 0:6            command: command
-0:0  - 0:6              body: simple_command
-0:0  - 0:6                name: word
-0:0  - 0:6                  extglob_pattern
-0:0  - 0:1                    operator: extglob_operator `!`
-0:1  - 0:2                    "("
-0:2  - 0:3                    alternative: extglob_alternative
-0:2  - 0:3                      literal `x`
-0:3  - 0:4                    "|"
-0:4  - 0:5                    alternative: extglob_alternative
-0:4  - 0:5                      literal `y`
-0:5  - 0:6                    ")"
-0:6  - 0:7        separator: separator_op
-0:6  - 0:7          ";"
-0:8  - 0:20       and_or: and_or
-0:8  - 0:20         pipeline: pipeline
-0:8  - 0:20           command: command
-0:8  - 0:20             body: conditional_command
-0:8  - 0:10               conditional_open `[[`
-0:11 - 0:17               condition: word
-0:11 - 0:17                 extglob_pattern
-0:11 - 0:12                   operator: extglob_operator `!`
-0:12 - 0:13                   "("
-0:13 - 0:14                   alternative: extglob_alternative
-0:13 - 0:14                     literal `x`
-0:14 - 0:15                   "|"
-0:15 - 0:16                   alternative: extglob_alternative
-0:15 - 0:16                     literal `y`
-0:16 - 0:17                   ")"
-0:18 - 0:20               conditional_close `]]`
-0:20 - 0:21       separator: separator_op
-0:20 - 0:21         ";"
-0:22 - 0:29       and_or: and_or
-0:22 - 0:29         pipeline: pipeline
-0:22 - 0:23           negation: bang `!`
-0:24 - 0:29           command: command
-0:24 - 0:29             body: subshell
-0:24 - 0:25               "("
-0:25 - 0:27               body: list
-0:26 - 0:27                 and_or: and_or
-0:26 - 0:27                   pipeline: pipeline
-0:26 - 0:27                     command: command
-0:26 - 0:27                       body: simple_command
-0:26 - 0:27                         name: word
-0:26 - 0:27                           literal `:`
-0:28 - 0:29               ")"
-0:29 - 0:30       separator: separator_op
-0:29 - 0:30         ";"
-0:31 - 0:42       and_or: and_or
-0:31 - 0:42         pipeline: pipeline
-0:31 - 0:42           command: command
-0:31 - 0:42             body: conditional_command
-0:31 - 0:33               conditional_open `[[`
-0:34 - 0:39               condition: conditional_negation
-0:34 - 0:35                 operator: conditional_not `!`
-0:36 - 0:39                 operand: conditional_group
-0:36 - 0:37                   "("
-0:37 - 0:38                   expression: word
-0:37 - 0:38                     literal `x`
-0:38 - 0:39                   ")"
-0:40 - 0:42               conditional_close `]]`
-0:42 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:42       command: complete_command
+0:0  - 0:42         body: list
+0:0  - 0:6            and_or: and_or
+0:0  - 0:6              pipeline: pipeline
+0:0  - 0:6                pipe_sequence
+0:0  - 0:6                  command: command
+0:0  - 0:6                    body: simple_command
+0:0  - 0:6                      name: word
+0:0  - 0:6                        extglob_pattern
+0:0  - 0:1                          operator: extglob_operator `!`
+0:1  - 0:2                          "("
+0:2  - 0:3                          alternative: extglob_alternative
+0:2  - 0:3                            literal `x`
+0:3  - 0:4                          "|"
+0:4  - 0:5                          alternative: extglob_alternative
+0:4  - 0:5                            literal `y`
+0:5  - 0:6                          ")"
+0:6  - 0:7            separator: separator_op
+0:6  - 0:7              ";"
+0:8  - 0:20           and_or: and_or
+0:8  - 0:20             pipeline: pipeline
+0:8  - 0:20               pipe_sequence
+0:8  - 0:20                 command: command
+0:8  - 0:20                   body: compound_command
+0:8  - 0:20                     conditional_command
+0:8  - 0:10                       conditional_open `[[`
+0:11 - 0:17                       condition: word
+0:11 - 0:17                         extglob_pattern
+0:11 - 0:12                           operator: extglob_operator `!`
+0:12 - 0:13                           "("
+0:13 - 0:14                           alternative: extglob_alternative
+0:13 - 0:14                             literal `x`
+0:14 - 0:15                           "|"
+0:15 - 0:16                           alternative: extglob_alternative
+0:15 - 0:16                             literal `y`
+0:16 - 0:17                           ")"
+0:18 - 0:20                       conditional_close `]]`
+0:20 - 0:21           separator: separator_op
+0:20 - 0:21             ";"
+0:22 - 0:29           and_or: and_or
+0:22 - 0:29             pipeline: pipeline
+0:22 - 0:23               negation: bang `!`
+0:24 - 0:29               pipe_sequence
+0:24 - 0:29                 command: command
+0:24 - 0:29                   body: compound_command
+0:24 - 0:29                     subshell
+0:24 - 0:25                       "("
+0:25 - 0:27                       body: compound_list
+0:26 - 0:27                         body: term
+0:26 - 0:27                           and_or: and_or
+0:26 - 0:27                             pipeline: pipeline
+0:26 - 0:27                               pipe_sequence
+0:26 - 0:27                                 command: command
+0:26 - 0:27                                   body: simple_command
+0:26 - 0:27                                     name: word
+0:26 - 0:27                                       literal `:`
+0:28 - 0:29                       ")"
+0:29 - 0:30           separator: separator_op
+0:29 - 0:30             ";"
+0:31 - 0:42           and_or: and_or
+0:31 - 0:42             pipeline: pipeline
+0:31 - 0:42               pipe_sequence
+0:31 - 0:42                 command: command
+0:31 - 0:42                   body: compound_command
+0:31 - 0:42                     conditional_command
+0:31 - 0:33                       conditional_open `[[`
+0:34 - 0:39                       condition: conditional_negation
+0:34 - 0:35                         operator: conditional_not `!`
+0:36 - 0:39                         operand: conditional_group
+0:36 - 0:37                           "("
+0:37 - 0:38                           expression: word
+0:37 - 0:38                             literal `x`
+0:38 - 0:39                           ")"
+0:40 - 0:42                       conditional_close `]]`
+0:42 - 1:0        separator: newline_list
+0:42 - 1:0          "\n"
 
 ==================
 conditional precedence owns pattern and regex operands
@@ -708,63 +836,68 @@ conditional precedence owns pattern and regex operands
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:44       and_or: and_or
-0:0  - 0:44         pipeline: pipeline
-0:0  - 0:44           command: command
-0:0  - 0:44             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:41               condition: conditional_or_expression
-0:3  - 0:14                 left: conditional_binary_expression
-0:3  - 0:4                    left: word
-0:3  - 0:4                      literal `x`
-0:5  - 0:7                    operator: conditional_match_operator `==`
-0:8  - 0:14                   right: conditional_pattern
-0:8  - 0:14                     extglob_pattern
-0:8  - 0:9                        operator: extglob_operator `@`
-0:9  - 0:10                       "("
-0:10 - 0:11                       alternative: extglob_alternative
-0:10 - 0:11                         literal `a`
-0:11 - 0:12                       "|"
-0:12 - 0:13                       alternative: extglob_alternative
-0:12 - 0:13                         literal `b`
-0:13 - 0:14                       ")"
-0:15 - 0:17                 operator: or_if `||`
-0:18 - 0:41                 right: conditional_and_expression
-0:18 - 0:28                   left: conditional_binary_expression
-0:18 - 0:19                     left: word
-0:18 - 0:19                       literal `y`
-0:20 - 0:22                     operator: conditional_regex_operator `=~`
-0:23 - 0:28                     right: regex_operand
-0:23 - 0:28                       expression: extended_reg_exp
-0:23 - 0:28                         ere_branch
-0:23 - 0:28                           ere_expression
-0:23 - 0:24                             "("
-0:24 - 0:27                             expression: extended_reg_exp
-0:24 - 0:25                               ere_branch
-0:24 - 0:25                                 ere_expression
-0:24 - 0:25                                   one_char_or_coll_elem_ere
-0:24 - 0:25                                     ordinary_character `c`
-0:25 - 0:26                               "|"
-0:26 - 0:27                               ere_branch
-0:26 - 0:27                                 ere_expression
-0:26 - 0:27                                   one_char_or_coll_elem_ere
-0:26 - 0:27                                     ordinary_character `d`
-0:27 - 0:28                             ")"
-0:29 - 0:31                   operator: and_if `&&`
-0:32 - 0:41                   right: conditional_negation
-0:32 - 0:33                     operator: conditional_not `!`
-0:34 - 0:41                     operand: conditional_unary_expression
-0:34 - 0:36                       operator: conditional_unary_operator `-n`
-0:37 - 0:41                       operand: word
-0:37 - 0:41                         double_quoted
-0:37 - 0:38                           "\""
-0:38 - 0:40                           parameter_expansion
-0:38 - 0:39                             "$"
-0:39 - 0:40                             parameter: variable_name `z`
-0:40 - 0:41                           "\""
-0:42 - 0:44               conditional_close `]]`
-0:44 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:44       command: complete_command
+0:0  - 0:44         body: list
+0:0  - 0:44           and_or: and_or
+0:0  - 0:44             pipeline: pipeline
+0:0  - 0:44               pipe_sequence
+0:0  - 0:44                 command: command
+0:0  - 0:44                   body: compound_command
+0:0  - 0:44                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:41                       condition: conditional_or_expression
+0:3  - 0:14                         left: conditional_binary_expression
+0:3  - 0:4                            left: word
+0:3  - 0:4                              literal `x`
+0:5  - 0:7                            operator: conditional_match_operator `==`
+0:8  - 0:14                           right: conditional_pattern
+0:8  - 0:14                             extglob_pattern
+0:8  - 0:9                                operator: extglob_operator `@`
+0:9  - 0:10                               "("
+0:10 - 0:11                               alternative: extglob_alternative
+0:10 - 0:11                                 literal `a`
+0:11 - 0:12                               "|"
+0:12 - 0:13                               alternative: extglob_alternative
+0:12 - 0:13                                 literal `b`
+0:13 - 0:14                               ")"
+0:15 - 0:17                         operator: or_if `||`
+0:18 - 0:41                         right: conditional_and_expression
+0:18 - 0:28                           left: conditional_binary_expression
+0:18 - 0:19                             left: word
+0:18 - 0:19                               literal `y`
+0:20 - 0:22                             operator: conditional_regex_operator `=~`
+0:23 - 0:28                             right: regex_operand
+0:23 - 0:28                               expression: extended_reg_exp
+0:23 - 0:28                                 ere_branch
+0:23 - 0:28                                   ere_expression
+0:23 - 0:24                                     "("
+0:24 - 0:27                                     expression: extended_reg_exp
+0:24 - 0:25                                       ere_branch
+0:24 - 0:25                                         ere_expression
+0:24 - 0:25                                           one_char_or_coll_elem_ere
+0:24 - 0:25                                             ordinary_character `c`
+0:25 - 0:26                                       "|"
+0:26 - 0:27                                       ere_branch
+0:26 - 0:27                                         ere_expression
+0:26 - 0:27                                           one_char_or_coll_elem_ere
+0:26 - 0:27                                             ordinary_character `d`
+0:27 - 0:28                                     ")"
+0:29 - 0:31                           operator: and_if `&&`
+0:32 - 0:41                           right: conditional_negation
+0:32 - 0:33                             operator: conditional_not `!`
+0:34 - 0:41                             operand: conditional_unary_expression
+0:34 - 0:36                               operator: conditional_unary_operator `-n`
+0:37 - 0:41                               operand: word
+0:37 - 0:41                                 double_quoted
+0:37 - 0:38                                   "\""
+0:38 - 0:40                                   parameter_expansion
+0:38 - 0:39                                     "$"
+0:39 - 0:40                                     parameter: variable_name `z`
+0:40 - 0:41                                   "\""
+0:42 - 0:44                       conditional_close `]]`
+0:44 - 1:0        separator: newline_list
+0:44 - 1:0          "\n"
 
 ==================
 bare conditions allow a newline before the closing delimiter
@@ -777,15 +910,22 @@ bare conditions allow a newline before the closing delimiter
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (word (literal))
-            (conditional_close)))))))
-
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (word
+                      (literal))
+                    (linebreak
+                      (newline_list))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 bare conditions allow a comment before the closing delimiter
@@ -798,16 +938,24 @@ bare conditions allow a comment before the closing delimiter
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (word (literal))
-            (comment (comment_text))
-            (conditional_close)))))))
-
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (word
+                      (literal))
+                    (linebreak
+                      (newline_list
+                        (comment
+                          (comment_text))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 command boundaries reject "[[ a\n== b ]]\n"
@@ -868,17 +1016,24 @@ negated bare conditions allow a trailing newline
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_negation
-              (conditional_not)
-              (word (literal)))
-            (conditional_close)))))))
-
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_negation
+                      (conditional_not)
+                      (word
+                        (literal)))
+                    (linebreak
+                      (newline_list))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 grouped bare conditions allow a trailing newline
@@ -891,16 +1046,23 @@ grouped bare conditions allow a trailing newline
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_group
-              (word (literal)))
-            (conditional_close)))))))
-
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_group
+                      (word
+                        (literal))
+                      (linebreak
+                        (newline_list)))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 bare conditions allow a newline before a conjunction
@@ -913,18 +1075,26 @@ bare conditions allow a newline before a conjunction
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (word (literal))
-              (and_if)
-              (word (literal)))
-            (conditional_close)))))))
-
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (word
+                        (literal))
+                      (linebreak
+                        (newline_list))
+                      (and_if)
+                      (word
+                        (literal)))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional missing operand "[[ x == ]]\n"
@@ -981,33 +1151,42 @@ conditional comments precede conjunctions
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (conditional_command
-            (conditional_open)
-            condition: (conditional_or_expression
-              left: (conditional_and_expression
-                left: (conditional_unary_expression
-                  operator: (conditional_unary_operator)
-                  operand: (word
-                    (literal)))
-                (comment
-                  (comment_text))
-                operator: (and_if)
-                right: (conditional_group
-                  expression: (conditional_binary_expression
-                    left: (word
-                      (literal))
-                    operator: (conditional_match_operator)
-                    right: (conditional_pattern
-                      (literal)))))
-              (comment
-                (comment_text))
-              operator: (or_if)
-              right: (conditional_negation
-                operator: (conditional_not)
-                operand: (word
-                  (literal))))
-            (conditional_close)))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    condition: (conditional_or_expression
+                      left: (conditional_and_expression
+                        left: (conditional_unary_expression
+                          operator: (conditional_unary_operator)
+                          operand: (word
+                            (literal)))
+                        (linebreak
+                          (newline_list
+                            (comment
+                              (comment_text))))
+                        operator: (and_if)
+                        right: (conditional_group
+                          expression: (conditional_binary_expression
+                            left: (word
+                              (literal))
+                            operator: (conditional_match_operator)
+                            right: (conditional_pattern
+                              (literal)))))
+                      (linebreak
+                        (newline_list
+                          (comment
+                            (comment_text))))
+                      operator: (or_if)
+                      right: (conditional_negation
+                        operator: (conditional_not)
+                        operand: (word
+                          (literal))))
+                    (conditional_close)))))))))
+    separator: (newline_list)))

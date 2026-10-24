@@ -8,31 +8,39 @@ a=(x=~ x=one:~ x+=~ ~ [0]=~ [1]=x:~)
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (array_assignment
-                element: (word (literal))
-                element: (word (literal))
-                element: (word (literal))
-                element: (word (tilde_expansion))
-                element: (array_element_assignment
-                  subscript: (array_subscript
-                    source: (subscript_source
-                      candidate: (arithmetic_candidate_number)))
-                  value: (assignment_value
-                    (tilde_expansion)))
-                element: (array_element_assignment
-                  subscript: (array_subscript
-                    source: (subscript_source
-                      candidate: (arithmetic_candidate_number)))
-                  value: (assignment_value
-                    (literal)
-                    (tilde_expansion)))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (array_assignment
+                      element: (word
+                        (literal))
+                      element: (word
+                        (literal))
+                      element: (word
+                        (literal))
+                      element: (word
+                        (tilde_expansion))
+                      element: (array_element_assignment
+                        subscript: (array_subscript
+                          source: (subscript_source
+                            candidate: (arithmetic_candidate_number)))
+                        value: (assignment_value
+                          (tilde_expansion)))
+                      element: (array_element_assignment
+                        subscript: (array_subscript
+                          source: (subscript_source
+                            candidate: (arithmetic_candidate_number)))
+                        value: (assignment_value
+                          (literal)
+                          (tilde_expansion))))))))))))
+    separator: (newline_list)))
 
 ==================
 array words retain quotes and expansions with their own tilde contexts
@@ -44,36 +52,46 @@ a=(x="~" x=${v:-~} x=$(printf x=~))
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal)
-                  (double_quoted (double_quote_text)))
-                (word
-                  (literal)
-                  (parameter_expansion
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (assignment_word
                     (variable_name)
-                    (parameter_value_operator)
-                    (parameter_word (tilde_expansion))))
-                (word
-                  (literal)
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word (literal))
-                                (word
-                                  (literal)
-                                  (tilde_expansion))))))))))))))))))
+                    (array_assignment
+                      (word
+                        (literal)
+                        (double_quoted
+                          (double_quote_text)))
+                      (word
+                        (literal)
+                        (parameter_expansion
+                          (variable_name)
+                          (parameter_value_operator)
+                          (parameter_word
+                            (tilde_expansion))))
+                      (word
+                        (literal)
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (word
+                                              (literal)
+                                              (tilde_expansion))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 tilde prefixes and assignment arguments
@@ -85,45 +103,49 @@ echo ~+ ~- ~2 ~+2 ~-2 a=~:~/bin a=one:~user/bin
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (tilde_expansion
-                (tilde_user
-                  (literal))))
-            (word
-              (tilde_expansion
-                (tilde_user
-                  (literal))))
-            (word
-              (tilde_expansion
-                (tilde_user
-                  (literal))))
-            (word
-              (tilde_expansion
-                (tilde_user
-                  (literal))))
-            (word
-              (tilde_expansion
-                (tilde_user
-                  (literal))))
-            (word
-              (literal)
-              (tilde_expansion)
-              (literal)
-              (tilde_expansion)
-              (literal))
-            (word
-              (literal)
-              (tilde_expansion
-                (tilde_user
-                  (literal)))
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (tilde_expansion
+                      (tilde_user
+                        (literal))))
+                  (word
+                    (tilde_expansion
+                      (tilde_user
+                        (literal))))
+                  (word
+                    (tilde_expansion
+                      (tilde_user
+                        (literal))))
+                  (word
+                    (tilde_expansion
+                      (tilde_user
+                        (literal))))
+                  (word
+                    (tilde_expansion
+                      (tilde_user
+                        (literal))))
+                  (word
+                    (literal)
+                    (tilde_expansion)
+                    (literal)
+                    (tilde_expansion)
+                    (literal))
+                  (word
+                    (literal)
+                    (tilde_expansion
+                      (tilde_user
+                        (literal)))
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 tilde classification includes assignment-shaped arguments
@@ -135,29 +157,33 @@ echo a=~:~/bin ~-2 literal:~
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:28       and_or: and_or
-0:0  - 0:28         pipeline: pipeline
-0:0  - 0:28           command: command
-0:0  - 0:28             body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:4                  literal `echo`
-0:5  - 0:14               argument: word
-0:5  - 0:7                  literal `a=`
-0:7  - 0:8                  tilde_expansion
-0:7  - 0:8                    "~"
-0:8  - 0:9                  literal `:`
-0:9  - 0:10                 tilde_expansion
-0:9  - 0:10                   "~"
-0:10 - 0:14                 literal `/bin`
-0:15 - 0:18               argument: word
-0:15 - 0:18                 tilde_expansion
-0:15 - 0:16                   "~"
-0:16 - 0:18                   user: tilde_user
-0:16 - 0:18                     literal `-2`
-0:19 - 0:28               argument: word
-0:19 - 0:28                 literal `literal:~`
-0:28 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:28       command: complete_command
+0:0  - 0:28         body: list
+0:0  - 0:28           and_or: and_or
+0:0  - 0:28             pipeline: pipeline
+0:0  - 0:28               pipe_sequence
+0:0  - 0:28                 command: command
+0:0  - 0:28                   body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:4                        literal `echo`
+0:5  - 0:14                     argument: word
+0:5  - 0:7                        literal `a=`
+0:7  - 0:8                        tilde_expansion
+0:7  - 0:8                          "~"
+0:8  - 0:9                        literal `:`
+0:9  - 0:10                       tilde_expansion
+0:9  - 0:10                         "~"
+0:10 - 0:14                       literal `/bin`
+0:15 - 0:18                     argument: word
+0:15 - 0:18                       tilde_expansion
+0:15 - 0:16                         "~"
+0:16 - 0:18                         user: tilde_user
+0:16 - 0:18                           literal `-2`
+0:19 - 0:28                     argument: word
+0:19 - 0:28                       literal `literal:~`
+0:28 - 1:0        separator: newline_list
+0:28 - 1:0          "\n"
 
 ==================
 append assignments retain the same tilde boundary as equals
@@ -169,31 +195,35 @@ x+=~ a[0]+=~user
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:16       and_or: and_or
-0:0  - 0:16         pipeline: pipeline
-0:0  - 0:16           command: command
-0:0  - 0:16             body: simple_command
-0:0  - 0:4                assignment: assignment_word
-0:0  - 0:1                  name: variable_name `x`
-0:1  - 0:3                  operator: assignment_append `+=`
-0:3  - 0:4                  value: assignment_value
-0:3  - 0:4                    tilde_expansion
-0:3  - 0:4                      "~"
-0:5  - 0:16               assignment: assignment_word
-0:5  - 0:6                  name: variable_name `a`
-0:6  - 0:9                  subscript: array_subscript
-0:6  - 0:7                    "["
-0:7  - 0:8                    source: subscript_source
-0:7  - 0:8                      candidate: arithmetic_candidate_number `0`
-0:8  - 0:9                    "]"
-0:9  - 0:11                 operator: assignment_append `+=`
-0:11 - 0:16                 value: assignment_value
-0:11 - 0:16                   tilde_expansion
-0:11 - 0:12                     "~"
-0:12 - 0:16                     user: tilde_user
-0:12 - 0:16                       literal `user`
-0:16 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:16       command: complete_command
+0:0  - 0:16         body: list
+0:0  - 0:16           and_or: and_or
+0:0  - 0:16             pipeline: pipeline
+0:0  - 0:16               pipe_sequence
+0:0  - 0:16                 command: command
+0:0  - 0:16                   body: simple_command
+0:0  - 0:4                      assignment: assignment_word
+0:0  - 0:1                        name: variable_name `x`
+0:1  - 0:3                        operator: assignment_append `+=`
+0:3  - 0:4                        value: assignment_value
+0:3  - 0:4                          tilde_expansion
+0:3  - 0:4                            "~"
+0:5  - 0:16                     assignment: assignment_word
+0:5  - 0:6                        name: variable_name `a`
+0:6  - 0:9                        subscript: array_subscript
+0:6  - 0:7                          "["
+0:7  - 0:8                          source: subscript_source
+0:7  - 0:8                            candidate: arithmetic_candidate_number `0`
+0:8  - 0:9                          "]"
+0:9  - 0:11                       operator: assignment_append `+=`
+0:11 - 0:16                       value: assignment_value
+0:11 - 0:16                         tilde_expansion
+0:11 - 0:12                           "~"
+0:12 - 0:16                           user: tilde_user
+0:12 - 0:16                             literal `user`
+0:16 - 1:0        separator: newline_list
+0:16 - 1:0          "\n"
 
 ==================
 subscripted assignment-shaped arguments classify value tildes without assignment nodes
@@ -205,36 +235,43 @@ printf x[0]=~ x[0]+=~:~ x[]=~ x[0]=one:~
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion)
-              (literal)
-              (tilde_expansion))
-            argument: (word (literal) (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion)
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion)))))))))
+    separator: (newline_list)))
 
 ==================
 assignment-shaped arguments require one ordinary word with an unquoted name and equals
@@ -246,49 +283,58 @@ printf x[1 + 2]=~ x[0][1]=~ x[0]suffix=~ 1x[0]=~ x[0]\=~ "x"[0]=~
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word (literal))
-            argument: (word (literal))
-            argument: (word (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (escaped_character)
-              (literal))
-            argument: (word
-              (double_quoted (double_quote_text))
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (escaped_character)
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (double_quote_text))
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 subscripted arguments retain quotes expansions and independent inner tilde contexts
@@ -300,62 +346,74 @@ printf x["a b"]=~ x[$(printf 0)]=~ x[${a:-~}]=~ x[~]=~ x[a=~:~]=~
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (double_quoted (double_quote_text))))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (command_substitution
-                    body: (command_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word (literal))
-                                argument: (word (literal)))))))))))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (parameter_expansion
-                    parameter: (variable_name)
-                    operator: (parameter_value_operator)
-                    word: (parameter_word (tilde_expansion)))))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (double_quoted
+                          (double_quote_text))))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            argument: (word
+                                              (literal))))))))))))))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (parameter_expansion
+                          parameter: (variable_name)
+                          operator: (parameter_value_operator)
+                          word: (parameter_word
+                            (tilde_expansion)))))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion)))))))))
+    separator: (newline_list)))
 
 ==================
 subscripted argument tilde boundaries preserve ordinary bracket patterns
@@ -367,62 +425,68 @@ printf x[]=abc] x[!]=abc] x[]=~:~] x[!]=~/[ab] x[a[0]]=~ x[a\]]=~
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                negation: (pattern_bracket_negation_source)
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (literal)
-              (tilde_expansion)
-              (literal)
-              (tilde_expansion
-                user: (tilde_user (literal))))
-            argument: (word
-              (literal)
-              (tilde_expansion)
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (tilde_expansion))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (escaped_character)))
-              (literal)
-              (tilde_expansion))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      negation: (pattern_bracket_negation_source)
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (literal)
+                    (tilde_expansion)
+                    (literal)
+                    (tilde_expansion
+                      user: (tilde_user
+                        (literal))))
+                  argument: (word
+                    (literal)
+                    (tilde_expansion)
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (tilde_expansion))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (escaped_character)))
+                    (literal)
+                    (tilde_expansion)))))))))
+    separator: (newline_list)))
 
 ==================
 subscripted argument tilde positions retain ranges across line continuations
@@ -437,26 +501,30 @@ printf x\
 ------------------
 
 0:0 - 3:0   program
-0:0 - 3:0     commands: list
-0:0 - 2:3       and_or: and_or
-0:0 - 2:3         pipeline: pipeline
-0:0 - 2:3           command: command
-0:0 - 2:3             body: simple_command
-0:0 - 0:6               name: word
-0:0 - 0:6                 literal `printf`
-0:7 - 2:3               argument: word
-0:7 - 0:8                 literal `x`
-0:8 - 0:9                 line_continuation `\\`
-1:0 - 1:3                 pattern_bracket_source
-1:0 - 1:1                   "["
-1:1 - 1:2                   members: pattern_bracket_members_source
-1:1 - 1:2                     member: pattern_bracket_character_source `0`
-1:2 - 1:3                   "]"
-1:3 - 1:4                 literal `=`
-1:4 - 1:5                 line_continuation `\\`
-2:0 - 2:1                 tilde_expansion
-2:0 - 2:1                   "~"
-2:1 - 2:2                 literal `:`
-2:2 - 2:3                 tilde_expansion
-2:2 - 2:3                   "~"
-2:3 - 3:0       "\n"
+0:0 - 3:0     commands: complete_commands
+0:0 - 2:3       command: complete_command
+0:0 - 2:3         body: list
+0:0 - 2:3           and_or: and_or
+0:0 - 2:3             pipeline: pipeline
+0:0 - 2:3               pipe_sequence
+0:0 - 2:3                 command: command
+0:0 - 2:3                   body: simple_command
+0:0 - 0:6                     name: word
+0:0 - 0:6                       literal `printf`
+0:7 - 2:3                     argument: word
+0:7 - 0:8                       literal `x`
+0:8 - 0:9                       line_continuation `\\`
+1:0 - 1:3                       pattern_bracket_source
+1:0 - 1:1                         "["
+1:1 - 1:2                         members: pattern_bracket_members_source
+1:1 - 1:2                           member: pattern_bracket_character_source `0`
+1:2 - 1:3                         "]"
+1:3 - 1:4                       literal `=`
+1:4 - 1:5                       line_continuation `\\`
+2:0 - 2:1                       tilde_expansion
+2:0 - 2:1                         "~"
+2:1 - 2:2                       literal `:`
+2:2 - 2:3                       tilde_expansion
+2:2 - 2:3                         "~"
+2:3 - 3:0       separator: newline_list
+2:3 - 3:0         "\n"

@@ -8,23 +8,28 @@ arithmetic command precedence
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (arithmetic_command
-            (arithmetic_sequence_expression
-              (arithmetic_assignment_expression
-                (arithmetic_variable )
-                (arithmetic_operator )
-                (arithmetic_binary_expression
-                  (arithmetic_number )
-                  (arithmetic_operator )
-                  (arithmetic_number )))
-              (arithmetic_operator )
-              (arithmetic_update_expression
-                (arithmetic_variable )
-                (arithmetic_operator )))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (arithmetic_command
+                    (arithmetic_sequence_expression
+                      (arithmetic_assignment_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)
+                        (arithmetic_binary_expression
+                          (arithmetic_number)
+                          (arithmetic_operator)
+                          (arithmetic_number)))
+                      (arithmetic_operator)
+                      (arithmetic_update_expression
+                        (arithmetic_variable)
+                        (arithmetic_operator)))))))))))
+    (newline_list)))
 
 ==================
 arithmetic command empty
@@ -36,11 +41,16 @@ arithmetic command empty
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (arithmetic_command ))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (arithmetic_command))))))))
+    (newline_list)))
 
 ==================
 repeated arithmetic signs before numbers form nested unary expressions
@@ -53,28 +63,33 @@ repeated arithmetic signs before numbers form nested unary expressions
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:13       and_or: and_or
-0:0  - 0:13         pipeline: pipeline
-0:0  - 0:13           command: command
-0:0  - 0:13             body: arithmetic_command
-0:0  - 0:1                "("
-0:1  - 0:2                "("
-0:2  - 0:11               expression: arithmetic_binary_expression
-0:2  - 0:5                  left: arithmetic_unary_expression
-0:2  - 0:3                    operator: arithmetic_operator `+`
-0:3  - 0:5                    operand: arithmetic_unary_expression
-0:3  - 0:4                      operator: arithmetic_operator `+`
-0:4  - 0:5                      operand: arithmetic_number `1`
-0:6  - 0:7                  operator: arithmetic_operator `+`
-0:8  - 0:11                 right: arithmetic_unary_expression
-0:8  - 0:9                    operator: arithmetic_operator `-`
-0:9  - 0:11                   operand: arithmetic_unary_expression
-0:9  - 0:10                     operator: arithmetic_operator `-`
-0:10 - 0:11                     operand: arithmetic_number `1`
-0:11 - 0:12               ")"
-0:12 - 0:13               ")"
-0:13 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:13       command: complete_command
+0:0  - 0:13         body: list
+0:0  - 0:13           and_or: and_or
+0:0  - 0:13             pipeline: pipeline
+0:0  - 0:13               pipe_sequence
+0:0  - 0:13                 command: command
+0:0  - 0:13                   body: compound_command
+0:0  - 0:13                     arithmetic_command
+0:0  - 0:1                        "("
+0:1  - 0:2                        "("
+0:2  - 0:11                       expression: arithmetic_binary_expression
+0:2  - 0:5                          left: arithmetic_unary_expression
+0:2  - 0:3                            operator: arithmetic_operator `+`
+0:3  - 0:5                            operand: arithmetic_unary_expression
+0:3  - 0:4                              operator: arithmetic_operator `+`
+0:4  - 0:5                              operand: arithmetic_number `1`
+0:6  - 0:7                          operator: arithmetic_operator `+`
+0:8  - 0:11                         right: arithmetic_unary_expression
+0:8  - 0:9                            operator: arithmetic_operator `-`
+0:9  - 0:11                           operand: arithmetic_unary_expression
+0:9  - 0:10                             operator: arithmetic_operator `-`
+0:10 - 0:11                             operand: arithmetic_number `1`
+0:11 - 0:12                       ")"
+0:12 - 0:13                       ")"
+0:13 - 1:0        separator: newline_list
+0:13 - 1:0          "\n"
 
 ==================
 repeated arithmetic signs distinguish groups from prefix and postfix updates
@@ -86,34 +101,39 @@ repeated arithmetic signs distinguish groups from prefix and postfix updates
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (arithmetic_command
-            expression: (arithmetic_sequence_expression
-              left: (arithmetic_sequence_expression
-                left: (arithmetic_unary_expression
-                  operator: (arithmetic_operator)
-                  operand: (arithmetic_unary_expression
-                    operator: (arithmetic_operator)
-                    operand: (parenthesized_arithmetic
-                      expression: (arithmetic_variable))))
-                operator: (arithmetic_operator)
-                right: (arithmetic_unary_expression
-                  operator: (arithmetic_operator)
-                  operand: (arithmetic_update_expression
-                    operator: (arithmetic_operator)
-                    operand: (arithmetic_variable))))
-              operator: (arithmetic_operator)
-              right: (arithmetic_binary_expression
-                left: (arithmetic_update_expression
-                  operand: (arithmetic_variable)
-                  operator: (arithmetic_operator))
-                operator: (arithmetic_operator)
-                right: (arithmetic_unary_expression
-                  operator: (arithmetic_operator)
-                  operand: (arithmetic_number))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (arithmetic_command
+                    expression: (arithmetic_sequence_expression
+                      left: (arithmetic_sequence_expression
+                        left: (arithmetic_unary_expression
+                          operator: (arithmetic_operator)
+                          operand: (arithmetic_unary_expression
+                            operator: (arithmetic_operator)
+                            operand: (parenthesized_arithmetic
+                              expression: (arithmetic_variable))))
+                        operator: (arithmetic_operator)
+                        right: (arithmetic_unary_expression
+                          operator: (arithmetic_operator)
+                          operand: (arithmetic_update_expression
+                            operator: (arithmetic_operator)
+                            operand: (arithmetic_variable))))
+                      operator: (arithmetic_operator)
+                      right: (arithmetic_binary_expression
+                        left: (arithmetic_update_expression
+                          operand: (arithmetic_variable)
+                          operator: (arithmetic_operator))
+                        operator: (arithmetic_operator)
+                        right: (arithmetic_unary_expression
+                          operator: (arithmetic_operator)
+                          operand: (arithmetic_number))))))))))))
+    separator: (newline_list)))
 
 ==================
 repeated arithmetic signs after a number split into binary and unary operators
@@ -125,17 +145,22 @@ repeated arithmetic signs after a number split into binary and unary operators
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (arithmetic_command
-            expression: (arithmetic_binary_expression
-              left: (arithmetic_number)
-              operator: (arithmetic_operator)
-              right: (arithmetic_unary_expression
-                operator: (arithmetic_operator)
-                operand: (arithmetic_number)))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (arithmetic_command
+                    expression: (arithmetic_binary_expression
+                      left: (arithmetic_number)
+                      operator: (arithmetic_operator)
+                      right: (arithmetic_unary_expression
+                        operator: (arithmetic_operator)
+                        operand: (arithmetic_number)))))))))))
+    separator: (newline_list)))
 
 ==================
 repeated arithmetic signs retain expansion-dependent and incomplete source
@@ -147,18 +172,23 @@ repeated arithmetic signs retain expansion-dependent and incomplete source
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (arithmetic_command
-            expression: (arithmetic_source_expression
-              (arithmetic_operator)
-              (parameter_expansion
-                parameter: (variable_name))
-              (arithmetic_operator)
-              (arithmetic_number)
-              (arithmetic_operator))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (arithmetic_command
+                    expression: (arithmetic_source_expression
+                      (arithmetic_operator)
+                      (parameter_expansion
+                        parameter: (variable_name))
+                      (arithmetic_operator)
+                      (arithmetic_number)
+                      (arithmetic_operator))))))))))
+    separator: (newline_list)))
 
 ==================
 arithmetic command dynamic
@@ -170,22 +200,27 @@ arithmetic command dynamic
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (arithmetic_command
-            (arithmetic_source_expression
-              (arithmetic_source_fragment)
-              (parameter_expansion
-                (variable_name))
-              (arithmetic_operator)
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_variable))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (arithmetic_command
+                    (arithmetic_source_expression
+                      (arithmetic_source_fragment)
+                      (parameter_expansion
+                        (variable_name))
+                      (arithmetic_operator)
+                      (parameter_expansion
+                        (array_reference
+                          (variable_name)
+                          (array_subscript
+                            (subscript_source
+                              (arithmetic_candidate_variable))))))))))))))
+    (newline_list)))
 
 ==================
 arithmetic command invalid value
@@ -197,15 +232,20 @@ arithmetic command invalid value
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (arithmetic_command
-            (arithmetic_source_expression
-              (arithmetic_number )
-              (arithmetic_source_fragment )
-              (arithmetic_number ))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (arithmetic_command
+                    (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_source_fragment)
+                      (arithmetic_number))))))))))
+    (newline_list)))
 
 ==================
 hashes remain arithmetic command source across newlines
@@ -219,25 +259,35 @@ hashes remain arithmetic command source across newlines
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (arithmetic_command
-            expression: (arithmetic_source_expression
-              (arithmetic_number)
-              (arithmetic_source_fragment)
-              (arithmetic_variable))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (arithmetic_command
-            expression: (arithmetic_source_expression
-              (arithmetic_number)
-              (arithmetic_source_fragment)
-              (arithmetic_variable)
-              (arithmetic_operator)
-              (arithmetic_number))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (arithmetic_command
+                    expression: (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_source_fragment)
+                      (arithmetic_variable))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (arithmetic_command
+                    expression: (arithmetic_source_expression
+                      (arithmetic_number)
+                      (arithmetic_source_fragment)
+                      (arithmetic_variable)
+                      (arithmetic_operator)
+                      (arithmetic_number))))))))))
+    separator: (newline_list)))
 
 ==================
 an escaped ANSI-C quote keeps the arithmetic command boundary
@@ -249,31 +299,37 @@ an escaped ANSI-C quote keeps the arithmetic command boundary
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:13       and_or: and_or
-0:0  - 0:13         pipeline: pipeline
-0:0  - 0:13           command: command
-0:0  - 0:13             body: arithmetic_command
-0:0  - 0:1                "("
-0:1  - 0:2                "("
-0:3  - 0:10               expression: arithmetic_source_expression
-0:3  - 0:10                 dollar_single_quoted
-0:3  - 0:4                    "$"
-0:4  - 0:5                    "'"
-0:5  - 0:6                    dollar_single_quote_text `a`
-0:6  - 0:8                    dollar_single_quote_escape `\\'`
-0:8  - 0:9                    dollar_single_quote_text `b`
-0:9  - 0:10                   "'"
-0:11 - 0:12               ")"
-0:12 - 0:13               ")"
-0:13 - 0:14       separator: separator_op
-0:13 - 0:14         ";"
-0:15 - 0:27       and_or: and_or
-0:15 - 0:27         pipeline: pipeline
-0:15 - 0:27           command: command
-0:15 - 0:27             body: simple_command
-0:15 - 0:21               name: word
-0:15 - 0:21                 literal `printf`
-0:22 - 0:27               argument: word
-0:22 - 0:27                 literal `AFTER`
-0:27 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:27       command: complete_command
+0:0  - 0:27         body: list
+0:0  - 0:13           and_or: and_or
+0:0  - 0:13             pipeline: pipeline
+0:0  - 0:13               pipe_sequence
+0:0  - 0:13                 command: command
+0:0  - 0:13                   body: compound_command
+0:0  - 0:13                     arithmetic_command
+0:0  - 0:1                        "("
+0:1  - 0:2                        "("
+0:3  - 0:10                       expression: arithmetic_source_expression
+0:3  - 0:10                         dollar_single_quoted
+0:3  - 0:4                            "$"
+0:4  - 0:5                            "'"
+0:5  - 0:6                            dollar_single_quote_text `a`
+0:6  - 0:8                            dollar_single_quote_escape `\\'`
+0:8  - 0:9                            dollar_single_quote_text `b`
+0:9  - 0:10                           "'"
+0:11 - 0:12                       ")"
+0:12 - 0:13                       ")"
+0:13 - 0:14           separator: separator_op
+0:13 - 0:14             ";"
+0:15 - 0:27           and_or: and_or
+0:15 - 0:27             pipeline: pipeline
+0:15 - 0:27               pipe_sequence
+0:15 - 0:27                 command: command
+0:15 - 0:27                   body: simple_command
+0:15 - 0:21                     name: word
+0:15 - 0:21                       literal `printf`
+0:22 - 0:27                     argument: word
+0:22 - 0:27                       literal `AFTER`
+0:27 - 1:0        separator: newline_list
+0:27 - 1:0          "\n"

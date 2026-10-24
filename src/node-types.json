@@ -48,11 +48,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -1868,15 +1864,11 @@
           "named": true
         },
         {
-          "type": "comment",
-          "named": true
-        },
-        {
           "type": "for_keyword",
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -2282,11 +2274,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -2553,11 +2541,11 @@
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "complete_commands",
           "named": true
         },
         {
-          "type": "list",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -2695,7 +2683,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -2856,15 +2844,11 @@
           "named": true
         },
         {
-          "type": "comment",
-          "named": true
-        },
-        {
           "type": "esac_keyword",
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -2879,7 +2863,7 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -2918,11 +2902,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3010,23 +2990,7 @@
         "required": true,
         "types": [
           {
-            "type": "arithmetic_command",
-            "named": true
-          },
-          {
-            "type": "arithmetic_for_clause",
-            "named": true
-          },
-          {
-            "type": "brace_group",
-            "named": true
-          },
-          {
-            "type": "case_clause",
-            "named": true
-          },
-          {
-            "type": "conditional_command",
+            "type": "compound_command",
             "named": true
           },
           {
@@ -3034,35 +2998,11 @@
             "named": true
           },
           {
-            "type": "for_clause",
-            "named": true
-          },
-          {
             "type": "function_definition",
             "named": true
           },
           {
-            "type": "if_clause",
-            "named": true
-          },
-          {
-            "type": "select_clause",
-            "named": true
-          },
-          {
             "type": "simple_command",
-            "named": true
-          },
-          {
-            "type": "subshell",
-            "named": true
-          },
-          {
-            "type": "until_clause",
-            "named": true
-          },
-          {
-            "type": "while_clause",
             "named": true
           }
         ]
@@ -3118,11 +3058,11 @@
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "complete_commands",
           "named": true
         },
         {
-          "type": "list",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3147,6 +3087,139 @@
     "type": "comment_text",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "complete_command",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "list",
+            "named": true
+          }
+        ]
+      },
+      "terminator": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "separator_op",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "complete_commands",
+    "named": true,
+    "fields": {
+      "command": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "complete_command",
+            "named": true
+          }
+        ]
+      },
+      "separator": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "newline_list",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "compound_command",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "arithmetic_command",
+          "named": true
+        },
+        {
+          "type": "arithmetic_for_clause",
+          "named": true
+        },
+        {
+          "type": "brace_group",
+          "named": true
+        },
+        {
+          "type": "case_clause",
+          "named": true
+        },
+        {
+          "type": "conditional_command",
+          "named": true
+        },
+        {
+          "type": "for_clause",
+          "named": true
+        },
+        {
+          "type": "if_clause",
+          "named": true
+        },
+        {
+          "type": "select_clause",
+          "named": true
+        },
+        {
+          "type": "subshell",
+          "named": true
+        },
+        {
+          "type": "until_clause",
+          "named": true
+        },
+        {
+          "type": "while_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "compound_list",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "term",
+            "named": true
+          }
+        ]
+      },
+      "leading": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "linebreak",
+            "named": true
+          }
+        ]
+      }
+    }
   },
   {
     "type": "conditional_and_expression",
@@ -3236,11 +3309,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3352,10 +3421,6 @@
       "required": true,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
           "type": "conditional_close",
           "named": true
         },
@@ -3364,7 +3429,7 @@
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3414,11 +3479,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3479,15 +3540,11 @@
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3591,11 +3648,7 @@
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3737,51 +3790,11 @@
         "required": true,
         "types": [
           {
-            "type": "arithmetic_command",
-            "named": true
-          },
-          {
-            "type": "arithmetic_for_clause",
-            "named": true
-          },
-          {
-            "type": "brace_group",
-            "named": true
-          },
-          {
-            "type": "case_clause",
-            "named": true
-          },
-          {
-            "type": "conditional_command",
-            "named": true
-          },
-          {
-            "type": "for_clause",
-            "named": true
-          },
-          {
-            "type": "if_clause",
-            "named": true
-          },
-          {
-            "type": "select_clause",
+            "type": "compound_command",
             "named": true
           },
           {
             "type": "simple_command",
-            "named": true
-          },
-          {
-            "type": "subshell",
-            "named": true
-          },
-          {
-            "type": "until_clause",
-            "named": true
-          },
-          {
-            "type": "while_clause",
             "named": true
           }
         ]
@@ -3842,22 +3855,18 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -3892,7 +3901,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -4049,7 +4058,7 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -4059,7 +4068,7 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -4069,7 +4078,7 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -4534,15 +4543,11 @@
       "required": true,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
           "type": "for_keyword",
           "named": true
         },
         {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -4562,47 +4567,7 @@
         "required": true,
         "types": [
           {
-            "type": "arithmetic_command",
-            "named": true
-          },
-          {
-            "type": "arithmetic_for_clause",
-            "named": true
-          },
-          {
-            "type": "brace_group",
-            "named": true
-          },
-          {
-            "type": "case_clause",
-            "named": true
-          },
-          {
-            "type": "conditional_command",
-            "named": true
-          },
-          {
-            "type": "for_clause",
-            "named": true
-          },
-          {
-            "type": "if_clause",
-            "named": true
-          },
-          {
-            "type": "select_clause",
-            "named": true
-          },
-          {
-            "type": "subshell",
-            "named": true
-          },
-          {
-            "type": "until_clause",
-            "named": true
-          },
-          {
-            "type": "while_clause",
+            "type": "compound_command",
             "named": true
           }
         ]
@@ -4644,19 +4609,11 @@
         ]
       },
       "linebreak": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "linebreak",
             "named": true
           }
         ]
@@ -4882,7 +4839,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -4892,7 +4849,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -5095,6 +5052,21 @@
     "fields": {}
   },
   {
+    "type": "linebreak",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "newline_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "list",
     "named": true,
     "fields": {
@@ -5108,83 +5080,7 @@
           }
         ]
       },
-      "body": {
-        "multiple": true,
-        "required": true,
-        "types": [
-          {
-            "type": "and_or",
-            "named": true
-          },
-          {
-            "type": "separator",
-            "named": true
-          },
-          {
-            "type": "separator_op",
-            "named": true
-          }
-        ]
-      },
-      "command": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "and_or",
-            "named": true
-          },
-          {
-            "type": "separator_op",
-            "named": true
-          }
-        ]
-      },
-      "leading": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
-            "named": true
-          }
-        ]
-      },
       "separator": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
-            "named": true
-          },
-          {
-            "type": "separator",
-            "named": true
-          },
-          {
-            "type": "separator_op",
-            "named": true
-          }
-        ]
-      },
-      "terminator": {
         "multiple": true,
         "required": false,
         "types": [
@@ -5268,6 +5164,25 @@
     "type": "name",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "newline_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "here_document_sequence",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "nonmatching_list",
@@ -6747,25 +6662,15 @@
     "fields": {}
   },
   {
-    "type": "pipeline",
+    "type": "pipe_sequence",
     "named": true,
     "fields": {
       "command": {
         "multiple": true,
-        "required": false,
+        "required": true,
         "types": [
           {
             "type": "command",
-            "named": true
-          }
-        ]
-      },
-      "negation": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "bang",
             "named": true
           }
         ]
@@ -6783,6 +6688,32 @@
             "named": false
           }
         ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "linebreak",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "pipeline",
+    "named": true,
+    "fields": {
+      "negation": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "bang",
+            "named": true
+          }
+        ]
       },
       "timing": {
         "multiple": true,
@@ -6796,15 +6727,11 @@
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "pipe_sequence",
           "named": true
         }
       ]
@@ -6855,25 +6782,17 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "complete_commands",
             "named": true
           }
         ]
       },
       "leading": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "linebreak",
             "named": true
           }
         ]
@@ -7084,22 +7003,18 @@
         "required": false,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
       }
     },
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": false,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         }
       ]
@@ -7179,11 +7094,7 @@
       "required": true,
       "types": [
         {
-          "type": "comment",
-          "named": true
-        },
-        {
-          "type": "here_document_sequence",
+          "type": "linebreak",
           "named": true
         },
         {
@@ -7208,19 +7119,11 @@
     "named": true,
     "fields": {
       "linebreak": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "linebreak",
             "named": true
           }
         ]
@@ -7230,15 +7133,7 @@
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "newline_list",
             "named": true
           }
         ]
@@ -7265,37 +7160,21 @@
     "named": true,
     "fields": {
       "linebreak": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "linebreak",
             "named": true
           }
         ]
       },
       "newlines": {
-        "multiple": true,
+        "multiple": false,
         "required": false,
         "types": [
           {
-            "type": "\n",
-            "named": false
-          },
-          {
-            "type": "comment",
-            "named": true
-          },
-          {
-            "type": "here_document_sequence",
+            "type": "newline_list",
             "named": true
           }
         ]
@@ -7522,7 +7401,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -7606,6 +7485,32 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "term",
+    "named": true,
+    "fields": {
+      "and_or": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "and_or",
+            "named": true
+          }
+        ]
+      },
+      "separator": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "separator",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -7771,7 +7676,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]
@@ -7817,7 +7722,7 @@
         "required": true,
         "types": [
           {
-            "type": "list",
+            "type": "compound_list",
             "named": true
           }
         ]

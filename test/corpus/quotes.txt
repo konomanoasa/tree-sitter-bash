@@ -8,28 +8,32 @@ echo '$x' "a$x\"" $'line\n' \*
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (single_quoted
-                (single_quote_content)))
-            argument: (word
-              (double_quoted
-                (double_quote_text)
-                (parameter_expansion
-                  parameter: (variable_name))
-                (double_quote_escape)))
-            argument: (word
-              (dollar_single_quoted
-                (dollar_single_quote_text)
-                (dollar_single_quote_escape)))
-            argument: (word
-              (escaped_character))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (single_quoted
+                      (single_quote_content)))
+                  argument: (word
+                    (double_quoted
+                      (double_quote_text)
+                      (parameter_expansion
+                        parameter: (variable_name))
+                      (double_quote_escape)))
+                  argument: (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_text)
+                      (dollar_single_quote_escape)))
+                  argument: (word
+                    (escaped_character)))))))))
+    separator: (newline_list)))
 
 ==================
 locale quotation and ANSI-C escapes
@@ -41,28 +45,32 @@ echo $"hello $name" $'\e\E\x414\u3042\U0001f600\cA\q'
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (locale_quoted
-                (double_quote_text)
-                (parameter_expansion
-                  (variable_name))))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)
-                (dollar_single_quote_escape)
-                (dollar_single_quote_escape)
-                (dollar_single_quote_text)
-                (dollar_single_quote_escape)
-                (dollar_single_quote_escape)
-                (dollar_single_quote_escape)
-                (dollar_single_quote_escape)))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (locale_quoted
+                      (double_quote_text)
+                      (parameter_expansion
+                        (variable_name))))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_text)
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape)
+                      (dollar_single_quote_escape))))))))))
+    (newline_list)))
 
 ==================
 ANSI-C control escapes close at the first unescaped quote
@@ -74,28 +82,32 @@ ANSI-C control escapes close at the first unescaped quote
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)))
-            (word
-              (dollar_single_quoted
-                (dollar_single_quote_escape)))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape)))
+                  (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))))))
+    (newline_list)))
 
 ==================
 quoted pattern spelling and parameter values remain literal
@@ -107,48 +119,52 @@ echo "@(a|b)" "{a,b}" "${x:-@(a|b)}" "${x:-<(echo hi)}"
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:55       and_or: and_or
-0:0  - 0:55         pipeline: pipeline
-0:0  - 0:55           command: command
-0:0  - 0:55             body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:4                  literal `echo`
-0:5  - 0:13               argument: word
-0:5  - 0:13                 double_quoted
-0:5  - 0:6                    "\""
-0:6  - 0:12                   double_quote_text `@(a|b)`
-0:12 - 0:13                   "\""
-0:14 - 0:21               argument: word
-0:14 - 0:21                 double_quoted
-0:14 - 0:15                   "\""
-0:15 - 0:20                   double_quote_text `{a,b}`
-0:20 - 0:21                   "\""
-0:22 - 0:36               argument: word
-0:22 - 0:36                 double_quoted
-0:22 - 0:23                   "\""
-0:23 - 0:35                   parameter_expansion
-0:23 - 0:24                     "$"
-0:24 - 0:25                     "{"
-0:25 - 0:26                     parameter: variable_name `x`
-0:26 - 0:28                     operator: parameter_value_operator `:-`
-0:28 - 0:34                     word: parameter_word
-0:28 - 0:34                       double_quote_text `@(a|b)`
-0:34 - 0:35                     "}"
-0:35 - 0:36                   "\""
-0:37 - 0:55               argument: word
-0:37 - 0:55                 double_quoted
-0:37 - 0:38                   "\""
-0:38 - 0:54                   parameter_expansion
-0:38 - 0:39                     "$"
-0:39 - 0:40                     "{"
-0:40 - 0:41                     parameter: variable_name `x`
-0:41 - 0:43                     operator: parameter_value_operator `:-`
-0:43 - 0:53                     word: parameter_word
-0:43 - 0:53                       double_quote_text `<(echo hi)`
-0:53 - 0:54                     "}"
-0:54 - 0:55                   "\""
-0:55 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:55       command: complete_command
+0:0  - 0:55         body: list
+0:0  - 0:55           and_or: and_or
+0:0  - 0:55             pipeline: pipeline
+0:0  - 0:55               pipe_sequence
+0:0  - 0:55                 command: command
+0:0  - 0:55                   body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:4                        literal `echo`
+0:5  - 0:13                     argument: word
+0:5  - 0:13                       double_quoted
+0:5  - 0:6                          "\""
+0:6  - 0:12                         double_quote_text `@(a|b)`
+0:12 - 0:13                         "\""
+0:14 - 0:21                     argument: word
+0:14 - 0:21                       double_quoted
+0:14 - 0:15                         "\""
+0:15 - 0:20                         double_quote_text `{a,b}`
+0:20 - 0:21                         "\""
+0:22 - 0:36                     argument: word
+0:22 - 0:36                       double_quoted
+0:22 - 0:23                         "\""
+0:23 - 0:35                         parameter_expansion
+0:23 - 0:24                           "$"
+0:24 - 0:25                           "{"
+0:25 - 0:26                           parameter: variable_name `x`
+0:26 - 0:28                           operator: parameter_value_operator `:-`
+0:28 - 0:34                           word: parameter_word
+0:28 - 0:34                             double_quote_text `@(a|b)`
+0:34 - 0:35                           "}"
+0:35 - 0:36                         "\""
+0:37 - 0:55                     argument: word
+0:37 - 0:55                       double_quoted
+0:37 - 0:38                         "\""
+0:38 - 0:54                         parameter_expansion
+0:38 - 0:39                           "$"
+0:39 - 0:40                           "{"
+0:40 - 0:41                           parameter: variable_name `x`
+0:41 - 0:43                           operator: parameter_value_operator `:-`
+0:43 - 0:53                           word: parameter_word
+0:43 - 0:53                             double_quote_text `<(echo hi)`
+0:53 - 0:54                           "}"
+0:54 - 0:55                         "\""
+0:55 - 1:0        separator: newline_list
+0:55 - 1:0          "\n"
 
 ==================
 quoted parameter dollar quotes preserve source before expansion-time rescanning
@@ -160,43 +176,47 @@ quoted parameter dollar quotes preserve source before expansion-time rescanning
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:32       and_or: and_or
-0:0  - 0:32         pipeline: pipeline
-0:0  - 0:32           command: command
-0:0  - 0:32             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:17               argument: word
-0:2  - 0:17                 double_quoted
-0:2  - 0:3                    "\""
-0:3  - 0:16                   parameter_expansion
-0:3  - 0:4                      "$"
-0:4  - 0:5                      "{"
-0:5  - 0:6                      parameter: variable_name `x`
-0:6  - 0:8                      operator: parameter_value_operator `:-`
-0:8  - 0:15                     word: parameter_word
-0:8  - 0:15                       dollar_single_quoted
-0:8  - 0:9                          "$"
-0:9  - 0:10                         "'"
-0:10 - 0:14                         dollar_single_quote_text `${y}`
-0:14 - 0:15                         "'"
-0:15 - 0:16                     "}"
-0:16 - 0:17                   "\""
-0:18 - 0:32               argument: word
-0:18 - 0:32                 double_quoted
-0:18 - 0:19                   "\""
-0:19 - 0:31                   parameter_expansion
-0:19 - 0:20                     "$"
-0:20 - 0:21                     "{"
-0:21 - 0:22                     parameter: variable_name `x`
-0:22 - 0:24                     operator: parameter_value_operator `:-`
-0:24 - 0:30                     word: parameter_word
-0:24 - 0:30                       dollar_single_quoted
-0:24 - 0:25                         "$"
-0:25 - 0:26                         "'"
-0:26 - 0:29                         dollar_single_quote_text `a}b`
-0:29 - 0:30                         "'"
-0:30 - 0:31                     "}"
-0:31 - 0:32                   "\""
-0:32 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:32       command: complete_command
+0:0  - 0:32         body: list
+0:0  - 0:32           and_or: and_or
+0:0  - 0:32             pipeline: pipeline
+0:0  - 0:32               pipe_sequence
+0:0  - 0:32                 command: command
+0:0  - 0:32                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:17                     argument: word
+0:2  - 0:17                       double_quoted
+0:2  - 0:3                          "\""
+0:3  - 0:16                         parameter_expansion
+0:3  - 0:4                            "$"
+0:4  - 0:5                            "{"
+0:5  - 0:6                            parameter: variable_name `x`
+0:6  - 0:8                            operator: parameter_value_operator `:-`
+0:8  - 0:15                           word: parameter_word
+0:8  - 0:15                             dollar_single_quoted
+0:8  - 0:9                                "$"
+0:9  - 0:10                               "'"
+0:10 - 0:14                               dollar_single_quote_text `${y}`
+0:14 - 0:15                               "'"
+0:15 - 0:16                           "}"
+0:16 - 0:17                         "\""
+0:18 - 0:32                     argument: word
+0:18 - 0:32                       double_quoted
+0:18 - 0:19                         "\""
+0:19 - 0:31                         parameter_expansion
+0:19 - 0:20                           "$"
+0:20 - 0:21                           "{"
+0:21 - 0:22                           parameter: variable_name `x`
+0:22 - 0:24                           operator: parameter_value_operator `:-`
+0:24 - 0:30                           word: parameter_word
+0:24 - 0:30                             dollar_single_quoted
+0:24 - 0:25                               "$"
+0:25 - 0:26                               "'"
+0:26 - 0:29                               dollar_single_quote_text `a}b`
+0:29 - 0:30                               "'"
+0:30 - 0:31                           "}"
+0:31 - 0:32                         "\""
+0:32 - 1:0        separator: newline_list
+0:32 - 1:0          "\n"

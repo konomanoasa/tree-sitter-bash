@@ -8,41 +8,45 @@ declare x[{0,1}]=pre{a,b}post y+={1..3} empty=
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (declaration_name)
-            assignment: (assignment_word
-              name: (variable_name)
-              subscript: (array_subscript
-                source: (subscript_source
-                  candidate: (arithmetic_candidate_source_expression
-                    (brace_expansion
-                      alternative: (brace_alternative
-                        (literal))
-                      alternative: (brace_alternative
-                        (literal))))))
-              value: (assignment_value
-                (literal)
-                (brace_expansion
-                  alternative: (brace_alternative
-                    (literal))
-                  alternative: (brace_alternative
-                    (literal)))
-                (literal)))
-            assignment: (assignment_word
-              name: (variable_name)
-              operator: (assignment_append)
-              value: (assignment_value
-                (brace_expansion
-                  (brace_sequence
-                    start: (brace_endpoint)
-                    (brace_sequence_separator)
-                    end: (brace_endpoint)))))
-            assignment: (assignment_word
-              name: (variable_name))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (declaration_name)
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    subscript: (array_subscript
+                      source: (subscript_source
+                        candidate: (arithmetic_candidate_source_expression
+                          (brace_expansion
+                            alternative: (brace_alternative
+                              (literal))
+                            alternative: (brace_alternative
+                              (literal))))))
+                    value: (assignment_value
+                      (literal)
+                      (brace_expansion
+                        alternative: (brace_alternative
+                          (literal))
+                        alternative: (brace_alternative
+                          (literal)))
+                      (literal)))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    operator: (assignment_append)
+                    value: (assignment_value
+                      (brace_expansion
+                        (brace_sequence
+                          start: (brace_endpoint)
+                          (brace_sequence_separator)
+                          end: (brace_endpoint)))))
+                  assignment: (assignment_word
+                    name: (variable_name)))))))))
+    separator: (newline_list)))
 
 ==================
 declaration compound elements retain their individual brace contexts
@@ -54,35 +58,39 @@ declare x=({a,b} [0]={c,d}) y={e,f}
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (declaration_name)
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (array_assignment
-                element: (word
-                  (brace_expansion
-                    alternative: (brace_alternative
-                      (literal))
-                    alternative: (brace_alternative
-                      (literal))))
-                element: (array_element_assignment
-                  subscript: (array_subscript
-                    source: (subscript_source
-                      candidate: (arithmetic_candidate_number)))
-                  value: (assignment_value
-                    (literal)))))
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (brace_expansion
-                  alternative: (brace_alternative
-                    (literal))
-                  alternative: (brace_alternative
-                    (literal)))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (declaration_name)
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (array_assignment
+                      element: (word
+                        (brace_expansion
+                          alternative: (brace_alternative
+                            (literal))
+                          alternative: (brace_alternative
+                            (literal))))
+                      element: (array_element_assignment
+                        subscript: (array_subscript
+                          source: (subscript_source
+                            candidate: (arithmetic_candidate_number)))
+                        value: (assignment_value
+                          (literal)))))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (brace_expansion
+                        alternative: (brace_alternative
+                          (literal))
+                        alternative: (brace_alternative
+                          (literal))))))))))))
+    separator: (newline_list)))
 
 ==================
 declaration braces crossing the subscript boundary remain one argument word
@@ -94,27 +102,31 @@ declare x[{0]=a,1]=b} y={c,d}
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (declaration_name)
-            argument: (word
-              (literal)
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (literal))))
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (brace_expansion
-                  alternative: (brace_alternative
-                    (literal))
-                  alternative: (brace_alternative
-                    (literal)))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (declaration_name)
+                  argument: (word
+                    (literal)
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (literal))))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (brace_expansion
+                        alternative: (brace_alternative
+                          (literal))
+                        alternative: (brace_alternative
+                          (literal))))))))))))
+    separator: (newline_list)))
 
 ==================
 quoted and escaped declaration braces stay literal
@@ -126,31 +138,35 @@ declare x="{a,b}" y=\{a,b\} z={c,d}
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (declaration_name)
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (double_quoted
-                  (double_quote_text))))
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (escaped_character)
-                (literal)
-                (escaped_character)))
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (brace_expansion
-                  alternative: (brace_alternative
-                    (literal))
-                  alternative: (brace_alternative
-                    (literal)))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (declaration_name)
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (double_quoted
+                        (double_quote_text))))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (escaped_character)
+                      (literal)
+                      (escaped_character)))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (brace_expansion
+                        alternative: (brace_alternative
+                          (literal))
+                        alternative: (brace_alternative
+                          (literal))))))))))))
+    separator: (newline_list)))
 
 ==================
 Declaration assignments stop after redirects and leading process substitutions
@@ -163,69 +179,83 @@ declare a=(one) <(echo x) b=value
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (io_redirect
-              (io_file
-                (word
-                  (literal))))
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))
-            (word
-              (literal)
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))))))))))
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))
-            (io_redirect
-              (io_file
-                (word
-                  (literal))))
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))
-            (word
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))))))))))
-            (word
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (io_redirect
+                    (io_file
+                      (word
+                        (literal))))
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal))))
+                  (word
+                    (literal)
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal)))))))))))))
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal))))
+                  (io_redirect
+                    (io_file
+                      (word
+                        (literal))))
+                  (word
+                    (literal)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal))))
+                  (word
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal)))))))))))))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 declaration arguments
@@ -237,68 +267,76 @@ declare -A a=([key]=value); typeset a+=(two); local b=(three); export c=(four); 
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (word
-              (literal))
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (array_element_assignment
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_variable)))
-                  (assignment_value
-                    (literal)))))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (assignment_append)
-              (array_assignment
-                (word
-                  (literal))))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (word
+                    (literal))
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (array_element_assignment
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_variable)))
+                        (assignment_value
+                          (literal))))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (assignment_append)
+                    (array_assignment
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 alias arguments preserve scalar and compound assignment structure
@@ -310,22 +348,26 @@ alias x=(one) y+=two
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (declaration_name)
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (array_assignment
-                element: (word
-                  (literal))))
-            assignment: (assignment_word
-              name: (variable_name)
-              operator: (assignment_append)
-              value: (assignment_value
-                (literal)))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (declaration_name)
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (array_assignment
+                      element: (word
+                        (literal))))
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    operator: (assignment_append)
+                    value: (assignment_value
+                      (literal))))))))))
+    separator: (newline_list)))
 
 ==================
 declaration prefixed assignments
@@ -337,27 +379,31 @@ x=1 declare -a a=(one) >out
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (assignment_word
-              (variable_name )
-              (assignment_value
-                (literal )))
-            (declaration_name )
-            (word
-              (literal ))
-            (assignment_word
-              (variable_name )
-              (array_assignment
-                (word
-                  (literal ))))
-            (io_redirect
-              (io_file
-                (word
-                  (literal ))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (assignment_word
+                    (variable_name)
+                    (assignment_value
+                      (literal)))
+                  (declaration_name)
+                  (word
+                    (literal))
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal))))
+                  (io_redirect
+                    (io_file
+                      (word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 assignment and redirection order preserves scalar declaration fields
@@ -370,58 +416,65 @@ assignment and redirection order preserves scalar declaration fields
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (io_redirect
-              (io_file
-                (word
-                  (literal))))
-            (assignment_word
-              (variable_name)
-              (assignment_value
-                (literal)))
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (array_assignment
-                (word
-                  (literal))))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (assignment_word
-              (variable_name)
-              (array_assignment))
-            (io_redirect
-              (io_file
-                (word
-                  (literal))))
-            (assignment_word
-              (variable_name)
-              (assignment_value
-                (literal)))
-            (declaration_name)
-            (assignment_word
-              (variable_name)
-              (assignment_value
-                (parameter_expansion
-                  (variable_name))))
-            (assignment_word
-              (variable_name)
-              (assignment_append)
-              (assignment_value
-                (tilde_expansion)
-                (literal)))))))))
+  (linebreak
+    (newline_list))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (io_redirect
+                    (io_file
+                      (word
+                        (literal))))
+                  (assignment_word
+                    (variable_name)
+                    (assignment_value
+                      (literal)))
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal))))
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (assignment_word
+                    (variable_name)
+                    (array_assignment))
+                  (io_redirect
+                    (io_file
+                      (word
+                        (literal))))
+                  (assignment_word
+                    (variable_name)
+                    (assignment_value
+                      (literal)))
+                  (declaration_name)
+                  (assignment_word
+                    (variable_name)
+                    (assignment_value
+                      (parameter_expansion
+                        (variable_name))))
+                  (assignment_word
+                    (variable_name)
+                    (assignment_append)
+                    (assignment_value
+                      (tilde_expansion)
+                      (literal))))))))))
+    (newline_list)))
 
 ==================
 declarations survive leading redirects and substitutions inside arguments
@@ -433,85 +486,95 @@ declarations survive leading redirects and substitutions inside arguments
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:70       and_or: and_or
-0:0  - 0:70         pipeline: pipeline
-0:0  - 0:70           command: command
-0:0  - 0:70             body: simple_command
-0:0  - 0:4                redirect: io_redirect
-0:0  - 0:4                  body: io_file
-0:0  - 0:1                    ">"
-0:1  - 0:4                    filename: word
-0:1  - 0:4                      literal `out`
-0:5  - 0:12               name: declaration_name `declare`
-0:13 - 0:25               argument: word
-0:13 - 0:16                 literal `pre`
-0:16 - 0:25                 process_substitution
-0:16 - 0:17                   "<"
-0:17 - 0:18                   "("
-0:18 - 0:24                   body: command_substitution_body
-0:18 - 0:24                     list
-0:18 - 0:24                       and_or: and_or
-0:18 - 0:24                         pipeline: pipeline
-0:18 - 0:24                           command: command
-0:18 - 0:24                             body: simple_command
-0:18 - 0:22                               name: word
-0:18 - 0:22                                 literal `echo`
-0:23 - 0:24                               argument: word
-0:23 - 0:24                                 literal `x`
-0:24 - 0:25                   ")"
-0:26 - 0:33               assignment: assignment_word
-0:26 - 0:27                 name: variable_name `a`
-0:27 - 0:28                 "="
-0:28 - 0:33                 value: array_assignment
-0:28 - 0:29                   "("
-0:29 - 0:32                   element: word
-0:29 - 0:32                     literal `one`
-0:32 - 0:33                   ")"
-0:34 - 0:45               assignment: assignment_word
-0:34 - 0:35                 name: variable_name `a`
-0:35 - 0:36                 "="
-0:36 - 0:45                 value: assignment_value
-0:36 - 0:45                   process_substitution
-0:36 - 0:37                     "<"
-0:37 - 0:38                     "("
-0:38 - 0:44                     body: command_substitution_body
-0:38 - 0:44                       list
-0:38 - 0:44                         and_or: and_or
-0:38 - 0:44                           pipeline: pipeline
-0:38 - 0:44                             command: command
-0:38 - 0:44                               body: simple_command
-0:38 - 0:42                                 name: word
-0:38 - 0:42                                   literal `echo`
-0:43 - 0:44                                 argument: word
-0:43 - 0:44                                   literal `y`
-0:44 - 0:45                     ")"
-0:46 - 0:53               assignment: assignment_word
-0:46 - 0:47                 name: variable_name `b`
-0:47 - 0:48                 "="
-0:48 - 0:53                 value: array_assignment
-0:48 - 0:49                   "("
-0:49 - 0:52                   element: word
-0:49 - 0:52                     literal `two`
-0:52 - 0:53                   ")"
-0:54 - 0:60               argument: word
-0:54 - 0:60                 double_quoted
-0:54 - 0:55                   "\""
-0:55 - 0:59                   parameter_expansion
-0:55 - 0:56                     "$"
-0:56 - 0:57                     "{"
-0:57 - 0:58                     parameter: variable_name `v`
-0:58 - 0:59                     "}"
-0:59 - 0:60                   "\""
-0:61 - 0:70               assignment: assignment_word
-0:61 - 0:62                 name: variable_name `c`
-0:62 - 0:63                 "="
-0:63 - 0:70                 value: array_assignment
-0:63 - 0:64                   "("
-0:64 - 0:69                   element: word
-0:64 - 0:69                     literal `three`
-0:69 - 0:70                   ")"
-0:70 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:70       command: complete_command
+0:0  - 0:70         body: list
+0:0  - 0:70           and_or: and_or
+0:0  - 0:70             pipeline: pipeline
+0:0  - 0:70               pipe_sequence
+0:0  - 0:70                 command: command
+0:0  - 0:70                   body: simple_command
+0:0  - 0:4                      redirect: io_redirect
+0:0  - 0:4                        body: io_file
+0:0  - 0:1                          ">"
+0:1  - 0:4                          filename: word
+0:1  - 0:4                            literal `out`
+0:5  - 0:12                     name: declaration_name `declare`
+0:13 - 0:25                     argument: word
+0:13 - 0:16                       literal `pre`
+0:16 - 0:25                       process_substitution
+0:16 - 0:17                         "<"
+0:17 - 0:18                         "("
+0:18 - 0:24                         body: command_substitution_body
+0:18 - 0:24                           complete_commands
+0:18 - 0:24                             command: complete_command
+0:18 - 0:24                               body: list
+0:18 - 0:24                                 and_or: and_or
+0:18 - 0:24                                   pipeline: pipeline
+0:18 - 0:24                                     pipe_sequence
+0:18 - 0:24                                       command: command
+0:18 - 0:24                                         body: simple_command
+0:18 - 0:22                                           name: word
+0:18 - 0:22                                             literal `echo`
+0:23 - 0:24                                           argument: word
+0:23 - 0:24                                             literal `x`
+0:24 - 0:25                         ")"
+0:26 - 0:33                     assignment: assignment_word
+0:26 - 0:27                       name: variable_name `a`
+0:27 - 0:28                       "="
+0:28 - 0:33                       value: array_assignment
+0:28 - 0:29                         "("
+0:29 - 0:32                         element: word
+0:29 - 0:32                           literal `one`
+0:32 - 0:33                         ")"
+0:34 - 0:45                     assignment: assignment_word
+0:34 - 0:35                       name: variable_name `a`
+0:35 - 0:36                       "="
+0:36 - 0:45                       value: assignment_value
+0:36 - 0:45                         process_substitution
+0:36 - 0:37                           "<"
+0:37 - 0:38                           "("
+0:38 - 0:44                           body: command_substitution_body
+0:38 - 0:44                             complete_commands
+0:38 - 0:44                               command: complete_command
+0:38 - 0:44                                 body: list
+0:38 - 0:44                                   and_or: and_or
+0:38 - 0:44                                     pipeline: pipeline
+0:38 - 0:44                                       pipe_sequence
+0:38 - 0:44                                         command: command
+0:38 - 0:44                                           body: simple_command
+0:38 - 0:42                                             name: word
+0:38 - 0:42                                               literal `echo`
+0:43 - 0:44                                             argument: word
+0:43 - 0:44                                               literal `y`
+0:44 - 0:45                           ")"
+0:46 - 0:53                     assignment: assignment_word
+0:46 - 0:47                       name: variable_name `b`
+0:47 - 0:48                       "="
+0:48 - 0:53                       value: array_assignment
+0:48 - 0:49                         "("
+0:49 - 0:52                         element: word
+0:49 - 0:52                           literal `two`
+0:52 - 0:53                         ")"
+0:54 - 0:60                     argument: word
+0:54 - 0:60                       double_quoted
+0:54 - 0:55                         "\""
+0:55 - 0:59                         parameter_expansion
+0:55 - 0:56                           "$"
+0:56 - 0:57                           "{"
+0:57 - 0:58                           parameter: variable_name `v`
+0:58 - 0:59                           "}"
+0:59 - 0:60                         "\""
+0:61 - 0:70                     assignment: assignment_word
+0:61 - 0:62                       name: variable_name `c`
+0:62 - 0:63                       "="
+0:63 - 0:70                       value: array_assignment
+0:63 - 0:64                         "("
+0:64 - 0:69                         element: word
+0:64 - 0:69                           literal `three`
+0:69 - 0:70                         ")"
+0:70 - 1:0        separator: newline_list
+0:70 - 1:0          "\n"
 
 ==================
 declaration subscripts respect ordinary word and command boundaries: "declare a[x y]=z b[\"x y\"]=v; declare a[x; echo next\n"
@@ -524,50 +587,56 @@ declare a[x y]=z b["x y"]=v; declare a[x; echo next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:27       and_or: and_or
-0:0  - 0:27         pipeline: pipeline
-0:0  - 0:27           command: command
-0:0  - 0:27             body: simple_command
-0:0  - 0:7                name: declaration_name `declare`
-0:8  - 0:11               argument: word
-0:8  - 0:11                 literal `a[x`
-0:12 - 0:16               argument: word
-0:12 - 0:16                 literal `y]=z`
-0:17 - 0:27               assignment: assignment_word
-0:17 - 0:18                 name: variable_name `b`
-0:18 - 0:25                 subscript: array_subscript
-0:18 - 0:19                   "["
-0:19 - 0:24                   source: subscript_source
-0:19 - 0:24                     candidate: arithmetic_candidate_source_expression
-0:19 - 0:24                       double_quoted
-0:19 - 0:20                         "\""
-0:20 - 0:23                         double_quote_text `x y`
-0:23 - 0:24                         "\""
-0:24 - 0:25                   "]"
-0:25 - 0:26                 "="
-0:26 - 0:27                 value: assignment_value
-0:26 - 0:27                   literal `v`
-0:27 - 0:28       separator: separator_op
-0:27 - 0:28         ";"
-0:29 - 0:40       and_or: and_or
-0:29 - 0:40         pipeline: pipeline
-0:29 - 0:40           command: command
-0:29 - 0:40             body: simple_command
-0:29 - 0:36               name: declaration_name `declare`
-0:37 - 0:40               argument: word
-0:37 - 0:40                 literal `a[x`
-0:40 - 0:41       separator: separator_op
-0:40 - 0:41         ";"
-0:42 - 0:51       and_or: and_or
-0:42 - 0:51         pipeline: pipeline
-0:42 - 0:51           command: command
-0:42 - 0:51             body: simple_command
-0:42 - 0:46               name: word
-0:42 - 0:46                 literal `echo`
-0:47 - 0:51               argument: word
-0:47 - 0:51                 literal `next`
-0:51 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:51       command: complete_command
+0:0  - 0:51         body: list
+0:0  - 0:27           and_or: and_or
+0:0  - 0:27             pipeline: pipeline
+0:0  - 0:27               pipe_sequence
+0:0  - 0:27                 command: command
+0:0  - 0:27                   body: simple_command
+0:0  - 0:7                      name: declaration_name `declare`
+0:8  - 0:11                     argument: word
+0:8  - 0:11                       literal `a[x`
+0:12 - 0:16                     argument: word
+0:12 - 0:16                       literal `y]=z`
+0:17 - 0:27                     assignment: assignment_word
+0:17 - 0:18                       name: variable_name `b`
+0:18 - 0:25                       subscript: array_subscript
+0:18 - 0:19                         "["
+0:19 - 0:24                         source: subscript_source
+0:19 - 0:24                           candidate: arithmetic_candidate_source_expression
+0:19 - 0:24                             double_quoted
+0:19 - 0:20                               "\""
+0:20 - 0:23                               double_quote_text `x y`
+0:23 - 0:24                               "\""
+0:24 - 0:25                         "]"
+0:25 - 0:26                       "="
+0:26 - 0:27                       value: assignment_value
+0:26 - 0:27                         literal `v`
+0:27 - 0:28           separator: separator_op
+0:27 - 0:28             ";"
+0:29 - 0:40           and_or: and_or
+0:29 - 0:40             pipeline: pipeline
+0:29 - 0:40               pipe_sequence
+0:29 - 0:40                 command: command
+0:29 - 0:40                   body: simple_command
+0:29 - 0:36                     name: declaration_name `declare`
+0:37 - 0:40                     argument: word
+0:37 - 0:40                       literal `a[x`
+0:40 - 0:41           separator: separator_op
+0:40 - 0:41             ";"
+0:42 - 0:51           and_or: and_or
+0:42 - 0:51             pipeline: pipeline
+0:42 - 0:51               pipe_sequence
+0:42 - 0:51                 command: command
+0:42 - 0:51                   body: simple_command
+0:42 - 0:46                     name: word
+0:42 - 0:46                       literal `echo`
+0:47 - 0:51                     argument: word
+0:47 - 0:51                       literal `next`
+0:51 - 1:0        separator: newline_list
+0:51 - 1:0          "\n"
 
 ==================
 declaration subscripts respect ordinary word and command boundaries rejects "declare a[(i+1)]=x\n"

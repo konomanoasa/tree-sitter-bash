@@ -8,43 +8,53 @@ echo "$([[ $x == @(a|b) ]] && ((x++)))"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (double_quoted
-                (command_substitution
-                  (command_substitution_body
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (conditional_command
-                              (conditional_open)
-                              (conditional_binary_expression
-                                (word
-                                  (parameter_expansion
-                                    (variable_name )))
-                                (conditional_match_operator )
-                                (conditional_pattern
-                                  (extglob_pattern
-                                    (extglob_operator )
-                                    (extglob_alternative
-                                      (literal ))
-                                    (extglob_alternative
-                                      (literal)))))
-                              (conditional_close))))
-                        (and_if )
-                        (pipeline
-                          (command
-                            (arithmetic_command
-                              (arithmetic_update_expression
-                                (arithmetic_variable )
-                                (arithmetic_operator )))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (command_substitution
+                        (command_substitution_body
+                          (complete_commands
+                            (complete_command
+                              (list
+                                (and_or
+                                  (pipeline
+                                    (pipe_sequence
+                                      (command
+                                        (compound_command
+                                          (conditional_command
+                                            (conditional_open)
+                                            (conditional_binary_expression
+                                              (word
+                                                (parameter_expansion
+                                                  (variable_name)))
+                                              (conditional_match_operator)
+                                              (conditional_pattern
+                                                (extglob_pattern
+                                                  (extglob_operator)
+                                                  (extglob_alternative
+                                                    (literal))
+                                                  (extglob_alternative
+                                                    (literal)))))
+                                            (conditional_close))))))
+                                  (and_if)
+                                  (pipeline
+                                    (pipe_sequence
+                                      (command
+                                        (compound_command
+                                          (arithmetic_command
+                                            (arithmetic_update_expression
+                                              (arithmetic_variable)
+                                              (arithmetic_operator))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 command substitution resets quote context
@@ -56,31 +66,38 @@ echo "$(printf '%s' "$x")"
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (command_substitution
-                  body: (command_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              argument: (word
-                                (single_quoted
-                                  (single_quote_content)))
-                              argument: (word
-                                (double_quoted
-                                  (parameter_expansion
-                                    parameter: (variable_name)))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (command_substitution
+                        body: (command_substitution_body
+                          (complete_commands
+                            command: (complete_command
+                              body: (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    (pipe_sequence
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (single_quoted
+                                              (single_quote_content)))
+                                          argument: (word
+                                            (double_quoted
+                                              (parameter_expansion
+                                                parameter: (variable_name)))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 command substitution selected by shell boundary
@@ -92,54 +109,71 @@ echo $((printf hi);:) $( (echo yes))
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (command_substitution
-                body: (command_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (subshell
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (complete_commands
+                          command: (complete_command
                             body: (list
                               and_or: (and_or
                                 pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (literal)))))))))))
-                    separator: (separator_op)
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (literal))))))))))
-            argument: (word
-              (command_substitution
-                body: (command_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (subshell
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (subshell
+                                          body: (compound_list
+                                            body: (term
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  (pipe_sequence
+                                                    command: (command
+                                                      body: (simple_command
+                                                        name: (word
+                                                          (literal))
+                                                        argument: (word
+                                                          (literal)))))))))))))))
+                              separator: (separator_op)
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal)))))))))))))
+                  argument: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (complete_commands
+                          command: (complete_command
                             body: (list
                               and_or: (and_or
                                 pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (literal)))))))))))))))))))))
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (subshell
+                                          body: (compound_list
+                                            body: (term
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  (pipe_sequence
+                                                    command: (command
+                                                      body: (simple_command
+                                                        name: (word
+                                                          (literal))
+                                                        argument: (word
+                                                          (literal))))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 current shell substitutions
@@ -151,54 +185,64 @@ echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (current_shell_substitution
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (word
-                            (literal))
-                          (word
-                            (literal))))))
-                  (separator
-                    (separator_op))))
-              (literal))
-            (word
-              (reply_substitution
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (assignment_word
-                            (variable_name)
-                            (assignment_value
-                              (literal)))))))
-                  (separator
-                    (separator_op)))))
-            (word
-              (double_quoted
-                (current_shell_substitution
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))))))
-                    (separator
-                      (separator_op))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (current_shell_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal))
+                                    (word
+                                      (literal)))))))
+                          (separator
+                            (separator_op)))))
+                    (literal))
+                  (word
+                    (reply_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (simple_command
+                                    (assignment_word
+                                      (variable_name)
+                                      (assignment_value
+                                        (literal))))))))
+                          (separator
+                            (separator_op))))))
+                  (word
+                    (double_quoted
+                      (current_shell_substitution
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (literal)))))))
+                            (separator
+                              (separator_op))))))))))))))
+    (newline_list)))
 
 ==================
 nested current shell substitutions
@@ -210,77 +254,197 @@ echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; })
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (current_shell_substitution
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (brace_group
-                          (list
-                            (and_or
-                              (pipeline
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (current_shell_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (compound_command
+                                    (brace_group
+                                      (compound_list
+                                        (term
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (literal)))))))
+                                          (separator
+                                            (separator_op))))))))))
+                          (separator
+                            (separator_op))))))
+                  (word
+                    (current_shell_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
                                 (command
                                   (simple_command
                                     (word
                                       (literal))
                                     (word
-                                      (literal))))))
-                            (separator
-                              (separator_op)))))))
-                  (separator
-                    (separator_op)))))
-            (word
-              (current_shell_substitution
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (word
-                            (literal))
-                          (word
-                            (double_quoted
-                              (double_quote_text)))
-                          (word
-                            (current_shell_substitution
-                              (list
-                                (and_or
-                                  (pipeline
+                                      (double_quoted
+                                        (double_quote_text)))
+                                    (word
+                                      (current_shell_substitution
+                                        (compound_list
+                                          (term
+                                            (and_or
+                                              (pipeline
+                                                (pipe_sequence
+                                                  (command
+                                                    (simple_command
+                                                      (word
+                                                        (literal))
+                                                      (word
+                                                        (literal)))))))
+                                            (separator
+                                              (separator_op)))))))))))
+                          (separator
+                            (separator_op))))))
+                  (word
+                    (arithmetic_expansion
+                      (arithmetic_binary_expression
+                        (arithmetic_number)
+                        (arithmetic_operator)
+                        (current_shell_substitution
+                          (compound_list
+                            (term
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
                                     (command
                                       (simple_command
                                         (word
                                           (literal))
                                         (word
-                                          (literal))))))
-                                (separator
-                                  (separator_op)))))))))
-                  (separator
-                    (separator_op)))))
-            (word
-              (arithmetic_expansion
-                (arithmetic_binary_expression
-                  (arithmetic_number)
-                  (arithmetic_operator)
-                  (current_shell_substitution
-                    (list
-                      (and_or
-                        (pipeline
-                          (command
-                            (simple_command
-                              (word
-                                (literal))
-                              (word
-                                (literal))))))
-                      (separator
-                        (separator_op)))))))))))))
+                                          (literal)))))))
+                              (separator
+                                (separator_op)))))))))))))))
+    (newline_list)))
+
+==================
+compound commands close braced substitutions after blanks
+:language(bash)
+:language(bash_default)
+==================
+echo ${ { printf hi; } } ${| ( REPLY=hi ) }x "${ if :; then printf hi; fi }"
+
+------------------
+
+(program
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (current_shell_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (compound_command
+                                    (brace_group
+                                      (compound_list
+                                        (term
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (literal)))))))
+                                          (separator
+                                            (separator_op))))))))))))))
+                  (word
+                    (reply_substitution
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (compound_command
+                                    (subshell
+                                      (compound_list
+                                        (term
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (assignment_word
+                                                      (variable_name)
+                                                      (assignment_value
+                                                        (literal)))))))))))))))))))
+                    (literal))
+                  (word
+                    (double_quoted
+                      (current_shell_substitution
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (compound_command
+                                      (if_clause
+                                        (if_keyword)
+                                        (compound_list
+                                          (term
+                                            (and_or
+                                              (pipeline
+                                                (pipe_sequence
+                                                  (command
+                                                    (simple_command
+                                                      (word
+                                                        (literal)))))))
+                                            (separator
+                                              (separator_op))))
+                                        (then_keyword)
+                                        (compound_list
+                                          (term
+                                            (and_or
+                                              (pipeline
+                                                (pipe_sequence
+                                                  (command
+                                                    (simple_command
+                                                      (word
+                                                        (literal))
+                                                      (word
+                                                        (literal)))))))
+                                            (separator
+                                              (separator_op))))
+                                        (fi_keyword)))))))))))))))))))
+    (newline_list)))
 
 ==================
 empty current shell substitutions
@@ -293,19 +457,25 @@ echo ${ } ${| } ${
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (current_shell_substitution))
-            (word
-              (reply_substitution))
-            (word
-              (current_shell_substitution))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (current_shell_substitution))
+                  (word
+                    (reply_substitution))
+                  (word
+                    (current_shell_substitution
+                      (linebreak
+                        (newline_list)))))))))))
+    (newline_list)))
 
 ==================
 here strings in substitutions retain enclosing arithmetic and braces
@@ -317,51 +487,61 @@ here strings in substitutions retain enclosing arithmetic and braces
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (arithmetic_expansion
-                expression: (arithmetic_binary_expression
-                  left: (command_substitution
-                    body: (command_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                redirect: (io_redirect
-                                  body: (io_file
-                                    operator: (here_string_operator)
-                                    filename: (word
-                                      (literal)))))))))))
-                  operator: (arithmetic_operator)
-                  right: (arithmetic_number))))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (command_substitution
-                    body: (command_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                redirect: (io_redirect
-                                  body: (io_file
-                                    operator: (here_string_operator)
-                                    filename: (word
-                                      (literal))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (arithmetic_expansion
+                      expression: (arithmetic_binary_expression
+                        left: (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            redirect: (io_redirect
+                                              body: (io_file
+                                                operator: (here_string_operator)
+                                                filename: (word
+                                                  (literal))))))))))))))
+                        operator: (arithmetic_operator)
+                        right: (arithmetic_number))))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            redirect: (io_redirect
+                                              body: (io_file
+                                                operator: (here_string_operator)
+                                                filename: (word
+                                                  (literal))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 arithmetic shifts in substitutions do not start here documents
@@ -374,35 +554,47 @@ arithmetic shifts in substitutions do not start here documents
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (command_substitution
-                    body: (command_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (arithmetic_command
-                                expression: (arithmetic_binary_expression
-                                  left: (arithmetic_number)
-                                  operator: (arithmetic_operator)
-                                  right: (arithmetic_number))))))
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (compound_command
+                                            (arithmetic_command
+                                              expression: (arithmetic_binary_expression
+                                                left: (arithmetic_number)
+                                                operator: (arithmetic_operator)
+                                                right: (arithmetic_number))))))))))
+                              separator: (newline_list)
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 Braced substitutions balance groups after command prefixes
@@ -415,69 +607,87 @@ Braced substitutions balance groups after command prefixes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (current_shell_substitution
-                    body: (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          timing: (timing
-                            (time_keyword))
-                          command: (command
-                            body: (brace_group
-                              body: (list
-                                and_or: (and_or
-                                  pipeline: (pipeline
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (current_shell_substitution
+                          body: (compound_list
+                            body: (term
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  timing: (timing
+                                    (time_keyword))
+                                  (pipe_sequence
                                     command: (command
-                                      body: (simple_command
+                                      body: (compound_command
+                                        (brace_group
+                                          body: (compound_list
+                                            body: (term
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  (pipe_sequence
+                                                    command: (command
+                                                      body: (simple_command
+                                                        name: (word
+                                                          (literal)))))))
+                                              separator: (separator
+                                                operator: (separator_op))))))))))
+                              separator: (separator
+                                operator: (separator_op)))))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (reply_substitution
+                          body: (compound_list
+                            body: (term
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (coproc
+                                        (coproc_keyword)
                                         name: (word
-                                          (literal))))))
-                                separator: (separator
-                                  operator: (separator_op)))))))
-                      separator: (separator
-                        operator: (separator_op)))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (reply_substitution
-                    body: (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (coproc
-                              (coproc_keyword)
-                              name: (word
-                                (literal))
-                              body: (brace_group
-                                body: (list
-                                  and_or: (and_or
-                                    pipeline: (pipeline
-                                      command: (command
-                                        body: (simple_command
-                                          name: (word
-                                            (literal))))))
-                                  separator: (separator
-                                    operator: (separator_op))))))))
-                      separator: (separator
-                        operator: (separator_op)))))))))))))
+                                          (literal))
+                                        body: (compound_command
+                                          (brace_group
+                                            body: (compound_list
+                                              body: (term
+                                                and_or: (and_or
+                                                  pipeline: (pipeline
+                                                    (pipe_sequence
+                                                      command: (command
+                                                        body: (simple_command
+                                                          name: (word
+                                                            (literal)))))))
+                                                separator: (separator
+                                                  operator: (separator_op)))))))))))
+                              separator: (separator
+                                operator: (separator_op)))))))))))))))
+    separator: (newline_list)))
 
 ==================
 Conditional words and regex groups preserve enclosing braced substitutions
@@ -490,75 +700,89 @@ Conditional words and regex groups preserve enclosing braced substitutions
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (current_shell_substitution
-                    body: (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (conditional_command
-                              (conditional_open)
-                              condition: (conditional_binary_expression
-                                left: (word
-                                  (literal))
-                                operator: (conditional_match_operator)
-                                right: (conditional_pattern
-                                  (literal)))
-                              (conditional_close)))))
-                      separator: (separator
-                        operator: (separator_op)))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (current_shell_substitution
-                    body: (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (conditional_command
-                              (conditional_open)
-                              condition: (conditional_binary_expression
-                                left: (word
-                                  (literal))
-                                operator: (conditional_regex_operator)
-                                right: (regex_operand
-                                  expression: (extended_reg_exp
-                                    (ere_branch
-                                      (ere_expression
-                                        expression: (extended_reg_exp
-                                          (ere_branch
-                                            (ere_expression
-                                              (one_char_or_coll_elem_ere
-                                                (ordinary_character)))
-                                            (ere_expression
-                                              (one_char_or_coll_elem_ere
-                                                (ordinary_character))))
-                                          (ere_branch
-                                            (ere_expression
-                                              (one_char_or_coll_elem_ere
-                                                (ordinary_character))))))))))
-                              (conditional_close)))))
-                      separator: (separator
-                        operator: (separator_op)))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (current_shell_substitution
+                          body: (compound_list
+                            body: (term
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (conditional_command
+                                          (conditional_open)
+                                          condition: (conditional_binary_expression
+                                            left: (word
+                                              (literal))
+                                            operator: (conditional_match_operator)
+                                            right: (conditional_pattern
+                                              (literal)))
+                                          (conditional_close)))))))
+                              separator: (separator
+                                operator: (separator_op)))))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (current_shell_substitution
+                          body: (compound_list
+                            body: (term
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (conditional_command
+                                          (conditional_open)
+                                          condition: (conditional_binary_expression
+                                            left: (word
+                                              (literal))
+                                            operator: (conditional_regex_operator)
+                                            right: (regex_operand
+                                              expression: (extended_reg_exp
+                                                (ere_branch
+                                                  (ere_expression
+                                                    expression: (extended_reg_exp
+                                                      (ere_branch
+                                                        (ere_expression
+                                                          (one_char_or_coll_elem_ere
+                                                            (ordinary_character)))
+                                                        (ere_expression
+                                                          (one_char_or_coll_elem_ere
+                                                            (ordinary_character))))
+                                                      (ere_branch
+                                                        (ere_expression
+                                                          (one_char_or_coll_elem_ere
+                                                            (ordinary_character))))))))))
+                                          (conditional_close)))))))
+                              separator: (separator
+                                operator: (separator_op)))))))))))))))
+    separator: (newline_list)))
 
 ==================
 Braced command lookahead distinguishes quoted commands and literal closing braces
@@ -571,55 +795,67 @@ Braced command lookahead distinguishes quoted commands and literal closing brace
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (current_shell_substitution
-                    body: (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              argument: (word
-                                (literal))))))
-                      separator: (separator
-                        operator: (separator_op)))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (double_quoted
-                    (reply_substitution
-                      body: (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                argument: (word
-                                  (single_quoted
-                                    (single_quote_content)))))))
-                        separator: (separator
-                          operator: (separator_op))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (current_shell_substitution
+                          body: (compound_list
+                            body: (term
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (literal)))))))
+                              separator: (separator
+                                operator: (separator_op)))))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (double_quoted
+                          (reply_substitution
+                            body: (compound_list
+                              body: (term
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    (pipe_sequence
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (single_quoted
+                                              (single_quote_content))))))))
+                                separator: (separator
+                                  operator: (separator_op))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 ambiguous command substitutions keep comments and here-documents
@@ -635,57 +871,75 @@ E
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (command_substitution
-                body: (command_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (subshell
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (complete_commands
+                          command: (complete_command
                             body: (list
                               and_or: (and_or
                                 pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (literal)))))))))))
-                    separator: (comment
-                      (comment_text))))))
-            argument: (word
-              (command_substitution
-                body: (command_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (subshell
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (subshell
+                                          body: (compound_list
+                                            body: (term
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  (pipe_sequence
+                                                    command: (command
+                                                      body: (simple_command
+                                                        name: (word
+                                                          (literal))
+                                                        argument: (word
+                                                          (literal)))))))))))))))))
+                          separator: (newline_list
+                            (comment
+                              (comment_text)))))))
+                  argument: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (complete_commands
+                          command: (complete_command
                             body: (list
                               and_or: (and_or
                                 pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))))))))
-                          redirect: (io_redirect
-                            body: (io_here
-                              operator: (dless)
-                              end: (here_end
-                                word: (word
-                                  (literal))))))))
-                    separator: (here_document_sequence
-                      line_end: (here_document_line_end)
-                      document: (here_document
-                        body: (here_document_body
-                          (here_document_text))
-                        end: (here_document_end
-                          (here_document_end_text))))))))))))))
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (compound_command
+                                        (subshell
+                                          body: (compound_list
+                                            body: (term
+                                              and_or: (and_or
+                                                pipeline: (pipeline
+                                                  (pipe_sequence
+                                                    command: (command
+                                                      body: (simple_command
+                                                        name: (word
+                                                          (literal)))))))))))
+                                      redirect: (io_redirect
+                                        body: (io_here
+                                          operator: (dless)
+                                          end: (here_end
+                                            word: (word
+                                              (literal)))))))))))
+                          separator: (newline_list
+                            (here_document_sequence
+                              line_end: (here_document_line_end)
+                              document: (here_document
+                                body: (here_document_body
+                                  (here_document_text))
+                                end: (here_document_end
+                                  (here_document_end_text))))))))))))))))
+    separator: (newline_list)))

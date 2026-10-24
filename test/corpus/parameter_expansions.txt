@@ -8,40 +8,44 @@ echo $x ${x} ${x:-default} ${#x} ${x%%a*} "$@"
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                operator: (parameter_value_operator)
-                word: (parameter_word
-                  (literal))))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_length_operator)
-                parameter: (variable_name)))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                operator: (parameter_pattern_operator)
-                pattern: (parameter_pattern
-                  (literal)
-                  (pattern_star_source))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (special_parameter))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (literal))))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_length_operator)
+                      parameter: (variable_name)))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_pattern_operator)
+                      pattern: (parameter_pattern
+                        (literal)
+                        (pattern_star_source))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (special_parameter)))))))))))
+    separator: (newline_list)))
 
 ==================
 extquote inside quoted parameter
@@ -53,29 +57,33 @@ echo "${x:-$'\u3042'}" "${x:-$"hello"}"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (dollar_single_quoted
-                      (dollar_single_quote_escape))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (locale_quoted
-                      (double_quote_text))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (dollar_single_quoted
+                            (dollar_single_quote_escape))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (locale_quoted
+                            (double_quote_text)))))))))))))
+    (newline_list)))
 
 ==================
 indirection and enumeration
@@ -87,52 +95,56 @@ echo ${!ref} ${!prefix*} ${!prefix@} ${!arr[@]} ${!arr[*]} ${!ref@Q}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (variable_name)))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (parameter_name_prefix
-                  (literal))
-                (parameter_names_operator)))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (parameter_name_prefix
-                  (literal))
-                (parameter_names_operator)))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (subscript_all_elements_candidate))))))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (subscript_all_elements_candidate))))))
-            (word
-              (parameter_expansion
-                (parameter_indirection_operator)
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (variable_name)))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (parameter_name_prefix
+                        (literal))
+                      (parameter_names_operator)))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (parameter_name_prefix
+                        (literal))
+                      (parameter_names_operator)))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (subscript_all_elements_candidate))))))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (subscript_all_elements_candidate))))))
+                  (word
+                    (parameter_expansion
+                      (parameter_indirection_operator)
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code)))))))))))
+    (newline_list)))
 
 ==================
 special parameter indirection preserves operators and targets
@@ -145,48 +157,52 @@ special parameter indirection preserves operators and targets
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:30       and_or: and_or
-0:0  - 0:30         pipeline: pipeline
-0:0  - 0:30           command: command
-0:0  - 0:30             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:7                argument: word
-0:2  - 0:7                  parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    operator: parameter_indirection_operator `!`
-0:5  - 0:6                    parameter: special_parameter `!`
-0:6  - 0:7                    "}"
-0:8  - 0:15               argument: word
-0:8  - 0:15                 double_quoted
-0:8  - 0:9                    "\""
-0:9  - 0:14                   parameter_expansion
-0:9  - 0:10                     "$"
-0:10 - 0:11                     "{"
-0:11 - 0:12                     operator: parameter_indirection_operator `!`
-0:12 - 0:13                     parameter: special_parameter `$`
-0:13 - 0:14                     "}"
-0:14 - 0:15                   "\""
-0:16 - 0:24               argument: word
-0:16 - 0:24                 parameter_expansion
-0:16 - 0:17                   "$"
-0:17 - 0:18                   "{"
-0:18 - 0:19                   operator: parameter_indirection_operator `!`
-0:19 - 0:20                   parameter: special_parameter `$`
-0:20 - 0:22                   operator: parameter_value_operator `:-`
-0:22 - 0:23                   word: parameter_word
-0:22 - 0:23                     literal `x`
-0:23 - 0:24                   "}"
-0:25 - 0:30               argument: word
-0:25 - 0:30                 parameter_expansion
-0:25 - 0:26                   "$"
-0:26 - 0:27                   "{"
-0:27 - 0:28                   parameter: special_parameter `!`
-0:28 - 0:29                   operator: parameter_value_operator `-`
-0:29 - 0:30                   "}"
-0:30 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:30       command: complete_command
+0:0  - 0:30         body: list
+0:0  - 0:30           and_or: and_or
+0:0  - 0:30             pipeline: pipeline
+0:0  - 0:30               pipe_sequence
+0:0  - 0:30                 command: command
+0:0  - 0:30                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:7                      argument: word
+0:2  - 0:7                        parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          operator: parameter_indirection_operator `!`
+0:5  - 0:6                          parameter: special_parameter `!`
+0:6  - 0:7                          "}"
+0:8  - 0:15                     argument: word
+0:8  - 0:15                       double_quoted
+0:8  - 0:9                          "\""
+0:9  - 0:14                         parameter_expansion
+0:9  - 0:10                           "$"
+0:10 - 0:11                           "{"
+0:11 - 0:12                           operator: parameter_indirection_operator `!`
+0:12 - 0:13                           parameter: special_parameter `$`
+0:13 - 0:14                           "}"
+0:14 - 0:15                         "\""
+0:16 - 0:24                     argument: word
+0:16 - 0:24                       parameter_expansion
+0:16 - 0:17                         "$"
+0:17 - 0:18                         "{"
+0:18 - 0:19                         operator: parameter_indirection_operator `!`
+0:19 - 0:20                         parameter: special_parameter `$`
+0:20 - 0:22                         operator: parameter_value_operator `:-`
+0:22 - 0:23                         word: parameter_word
+0:22 - 0:23                           literal `x`
+0:23 - 0:24                         "}"
+0:25 - 0:30                     argument: word
+0:25 - 0:30                       parameter_expansion
+0:25 - 0:26                         "$"
+0:26 - 0:27                         "{"
+0:27 - 0:28                         parameter: special_parameter `!`
+0:28 - 0:29                         operator: parameter_value_operator `-`
+0:29 - 0:30                         "}"
+0:30 - 1:0        separator: newline_list
+0:30 - 1:0          "\n"
 
 ==================
 parameter arrays and length
@@ -198,59 +214,63 @@ echo ${arr[x+y]} ${arr[$x]} ${arr["a ] b"]} ${arr[b[2]]} ${#arr[@]}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_binary_expression
-                        (arithmetic_candidate_variable)
-                        (arithmetic_candidate_operator)
-                        (arithmetic_candidate_variable)))))))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (parameter_expansion
-                        (variable_name)))))))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_source_expression
-                        (double_quoted
-                          (double_quote_text))))))))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_array_reference
-                        (arithmetic_candidate_variable)
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
                         (array_subscript
                           (subscript_source
-                            (arithmetic_candidate_number)))))))))
-            (word
-              (parameter_expansion
-                (parameter_length_operator)
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (subscript_all_elements_candidate))))))))))))
+                            (arithmetic_candidate_binary_expression
+                              (arithmetic_candidate_variable)
+                              (arithmetic_candidate_operator)
+                              (arithmetic_candidate_variable)))))))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (parameter_expansion
+                              (variable_name)))))))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_source_expression
+                              (double_quoted
+                                (double_quote_text))))))))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_array_reference
+                              (arithmetic_candidate_variable)
+                              (array_subscript
+                                (subscript_source
+                                  (arithmetic_candidate_number)))))))))
+                  (word
+                    (parameter_expansion
+                      (parameter_length_operator)
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (subscript_all_elements_candidate)))))))))))))
+    (newline_list)))
 
 ==================
 parameter value operators
@@ -262,61 +282,65 @@ echo ${x:-a} ${x:=a} ${x:+a} ${x:?a} ${x-a} ${x+a} ${x=a} ${x?a}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 substring operands
@@ -328,78 +352,82 @@ echo ${x:1:2} ${x: -2} ${x:(a?b:c):d} ${x:a?b:c:d} ${x:${n}:$((m+1))}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_number))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_number)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_unary_expression
-                      (arithmetic_operator)
-                      (arithmetic_number))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (parenthesized_arithmetic
-                      (arithmetic_conditional_expression
-                        (arithmetic_variable)
-                        (arithmetic_operator)
-                        (arithmetic_variable)
-                        (arithmetic_operator)
-                        (arithmetic_variable))))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_variable)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_conditional_expression
-                      (arithmetic_variable)
-                      (arithmetic_operator)
-                      (arithmetic_variable)
-                      (arithmetic_operator)
-                      (arithmetic_variable)))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_variable)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
                     (parameter_expansion
-                      (variable_name)))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_expansion
-                      (arithmetic_binary_expression
-                        (arithmetic_variable)
-                        (arithmetic_operator)
-                        (arithmetic_number)))))))))))))
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_number))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_number)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_unary_expression
+                            (arithmetic_operator)
+                            (arithmetic_number))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (parenthesized_arithmetic
+                            (arithmetic_conditional_expression
+                              (arithmetic_variable)
+                              (arithmetic_operator)
+                              (arithmetic_variable)
+                              (arithmetic_operator)
+                              (arithmetic_variable))))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_variable)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_conditional_expression
+                            (arithmetic_variable)
+                            (arithmetic_operator)
+                            (arithmetic_variable)
+                            (arithmetic_operator)
+                            (arithmetic_variable)))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_variable)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (parameter_expansion
+                            (variable_name)))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_expansion
+                            (arithmetic_binary_expression
+                              (arithmetic_variable)
+                              (arithmetic_operator)
+                              (arithmetic_number))))))))))))))
+    (newline_list)))
 
 ==================
 parameter replacement
@@ -411,88 +439,92 @@ echo ${x/a/b} ${x//a/b} ${x/#a/b} ${x/%a/b} ${x/a} ${x/a/} ${x//\//x} ${x/[a/]/b
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (escaped_character))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (escaped_character))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 quoted replacement
@@ -504,57 +536,64 @@ echo "${x//a/'b c'}" "${x/a/$'\n'}" ${x/a/$(echo hi)}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_replacement
-                    (parameter_replacement_operator)
-                    (parameter_pattern
-                      (literal))
-                    (parameter_replacement_separator)
-                    (parameter_word
-                      (single_quoted
-                        (single_quote_content)))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_replacement
-                    (parameter_replacement_operator)
-                    (parameter_pattern
-                      (literal))
-                    (parameter_replacement_separator)
-                    (parameter_word
-                      (dollar_single_quoted
-                        (dollar_single_quote_escape)))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (command_substitution
-                      (command_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (word
-                                    (literal)))))))))))))))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_replacement
+                          (parameter_replacement_operator)
+                          (parameter_pattern
+                            (literal))
+                          (parameter_replacement_separator)
+                          (parameter_word
+                            (single_quoted
+                              (single_quote_content)))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_replacement
+                          (parameter_replacement_operator)
+                          (parameter_pattern
+                            (literal))
+                          (parameter_replacement_separator)
+                          (parameter_word
+                            (dollar_single_quoted
+                              (dollar_single_quote_escape)))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (command_substitution
+                            (command_substitution_body
+                              (complete_commands
+                                (complete_command
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (pipe_sequence
+                                          (command
+                                            (simple_command
+                                              (word
+                                                (literal))
+                                              (word
+                                                (literal)))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 case toggle operators and pattern boundaries
@@ -567,46 +606,50 @@ case toggle operators and pattern boundaries
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:25       and_or: and_or
-0:0  - 0:25         pipeline: pipeline
-0:0  - 0:25           command: command
-0:0  - 0:25             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:7                argument: word
-0:2  - 0:7                  parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    parameter: variable_name `x`
-0:5  - 0:6                    parameter_case_conversion
-0:5  - 0:6                      operator: parameter_case_operator `~`
-0:6  - 0:7                    "}"
-0:8  - 0:17               argument: word
-0:8  - 0:17                 double_quoted
-0:8  - 0:9                    "\""
-0:9  - 0:16                   parameter_expansion
-0:9  - 0:10                     "$"
-0:10 - 0:11                     "{"
-0:11 - 0:12                     parameter: variable_name `x`
-0:12 - 0:15                     parameter_case_conversion
-0:12 - 0:14                       operator: parameter_case_operator `~~`
-0:14 - 0:15                       pattern: parameter_pattern
-0:14 - 0:15                         pattern_question_source `?`
-0:15 - 0:16                     "}"
-0:16 - 0:17                   "\""
-0:18 - 0:25               argument: word
-0:18 - 0:25                 parameter_expansion
-0:18 - 0:19                   "$"
-0:19 - 0:20                   "{"
-0:20 - 0:21                   parameter: variable_name `x`
-0:21 - 0:24                   parameter_case_conversion
-0:21 - 0:23                     operator: parameter_case_operator `~~`
-0:23 - 0:24                     pattern: parameter_pattern
-0:23 - 0:24                       tilde_expansion
-0:23 - 0:24                         "~"
-0:24 - 0:25                   "}"
-0:25 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:25       command: complete_command
+0:0  - 0:25         body: list
+0:0  - 0:25           and_or: and_or
+0:0  - 0:25             pipeline: pipeline
+0:0  - 0:25               pipe_sequence
+0:0  - 0:25                 command: command
+0:0  - 0:25                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:7                      argument: word
+0:2  - 0:7                        parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          parameter: variable_name `x`
+0:5  - 0:6                          parameter_case_conversion
+0:5  - 0:6                            operator: parameter_case_operator `~`
+0:6  - 0:7                          "}"
+0:8  - 0:17                     argument: word
+0:8  - 0:17                       double_quoted
+0:8  - 0:9                          "\""
+0:9  - 0:16                         parameter_expansion
+0:9  - 0:10                           "$"
+0:10 - 0:11                           "{"
+0:11 - 0:12                           parameter: variable_name `x`
+0:12 - 0:15                           parameter_case_conversion
+0:12 - 0:14                             operator: parameter_case_operator `~~`
+0:14 - 0:15                             pattern: parameter_pattern
+0:14 - 0:15                               pattern_question_source `?`
+0:15 - 0:16                           "}"
+0:16 - 0:17                         "\""
+0:18 - 0:25                     argument: word
+0:18 - 0:25                       parameter_expansion
+0:18 - 0:19                         "$"
+0:19 - 0:20                         "{"
+0:20 - 0:21                         parameter: variable_name `x`
+0:21 - 0:24                         parameter_case_conversion
+0:21 - 0:23                           operator: parameter_case_operator `~~`
+0:23 - 0:24                           pattern: parameter_pattern
+0:23 - 0:24                             tilde_expansion
+0:23 - 0:24                               "~"
+0:24 - 0:25                         "}"
+0:25 - 1:0        separator: newline_list
+0:25 - 1:0          "\n"
 
 ==================
 case conversion and transformations
@@ -618,100 +661,104 @@ echo ${x^} ${x^^[ab]} ${x,?} ${x,,} ${x@U} ${x@u} ${x@L} ${x@Q} ${x@E} ${x@P} ${
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_case_conversion
-                  (parameter_case_operator))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_case_conversion
-                  (parameter_case_operator)
-                  (parameter_pattern
-                    (pattern_bracket_source
-                      (pattern_bracket_members_source
-                        (pattern_bracket_character_source)
-                        (pattern_bracket_character_source)))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_case_conversion
-                  (parameter_case_operator)
-                  (parameter_pattern
-                    (pattern_question_source)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_case_conversion
-                  (parameter_case_operator))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_transformation
-                  (parameter_transformation_operator)
-                  (parameter_transformation_code))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_case_conversion
+                        (parameter_case_operator))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_case_conversion
+                        (parameter_case_operator)
+                        (parameter_pattern
+                          (pattern_bracket_source
+                            (pattern_bracket_members_source
+                              (pattern_bracket_character_source)
+                              (pattern_bracket_character_source)))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_case_conversion
+                        (parameter_case_operator)
+                        (parameter_pattern
+                          (pattern_question_source)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_case_conversion
+                        (parameter_case_operator))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_transformation
+                        (parameter_transformation_operator)
+                        (parameter_transformation_code)))))))))))
+    (newline_list)))
 
 ==================
 extglob in parameter patterns
@@ -722,51 +769,55 @@ echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_pattern_operator)
-                (parameter_pattern
-                  (extglob_pattern
-                    (extglob_operator)
-                    (extglob_alternative
-                      (literal))
-                    (extglob_alternative
-                      (literal))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_pattern_operator)
-                  (parameter_pattern
-                    (extglob_pattern
-                      (extglob_operator)
-                      (extglob_alternative
-                        (literal))
-                      (extglob_alternative
-                        (literal)))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (extglob_pattern
-                      (extglob_operator)
-                      (extglob_alternative
-                        (literal))
-                      (extglob_alternative
-                        (literal))))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_pattern_operator)
+                      (parameter_pattern
+                        (extglob_pattern
+                          (extglob_operator)
+                          (extglob_alternative
+                            (literal))
+                          (extglob_alternative
+                            (literal))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_pattern_operator)
+                        (parameter_pattern
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (literal))
+                            (extglob_alternative
+                              (literal)))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (literal))
+                            (extglob_alternative
+                              (literal))))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 disabled parameter extglobs remain ordinary pattern source
@@ -777,36 +828,40 @@ echo ${x##@(a|b)} "${x%%!(a|b)}" ${x//@(a|b)/z}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_pattern_operator)
-                (parameter_pattern
-                  (literal))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_pattern_operator)
-                  (parameter_pattern
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_pattern_operator)
+                      (parameter_pattern
+                        (literal))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_pattern_operator)
+                        (parameter_pattern
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 disabled parameter extglobs preserve quotes expansions and special parameters
@@ -817,53 +872,60 @@ echo ${x:-@("$y"|$(printf Z))} ${x/a/@(b|c)} ${x:-$@(a|b)}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal)
-                  (double_quoted
-                    (parameter_expansion
-                      (variable_name)))
-                  (literal)
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (word
-                                  (literal)))))))))
-                  (literal))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_value_operator)
-                (parameter_word
-                  (parameter_expansion
-                    (special_parameter))
-                  (literal))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal)
+                        (double_quoted
+                          (parameter_expansion
+                            (variable_name)))
+                        (literal)
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (word
+                                              (literal))))))))))))
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (parameter_expansion
+                          (special_parameter))
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 quoted parameter process source
@@ -875,20 +937,24 @@ echo "${x:-<(echo hi)}"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (double_quote_text)))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (double_quote_text))))))))))))
+    (newline_list)))
 
 ==================
 quoted parameter extglob value
@@ -900,20 +966,24 @@ echo "${x:-@(a|b)}"
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (double_quote_text)))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (double_quote_text))))))))))))
+    (newline_list)))
 
 ==================
 parameter process replacement
@@ -925,33 +995,40 @@ echo ${x/a/<(echo hi)}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (process_substitution
-                      (command_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (word
-                                    (literal)))))))))))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (process_substitution
+                            (command_substitution_body
+                              (complete_commands
+                                (complete_command
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (pipe_sequence
+                                          (command
+                                            (simple_command
+                                              (word
+                                                (literal))
+                                              (word
+                                                (literal)))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 special exclamation parameter operators
@@ -963,31 +1040,35 @@ echo ${!:-none} ${!-none} ${!+yes}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (special_parameter)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (special_parameter)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))
-            (word
-              (parameter_expansion
-                (special_parameter)
-                (parameter_value_operator)
-                (parameter_word
-                  (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (special_parameter)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (special_parameter)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal))))
+                  (word
+                    (parameter_expansion
+                      (special_parameter)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 replacement separators precede bracket and extglob patterns
@@ -999,46 +1080,50 @@ echo ${x//[a/]/X} ${x//[a\/]/X} ${x/@(a/b)/X}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (pattern_bracket_source
-                      (pattern_bracket_members_source
-                        (pattern_bracket_character_source)
-                        (escaped_character))))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (pattern_bracket_source
+                            (pattern_bracket_members_source
+                              (pattern_bracket_character_source)
+                              (escaped_character))))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 parameter extglobs retain bracket members and partial brackets
@@ -1049,44 +1134,48 @@ echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (extglob_pattern
-                      (extglob_operator)
-                      (extglob_alternative
-                        (literal)
-                        (pattern_bracket_source
-                          (pattern_bracket_members_source
-                            (pattern_bracket_character_source)))
-                        (literal))))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (extglob_pattern
-                      (extglob_operator)
-                      (extglob_alternative
-                        (literal)
-                        (literal))))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (literal)
+                              (pattern_bracket_source
+                                (pattern_bracket_members_source
+                                  (pattern_bracket_character_source)))
+                              (literal))))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (literal)
+                              (literal))))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 disabled parameter extglobs retain ordinary brackets
@@ -1097,37 +1186,41 @@ echo ${x/@(a[)]b)/X} ${x/@(a[)/X}
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal)
-                    (pattern_bracket_source
-                      (pattern_bracket_members_source
-                        (pattern_bracket_character_source)))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
                     (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_replacement
-                  (parameter_replacement_operator)
-                  (parameter_pattern
-                    (literal))
-                  (parameter_replacement_separator)
-                  (parameter_word
-                    (literal)))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal)
+                          (pattern_bracket_source
+                            (pattern_bracket_members_source
+                              (pattern_bracket_character_source)))
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal)))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_replacement
+                        (parameter_replacement_operator)
+                        (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        (parameter_word
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 parameter array keys retain unmatched parentheses
@@ -1139,40 +1232,44 @@ echo ${a[(]} "${a[)]}" ${a[(key)]} after
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_source_expression
-                        (subscript_text)))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (array_reference
-                    (variable_name)
-                    (array_subscript
-                      (subscript_source
-                        (arithmetic_candidate_source_expression
-                          (subscript_text))))))))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (parenthesized_arithmetic_candidate
-                        (arithmetic_candidate_variable)))))))
-            (word
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_source_expression
+                              (subscript_text)))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (array_reference
+                          (variable_name)
+                          (array_subscript
+                            (subscript_source
+                              (arithmetic_candidate_source_expression
+                                (subscript_text))))))))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (parenthesized_arithmetic_candidate
+                              (arithmetic_candidate_variable)))))))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 substring separators across quotes nested expansions and source parentheses
@@ -1184,56 +1281,18 @@ substring separators across quotes nested expansions and source parentheses
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_substring
-                    (parameter_substring_operator)
-                    (substring_source
-                      (arithmetic_conditional_expression
-                        (arithmetic_number)
-                        (arithmetic_operator)
-                        (parameter_expansion
-                          (variable_name)
-                          (parameter_value_operator)
-                          (parameter_word
-                            (double_quote_text)))
-                        (arithmetic_operator)
-                        (command_substitution
-                          (command_substitution_body
-                            (list
-                              (and_or
-                                (pipeline
-                                  (command
-                                    (simple_command
-                                      (word
-                                        (literal))
-                                      (word
-                                        (literal)))))))))))
-                    (parameter_substring_separator)
-                    (substring_source
-                      (arithmetic_array_reference
-                        (arithmetic_variable)
-                        (array_subscript
-                          (subscript_source
-                            (arithmetic_candidate_source_expression
-                              (double_quoted
-                                (double_quote_text)))))))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (parenthesized_arithmetic
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
                       (parameter_expansion
                         (variable_name)
                         (parameter_substring
@@ -1242,40 +1301,88 @@ substring separators across quotes nested expansions and source parentheses
                             (arithmetic_conditional_expression
                               (arithmetic_number)
                               (arithmetic_operator)
-                              (arithmetic_number)
+                              (parameter_expansion
+                                (variable_name)
+                                (parameter_value_operator)
+                                (parameter_word
+                                  (double_quote_text)))
                               (arithmetic_operator)
-                              (arithmetic_number)))
+                              (command_substitution
+                                (command_substitution_body
+                                  (complete_commands
+                                    (complete_command
+                                      (list
+                                        (and_or
+                                          (pipeline
+                                            (pipe_sequence
+                                              (command
+                                                (simple_command
+                                                  (word
+                                                    (literal))
+                                                  (word
+                                                    (literal))))))))))))))
                           (parameter_substring_separator)
                           (substring_source
-                            (arithmetic_number))))))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (backquote_substitution
-                      (backquote_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (word
-                                    (literal)))))))))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_source_expression
-                      (arithmetic_variable)
-                      (arithmetic_source_fragment)
-                      (arithmetic_number)))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_source_expression
-                      (arithmetic_number)
-                      (arithmetic_source_fragment))))))))))))
+                            (arithmetic_array_reference
+                              (arithmetic_variable)
+                              (array_subscript
+                                (subscript_source
+                                  (arithmetic_candidate_source_expression
+                                    (double_quoted
+                                      (double_quote_text)))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (parenthesized_arithmetic
+                            (parameter_expansion
+                              (variable_name)
+                              (parameter_substring
+                                (parameter_substring_operator)
+                                (substring_source
+                                  (arithmetic_conditional_expression
+                                    (arithmetic_number)
+                                    (arithmetic_operator)
+                                    (arithmetic_number)
+                                    (arithmetic_operator)
+                                    (arithmetic_number)))
+                                (parameter_substring_separator)
+                                (substring_source
+                                  (arithmetic_number))))))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (backquote_substitution
+                            (backquote_substitution_body
+                              (complete_commands
+                                (complete_command
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (pipe_sequence
+                                          (command
+                                            (simple_command
+                                              (word
+                                                (literal))
+                                              (word
+                                                (literal))))))))))))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_source_expression
+                            (arithmetic_variable)
+                            (arithmetic_source_fragment)
+                            (arithmetic_number)))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_source_expression
+                            (arithmetic_number)
+                            (arithmetic_source_fragment)))))))))))))
+    (newline_list)))
 
 ==================
 substring arithmetic hierarchy and incomplete source lexemes
@@ -1287,73 +1394,77 @@ substring arithmetic hierarchy and incomplete source lexemes
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_substring
-                    (parameter_substring_operator)
-                    (substring_source
-                      (parenthesized_arithmetic
-                        (arithmetic_conditional_expression
-                          (arithmetic_binary_expression
-                            (arithmetic_variable)
-                            (arithmetic_operator)
-                            (arithmetic_number))
-                          (arithmetic_operator)
-                          (arithmetic_number)
-                          (arithmetic_operator)
-                          (arithmetic_number))))
-                    (parameter_substring_separator)
-                    (substring_source
-                      (arithmetic_number))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_source_expression
-                      (arithmetic_source_fragment)
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (double_quoted
                       (parameter_expansion
-                        (variable_name))))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_binary_expression
-                      (arithmetic_number)
-                      (arithmetic_operator)
-                      (arithmetic_binary_expression
-                        (arithmetic_number)
-                        (arithmetic_operator)
-                        (arithmetic_number)))))))
-            (word
-              (parameter_expansion
-                (variable_name)
-                (parameter_substring
-                  (parameter_substring_operator)
-                  (substring_source
-                    (arithmetic_source_expression
-                      (parenthesized_arithmetic_source
-                        (arithmetic_variable)
-                        (arithmetic_variable))
-                      (arithmetic_operator)
-                      (arithmetic_source_fragment)))
-                  (parameter_substring_separator)
-                  (substring_source
-                    (arithmetic_array_reference
-                      (arithmetic_variable)
-                      (array_subscript
-                        (subscript_source
-                          (arithmetic_candidate_source_expression
-                            (double_quoted
-                              (double_quote_text))))))))))))))))
+                        (variable_name)
+                        (parameter_substring
+                          (parameter_substring_operator)
+                          (substring_source
+                            (parenthesized_arithmetic
+                              (arithmetic_conditional_expression
+                                (arithmetic_binary_expression
+                                  (arithmetic_variable)
+                                  (arithmetic_operator)
+                                  (arithmetic_number))
+                                (arithmetic_operator)
+                                (arithmetic_number)
+                                (arithmetic_operator)
+                                (arithmetic_number))))
+                          (parameter_substring_separator)
+                          (substring_source
+                            (arithmetic_number))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_source_expression
+                            (arithmetic_source_fragment)
+                            (parameter_expansion
+                              (variable_name))))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_binary_expression
+                            (arithmetic_number)
+                            (arithmetic_operator)
+                            (arithmetic_binary_expression
+                              (arithmetic_number)
+                              (arithmetic_operator)
+                              (arithmetic_number)))))))
+                  (word
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_substring
+                        (parameter_substring_operator)
+                        (substring_source
+                          (arithmetic_source_expression
+                            (parenthesized_arithmetic_source
+                              (arithmetic_variable)
+                              (arithmetic_variable))
+                            (arithmetic_operator)
+                            (arithmetic_source_fragment)))
+                        (parameter_substring_separator)
+                        (substring_source
+                          (arithmetic_array_reference
+                            (arithmetic_variable)
+                            (array_subscript
+                              (subscript_source
+                                (arithmetic_candidate_source_expression
+                                  (double_quoted
+                                    (double_quote_text)))))))))))))))))
+    (newline_list)))
 
 ==================
 quoted parameter single-quote boundaries
@@ -1366,55 +1477,63 @@ quoted parameter single-quote boundaries
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (single_quoted
-                      (single_quote_content))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (single_quoted
-                      (single_quote_content))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (single_quoted
-                      (single_quote_content))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (double_quoted
-                    (parameter_expansion
-                      parameter: (variable_name)
-                      operator: (parameter_value_operator)
-                      word: (parameter_word
-                        (single_quoted
-                          (single_quote_content))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (single_quoted
+                            (single_quote_content))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (single_quoted
+                            (single_quote_content))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (single_quoted
+                            (single_quote_content)))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (double_quoted
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (single_quoted
+                                (single_quote_content)))))))))))))))
+    separator: (newline_list)))
 
 ==================
 substring operands share arithmetic precedence and conditional fields
@@ -1426,41 +1545,45 @@ substring operands share arithmetic precedence and conditional fields
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:27       and_or: and_or
-0:0  - 0:27         pipeline: pipeline
-0:0  - 0:27           command: command
-0:0  - 0:27             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:27               argument: word
-0:2  - 0:27                 double_quoted
-0:2  - 0:3                    "\""
-0:3  - 0:26                   parameter_expansion
-0:3  - 0:4                      "$"
-0:4  - 0:5                      "{"
-0:5  - 0:6                      parameter: variable_name `s`
-0:6  - 0:25                     parameter_substring
-0:6  - 0:7                        operator: parameter_substring_operator `:`
-0:7  - 0:23                       offset: substring_source
-0:8  - 0:23                         parenthesized_arithmetic
-0:8  - 0:9                            "("
-0:9  - 0:22                           expression: arithmetic_conditional_expression
-0:9  - 0:14                             condition: arithmetic_binary_expression
-0:9  - 0:10                               left: arithmetic_variable `n`
-0:11 - 0:12                               operator: arithmetic_operator `>`
-0:13 - 0:14                               right: arithmetic_number `0`
-0:15 - 0:16                             operator: arithmetic_operator `?`
-0:17 - 0:18                             consequence: arithmetic_number `1`
-0:19 - 0:20                             operator: arithmetic_operator `:`
-0:21 - 0:22                             alternative: arithmetic_number `0`
-0:22 - 0:23                           ")"
-0:23 - 0:24                       parameter_substring_separator `:`
-0:24 - 0:25                       length: substring_source
-0:24 - 0:25                         arithmetic_number `2`
-0:25 - 0:26                     "}"
-0:26 - 0:27                   "\""
-0:27 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:27       command: complete_command
+0:0  - 0:27         body: list
+0:0  - 0:27           and_or: and_or
+0:0  - 0:27             pipeline: pipeline
+0:0  - 0:27               pipe_sequence
+0:0  - 0:27                 command: command
+0:0  - 0:27                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:27                     argument: word
+0:2  - 0:27                       double_quoted
+0:2  - 0:3                          "\""
+0:3  - 0:26                         parameter_expansion
+0:3  - 0:4                            "$"
+0:4  - 0:5                            "{"
+0:5  - 0:6                            parameter: variable_name `s`
+0:6  - 0:25                           parameter_substring
+0:6  - 0:7                              operator: parameter_substring_operator `:`
+0:7  - 0:23                             offset: substring_source
+0:8  - 0:23                               parenthesized_arithmetic
+0:8  - 0:9                                  "("
+0:9  - 0:22                                 expression: arithmetic_conditional_expression
+0:9  - 0:14                                   condition: arithmetic_binary_expression
+0:9  - 0:10                                     left: arithmetic_variable `n`
+0:11 - 0:12                                     operator: arithmetic_operator `>`
+0:13 - 0:14                                     right: arithmetic_number `0`
+0:15 - 0:16                                   operator: arithmetic_operator `?`
+0:17 - 0:18                                   consequence: arithmetic_number `1`
+0:19 - 0:20                                   operator: arithmetic_operator `:`
+0:21 - 0:22                                   alternative: arithmetic_number `0`
+0:22 - 0:23                                 ")"
+0:23 - 0:24                             parameter_substring_separator `:`
+0:24 - 0:25                             length: substring_source
+0:24 - 0:25                               arithmetic_number `2`
+0:25 - 0:26                           "}"
+0:26 - 0:27                         "\""
+0:27 - 1:0        separator: newline_list
+0:27 - 1:0          "\n"
 
 ==================
 parameter replacement and substring operands retain separate fields
@@ -1472,48 +1595,52 @@ echo ${x//[a/]/日} ${x:(a?b:c):2}
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:34       and_or: and_or
-0:0  - 0:34         pipeline: pipeline
-0:0  - 0:34           command: command
-0:0  - 0:34             body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:4                  literal `echo`
-0:5  - 0:19               argument: word
-0:5  - 0:19                 parameter_expansion
-0:5  - 0:6                    "$"
-0:6  - 0:7                    "{"
-0:7  - 0:8                    parameter: variable_name `x`
-0:8  - 0:18                   parameter_replacement
-0:8  - 0:10                     operator: parameter_replacement_operator `//`
-0:10 - 0:12                     pattern: parameter_pattern
-0:10 - 0:12                       literal `[a`
-0:12 - 0:13                     parameter_replacement_separator `/`
-0:13 - 0:18                     replacement: parameter_word
-0:13 - 0:18                       literal `]/日`
-0:18 - 0:19                   "}"
-0:20 - 0:34               argument: word
-0:20 - 0:34                 parameter_expansion
-0:20 - 0:21                   "$"
-0:21 - 0:22                   "{"
-0:22 - 0:23                   parameter: variable_name `x`
-0:23 - 0:33                   parameter_substring
-0:23 - 0:24                     operator: parameter_substring_operator `:`
-0:24 - 0:31                     offset: substring_source
-0:24 - 0:31                       parenthesized_arithmetic
-0:24 - 0:25                         "("
-0:25 - 0:30                         expression: arithmetic_conditional_expression
-0:25 - 0:26                           condition: arithmetic_variable `a`
-0:26 - 0:27                           operator: arithmetic_operator `?`
-0:27 - 0:28                           consequence: arithmetic_variable `b`
-0:28 - 0:29                           operator: arithmetic_operator `:`
-0:29 - 0:30                           alternative: arithmetic_variable `c`
-0:30 - 0:31                         ")"
-0:31 - 0:32                     parameter_substring_separator `:`
-0:32 - 0:33                     length: substring_source
-0:32 - 0:33                       arithmetic_number `2`
-0:33 - 0:34                   "}"
-0:34 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:34       command: complete_command
+0:0  - 0:34         body: list
+0:0  - 0:34           and_or: and_or
+0:0  - 0:34             pipeline: pipeline
+0:0  - 0:34               pipe_sequence
+0:0  - 0:34                 command: command
+0:0  - 0:34                   body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:4                        literal `echo`
+0:5  - 0:19                     argument: word
+0:5  - 0:19                       parameter_expansion
+0:5  - 0:6                          "$"
+0:6  - 0:7                          "{"
+0:7  - 0:8                          parameter: variable_name `x`
+0:8  - 0:18                         parameter_replacement
+0:8  - 0:10                           operator: parameter_replacement_operator `//`
+0:10 - 0:12                           pattern: parameter_pattern
+0:10 - 0:12                             literal `[a`
+0:12 - 0:13                           parameter_replacement_separator `/`
+0:13 - 0:18                           replacement: parameter_word
+0:13 - 0:18                             literal `]/日`
+0:18 - 0:19                         "}"
+0:20 - 0:34                     argument: word
+0:20 - 0:34                       parameter_expansion
+0:20 - 0:21                         "$"
+0:21 - 0:22                         "{"
+0:22 - 0:23                         parameter: variable_name `x`
+0:23 - 0:33                         parameter_substring
+0:23 - 0:24                           operator: parameter_substring_operator `:`
+0:24 - 0:31                           offset: substring_source
+0:24 - 0:31                             parenthesized_arithmetic
+0:24 - 0:25                               "("
+0:25 - 0:30                               expression: arithmetic_conditional_expression
+0:25 - 0:26                                 condition: arithmetic_variable `a`
+0:26 - 0:27                                 operator: arithmetic_operator `?`
+0:27 - 0:28                                 consequence: arithmetic_variable `b`
+0:28 - 0:29                                 operator: arithmetic_operator `:`
+0:29 - 0:30                                 alternative: arithmetic_variable `c`
+0:30 - 0:31                               ")"
+0:31 - 0:32                           parameter_substring_separator `:`
+0:32 - 0:33                           length: substring_source
+0:32 - 0:33                             arithmetic_number `2`
+0:33 - 0:34                         "}"
+0:34 - 1:0        separator: newline_list
+0:34 - 1:0          "\n"
 
 ==================
 substring fields distinguish absent operands from whitespace source
@@ -1526,43 +1653,47 @@ substring fields distinguish absent operands from whitespace source
 ------------------
 
 0:0  - 2:0    program
-0:0  - 2:0      commands: list
-0:0  - 1:1        and_or: and_or
-0:0  - 1:1          pipeline: pipeline
-0:0  - 1:1            command: command
-0:0  - 1:1              body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:7                argument: word
-0:2  - 0:7                  parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    parameter: variable_name `x`
-0:5  - 0:6                    parameter_substring
-0:5  - 0:6                      operator: parameter_substring_operator `:`
-0:6  - 0:7                    "}"
-0:8  - 0:14               argument: word
-0:8  - 0:14                 parameter_expansion
-0:8  - 0:9                    "$"
-0:9  - 0:10                   "{"
-0:10 - 0:11                   parameter: variable_name `x`
-0:11 - 0:13                   parameter_substring
-0:11 - 0:12                     operator: parameter_substring_operator `:`
-0:12 - 0:13                     parameter_substring_separator `:`
-0:13 - 0:14                   "}"
-0:15 - 1:1                argument: word
-0:15 - 1:1                  parameter_expansion
-0:15 - 0:16                   "$"
-0:16 - 0:17                   "{"
-0:17 - 0:18                   parameter: variable_name `x`
-0:18 - 1:0                    parameter_substring
-0:18 - 0:19                     operator: parameter_substring_operator `:`
-0:19 - 0:21                     offset: substring_source ` \t`
-0:21 - 0:22                     parameter_substring_separator `:`
-0:22 - 1:0                      length: substring_source
-0:22 - 0:24                       ` \n`
-1:0  - 1:1                    "}"
-1:1  - 2:0        "\n"
+0:0  - 2:0      commands: complete_commands
+0:0  - 1:1        command: complete_command
+0:0  - 1:1          body: list
+0:0  - 1:1            and_or: and_or
+0:0  - 1:1              pipeline: pipeline
+0:0  - 1:1                pipe_sequence
+0:0  - 1:1                  command: command
+0:0  - 1:1                    body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:7                      argument: word
+0:2  - 0:7                        parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          parameter: variable_name `x`
+0:5  - 0:6                          parameter_substring
+0:5  - 0:6                            operator: parameter_substring_operator `:`
+0:6  - 0:7                          "}"
+0:8  - 0:14                     argument: word
+0:8  - 0:14                       parameter_expansion
+0:8  - 0:9                          "$"
+0:9  - 0:10                         "{"
+0:10 - 0:11                         parameter: variable_name `x`
+0:11 - 0:13                         parameter_substring
+0:11 - 0:12                           operator: parameter_substring_operator `:`
+0:12 - 0:13                           parameter_substring_separator `:`
+0:13 - 0:14                         "}"
+0:15 - 1:1                      argument: word
+0:15 - 1:1                        parameter_expansion
+0:15 - 0:16                         "$"
+0:16 - 0:17                         "{"
+0:17 - 0:18                         parameter: variable_name `x`
+0:18 - 1:0                          parameter_substring
+0:18 - 0:19                           operator: parameter_substring_operator `:`
+0:19 - 0:21                           offset: substring_source ` \t`
+0:21 - 0:22                           parameter_substring_separator `:`
+0:22 - 1:0                            length: substring_source
+0:22 - 0:24                             ` \n`
+1:0  - 1:1                          "}"
+1:1  - 2:0        separator: newline_list
+1:1  - 2:0          "\n"
 
 ==================
 substring operands retain source without requiring valid arithmetic
@@ -1575,67 +1706,71 @@ substring operands retain source without requiring valid arithmetic
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:37       and_or: and_or
-0:0  - 0:37         pipeline: pipeline
-0:0  - 0:37           command: command
-0:0  - 0:37             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:10               argument: word
-0:2  - 0:10                 parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    parameter: variable_name `x`
-0:5  - 0:9                    parameter_substring
-0:5  - 0:6                      operator: parameter_substring_operator `:`
-0:6  - 0:9                      offset: substring_source
-0:6  - 0:9                        arithmetic_source_expression
-0:6  - 0:7                          arithmetic_number `1`
-0:7  - 0:8                          arithmetic_operator `?`
-0:8  - 0:9                          arithmetic_number `2`
-0:9  - 0:10                   "}"
-0:11 - 0:18               argument: word
-0:11 - 0:18                 parameter_expansion
-0:11 - 0:12                   "$"
-0:12 - 0:13                   "{"
-0:13 - 0:14                   parameter: variable_name `x`
-0:14 - 0:17                   parameter_substring
-0:14 - 0:15                     operator: parameter_substring_operator `:`
-0:15 - 0:17                     offset: substring_source
-0:15 - 0:17                       arithmetic_source_expression
-0:15 - 0:16                         arithmetic_source_fragment `(`
-0:16 - 0:17                         arithmetic_number `1`
-0:17 - 0:18                   "}"
-0:19 - 0:26               argument: word
-0:19 - 0:26                 parameter_expansion
-0:19 - 0:20                   "$"
-0:20 - 0:21                   "{"
-0:21 - 0:22                   parameter: variable_name `x`
-0:22 - 0:25                   parameter_substring
-0:22 - 0:23                     operator: parameter_substring_operator `:`
-0:23 - 0:25                     offset: substring_source
-0:23 - 0:25                       arithmetic_source_expression
-0:23 - 0:24                         arithmetic_number `1`
-0:24 - 0:25                         arithmetic_source_fragment `)`
-0:25 - 0:26                   "}"
-0:27 - 0:37               argument: word
-0:27 - 0:37                 parameter_expansion
-0:27 - 0:28                   "$"
-0:28 - 0:29                   "{"
-0:29 - 0:30                   parameter: variable_name `x`
-0:30 - 0:36                   parameter_substring
-0:30 - 0:31                     operator: parameter_substring_operator `:`
-0:31 - 0:32                     offset: substring_source
-0:31 - 0:32                       arithmetic_number `0`
-0:32 - 0:33                     parameter_substring_separator `:`
-0:33 - 0:36                     length: substring_source
-0:33 - 0:36                       arithmetic_source_expression
-0:33 - 0:34                         arithmetic_number `1`
-0:34 - 0:35                         arithmetic_operator `:`
-0:35 - 0:36                         arithmetic_number `2`
-0:36 - 0:37                   "}"
-0:37 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:37       command: complete_command
+0:0  - 0:37         body: list
+0:0  - 0:37           and_or: and_or
+0:0  - 0:37             pipeline: pipeline
+0:0  - 0:37               pipe_sequence
+0:0  - 0:37                 command: command
+0:0  - 0:37                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:10                     argument: word
+0:2  - 0:10                       parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          parameter: variable_name `x`
+0:5  - 0:9                          parameter_substring
+0:5  - 0:6                            operator: parameter_substring_operator `:`
+0:6  - 0:9                            offset: substring_source
+0:6  - 0:9                              arithmetic_source_expression
+0:6  - 0:7                                arithmetic_number `1`
+0:7  - 0:8                                arithmetic_operator `?`
+0:8  - 0:9                                arithmetic_number `2`
+0:9  - 0:10                         "}"
+0:11 - 0:18                     argument: word
+0:11 - 0:18                       parameter_expansion
+0:11 - 0:12                         "$"
+0:12 - 0:13                         "{"
+0:13 - 0:14                         parameter: variable_name `x`
+0:14 - 0:17                         parameter_substring
+0:14 - 0:15                           operator: parameter_substring_operator `:`
+0:15 - 0:17                           offset: substring_source
+0:15 - 0:17                             arithmetic_source_expression
+0:15 - 0:16                               arithmetic_source_fragment `(`
+0:16 - 0:17                               arithmetic_number `1`
+0:17 - 0:18                         "}"
+0:19 - 0:26                     argument: word
+0:19 - 0:26                       parameter_expansion
+0:19 - 0:20                         "$"
+0:20 - 0:21                         "{"
+0:21 - 0:22                         parameter: variable_name `x`
+0:22 - 0:25                         parameter_substring
+0:22 - 0:23                           operator: parameter_substring_operator `:`
+0:23 - 0:25                           offset: substring_source
+0:23 - 0:25                             arithmetic_source_expression
+0:23 - 0:24                               arithmetic_number `1`
+0:24 - 0:25                               arithmetic_source_fragment `)`
+0:25 - 0:26                         "}"
+0:27 - 0:37                     argument: word
+0:27 - 0:37                       parameter_expansion
+0:27 - 0:28                         "$"
+0:28 - 0:29                         "{"
+0:29 - 0:30                         parameter: variable_name `x`
+0:30 - 0:36                         parameter_substring
+0:30 - 0:31                           operator: parameter_substring_operator `:`
+0:31 - 0:32                           offset: substring_source
+0:31 - 0:32                             arithmetic_number `0`
+0:32 - 0:33                           parameter_substring_separator `:`
+0:33 - 0:36                           length: substring_source
+0:33 - 0:36                             arithmetic_source_expression
+0:33 - 0:34                               arithmetic_number `1`
+0:34 - 0:35                               arithmetic_operator `:`
+0:35 - 0:36                               arithmetic_number `2`
+0:36 - 0:37                         "}"
+0:37 - 1:0        separator: newline_list
+0:37 - 1:0          "\n"
 
 ==================
 unterminated parameter extglobs remain source within their expansion
@@ -1648,55 +1783,60 @@ echo ${x#@(a} ${x:-@(b} ${x/a/@(c}; echo next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:34       and_or: and_or
-0:0  - 0:34         pipeline: pipeline
-0:0  - 0:34           command: command
-0:0  - 0:34             body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:4                  literal `echo`
-0:5  - 0:13               argument: word
-0:5  - 0:13                 parameter_expansion
-0:5  - 0:6                    "$"
-0:6  - 0:7                    "{"
-0:7  - 0:8                    parameter: variable_name `x`
-0:8  - 0:9                    operator: parameter_pattern_operator `#`
-0:9  - 0:12                   pattern: parameter_pattern
-0:9  - 0:12                     literal `@(a`
-0:12 - 0:13                   "}"
-0:14 - 0:23               argument: word
-0:14 - 0:23                 parameter_expansion
-0:14 - 0:15                   "$"
-0:15 - 0:16                   "{"
-0:16 - 0:17                   parameter: variable_name `x`
-0:17 - 0:19                   operator: parameter_value_operator `:-`
-0:19 - 0:22                   word: parameter_word
-0:19 - 0:22                     literal `@(b`
-0:22 - 0:23                   "}"
-0:24 - 0:34               argument: word
-0:24 - 0:34                 parameter_expansion
-0:24 - 0:25                   "$"
-0:25 - 0:26                   "{"
-0:26 - 0:27                   parameter: variable_name `x`
-0:27 - 0:33                   parameter_replacement
-0:27 - 0:28                     operator: parameter_replacement_operator `/`
-0:28 - 0:29                     pattern: parameter_pattern
-0:28 - 0:29                       literal `a`
-0:29 - 0:30                     parameter_replacement_separator `/`
-0:30 - 0:33                     replacement: parameter_word
-0:30 - 0:33                       literal `@(c`
-0:33 - 0:34                   "}"
-0:34 - 0:35       separator: separator_op
-0:34 - 0:35         ";"
-0:36 - 0:45       and_or: and_or
-0:36 - 0:45         pipeline: pipeline
-0:36 - 0:45           command: command
-0:36 - 0:45             body: simple_command
-0:36 - 0:40               name: word
-0:36 - 0:40                 literal `echo`
-0:41 - 0:45               argument: word
-0:41 - 0:45                 literal `next`
-0:45 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:45       command: complete_command
+0:0  - 0:45         body: list
+0:0  - 0:34           and_or: and_or
+0:0  - 0:34             pipeline: pipeline
+0:0  - 0:34               pipe_sequence
+0:0  - 0:34                 command: command
+0:0  - 0:34                   body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:4                        literal `echo`
+0:5  - 0:13                     argument: word
+0:5  - 0:13                       parameter_expansion
+0:5  - 0:6                          "$"
+0:6  - 0:7                          "{"
+0:7  - 0:8                          parameter: variable_name `x`
+0:8  - 0:9                          operator: parameter_pattern_operator `#`
+0:9  - 0:12                         pattern: parameter_pattern
+0:9  - 0:12                           literal `@(a`
+0:12 - 0:13                         "}"
+0:14 - 0:23                     argument: word
+0:14 - 0:23                       parameter_expansion
+0:14 - 0:15                         "$"
+0:15 - 0:16                         "{"
+0:16 - 0:17                         parameter: variable_name `x`
+0:17 - 0:19                         operator: parameter_value_operator `:-`
+0:19 - 0:22                         word: parameter_word
+0:19 - 0:22                           literal `@(b`
+0:22 - 0:23                         "}"
+0:24 - 0:34                     argument: word
+0:24 - 0:34                       parameter_expansion
+0:24 - 0:25                         "$"
+0:25 - 0:26                         "{"
+0:26 - 0:27                         parameter: variable_name `x`
+0:27 - 0:33                         parameter_replacement
+0:27 - 0:28                           operator: parameter_replacement_operator `/`
+0:28 - 0:29                           pattern: parameter_pattern
+0:28 - 0:29                             literal `a`
+0:29 - 0:30                           parameter_replacement_separator `/`
+0:30 - 0:33                           replacement: parameter_word
+0:30 - 0:33                             literal `@(c`
+0:33 - 0:34                         "}"
+0:34 - 0:35           separator: separator_op
+0:34 - 0:35             ";"
+0:36 - 0:45           and_or: and_or
+0:36 - 0:45             pipeline: pipeline
+0:36 - 0:45               pipe_sequence
+0:36 - 0:45                 command: command
+0:36 - 0:45                   body: simple_command
+0:36 - 0:40                     name: word
+0:36 - 0:40                       literal `echo`
+0:41 - 0:45                     argument: word
+0:41 - 0:45                       literal `next`
+0:45 - 1:0        separator: newline_list
+0:45 - 1:0          "\n"
 
 ==================
 array and substring sources preserve Bash dollar quotes
@@ -1709,78 +1849,83 @@ a[$"key"]=x; echo "${a[$"key"]}" ${x:$'1':$"2"}
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:11       and_or: and_or
-0:0  - 0:11         pipeline: pipeline
-0:0  - 0:11           command: command
-0:0  - 0:11             body: simple_command
-0:0  - 0:11               assignment: assignment_word
-0:0  - 0:1                  name: variable_name `a`
-0:1  - 0:9                  subscript: array_subscript
-0:1  - 0:2                    "["
-0:2  - 0:8                    source: subscript_source
-0:2  - 0:8                      candidate: arithmetic_candidate_source_expression
-0:2  - 0:8                        locale_quoted
-0:2  - 0:3                          "$"
-0:3  - 0:4                          "\""
-0:4  - 0:7                          double_quote_text `key`
-0:7  - 0:8                          "\""
-0:8  - 0:9                    "]"
-0:9  - 0:10                 "="
-0:10 - 0:11                 value: assignment_value
-0:10 - 0:11                   literal `x`
-0:11 - 0:12       separator: separator_op
-0:11 - 0:12         ";"
-0:13 - 0:47       and_or: and_or
-0:13 - 0:47         pipeline: pipeline
-0:13 - 0:47           command: command
-0:13 - 0:47             body: simple_command
-0:13 - 0:17               name: word
-0:13 - 0:17                 literal `echo`
-0:18 - 0:32               argument: word
-0:18 - 0:32                 double_quoted
-0:18 - 0:19                   "\""
-0:19 - 0:31                   parameter_expansion
-0:19 - 0:20                     "$"
-0:20 - 0:21                     "{"
-0:21 - 0:30                     parameter: array_reference
-0:21 - 0:22                       name: variable_name `a`
-0:22 - 0:30                       subscript: array_subscript
-0:22 - 0:23                         "["
-0:23 - 0:29                         source: subscript_source
-0:23 - 0:29                           candidate: arithmetic_candidate_source_expression
-0:23 - 0:29                             locale_quoted
-0:23 - 0:24                               "$"
-0:24 - 0:25                               "\""
-0:25 - 0:28                               double_quote_text `key`
-0:28 - 0:29                               "\""
-0:29 - 0:30                         "]"
-0:30 - 0:31                     "}"
-0:31 - 0:32                   "\""
-0:33 - 0:47               argument: word
-0:33 - 0:47                 parameter_expansion
-0:33 - 0:34                   "$"
-0:34 - 0:35                   "{"
-0:35 - 0:36                   parameter: variable_name `x`
-0:36 - 0:46                   parameter_substring
-0:36 - 0:37                     operator: parameter_substring_operator `:`
-0:37 - 0:41                     offset: substring_source
-0:37 - 0:41                       arithmetic_source_expression
-0:37 - 0:41                         dollar_single_quoted
-0:37 - 0:38                           "$"
-0:38 - 0:39                           "'"
-0:39 - 0:40                           dollar_single_quote_text `1`
-0:40 - 0:41                           "'"
-0:41 - 0:42                     parameter_substring_separator `:`
-0:42 - 0:46                     length: substring_source
-0:42 - 0:46                       arithmetic_source_expression
-0:42 - 0:46                         locale_quoted
-0:42 - 0:43                           "$"
-0:43 - 0:44                           "\""
-0:44 - 0:45                           double_quote_text `2`
-0:45 - 0:46                           "\""
-0:46 - 0:47                   "}"
-0:47 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:47       command: complete_command
+0:0  - 0:47         body: list
+0:0  - 0:11           and_or: and_or
+0:0  - 0:11             pipeline: pipeline
+0:0  - 0:11               pipe_sequence
+0:0  - 0:11                 command: command
+0:0  - 0:11                   body: simple_command
+0:0  - 0:11                     assignment: assignment_word
+0:0  - 0:1                        name: variable_name `a`
+0:1  - 0:9                        subscript: array_subscript
+0:1  - 0:2                          "["
+0:2  - 0:8                          source: subscript_source
+0:2  - 0:8                            candidate: arithmetic_candidate_source_expression
+0:2  - 0:8                              locale_quoted
+0:2  - 0:3                                "$"
+0:3  - 0:4                                "\""
+0:4  - 0:7                                double_quote_text `key`
+0:7  - 0:8                                "\""
+0:8  - 0:9                          "]"
+0:9  - 0:10                       "="
+0:10 - 0:11                       value: assignment_value
+0:10 - 0:11                         literal `x`
+0:11 - 0:12           separator: separator_op
+0:11 - 0:12             ";"
+0:13 - 0:47           and_or: and_or
+0:13 - 0:47             pipeline: pipeline
+0:13 - 0:47               pipe_sequence
+0:13 - 0:47                 command: command
+0:13 - 0:47                   body: simple_command
+0:13 - 0:17                     name: word
+0:13 - 0:17                       literal `echo`
+0:18 - 0:32                     argument: word
+0:18 - 0:32                       double_quoted
+0:18 - 0:19                         "\""
+0:19 - 0:31                         parameter_expansion
+0:19 - 0:20                           "$"
+0:20 - 0:21                           "{"
+0:21 - 0:30                           parameter: array_reference
+0:21 - 0:22                             name: variable_name `a`
+0:22 - 0:30                             subscript: array_subscript
+0:22 - 0:23                               "["
+0:23 - 0:29                               source: subscript_source
+0:23 - 0:29                                 candidate: arithmetic_candidate_source_expression
+0:23 - 0:29                                   locale_quoted
+0:23 - 0:24                                     "$"
+0:24 - 0:25                                     "\""
+0:25 - 0:28                                     double_quote_text `key`
+0:28 - 0:29                                     "\""
+0:29 - 0:30                               "]"
+0:30 - 0:31                           "}"
+0:31 - 0:32                         "\""
+0:33 - 0:47                     argument: word
+0:33 - 0:47                       parameter_expansion
+0:33 - 0:34                         "$"
+0:34 - 0:35                         "{"
+0:35 - 0:36                         parameter: variable_name `x`
+0:36 - 0:46                         parameter_substring
+0:36 - 0:37                           operator: parameter_substring_operator `:`
+0:37 - 0:41                           offset: substring_source
+0:37 - 0:41                             arithmetic_source_expression
+0:37 - 0:41                               dollar_single_quoted
+0:37 - 0:38                                 "$"
+0:38 - 0:39                                 "'"
+0:39 - 0:40                                 dollar_single_quote_text `1`
+0:40 - 0:41                                 "'"
+0:41 - 0:42                           parameter_substring_separator `:`
+0:42 - 0:46                           length: substring_source
+0:42 - 0:46                             arithmetic_source_expression
+0:42 - 0:46                               locale_quoted
+0:42 - 0:43                                 "$"
+0:43 - 0:44                                 "\""
+0:44 - 0:45                                 double_quote_text `2`
+0:45 - 0:46                                 "\""
+0:46 - 0:47                         "}"
+0:47 - 1:0        separator: newline_list
+0:47 - 1:0          "\n"
 
 ==================
 nested parameter operators preserve each enclosing word boundary
@@ -1793,89 +1938,93 @@ nested parameter operators preserve each enclosing word boundary
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:72       and_or: and_or
-0:0  - 0:72         pipeline: pipeline
-0:0  - 0:72           command: command
-0:0  - 0:72             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:23               argument: word
-0:2  - 0:23                 parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    parameter: variable_name `x`
-0:5  - 0:7                    operator: parameter_value_operator `:-`
-0:7  - 0:22                   word: parameter_word
-0:7  - 0:15                     parameter_expansion
-0:7  - 0:8                        "$"
-0:8  - 0:9                        "{"
-0:9  - 0:10                       parameter: variable_name `y`
-0:10 - 0:14                       parameter_substring
-0:10 - 0:11                         operator: parameter_substring_operator `:`
-0:11 - 0:12                         offset: substring_source
-0:11 - 0:12                           arithmetic_number `0`
-0:12 - 0:13                         parameter_substring_separator `:`
-0:13 - 0:14                         length: substring_source
-0:13 - 0:14                           arithmetic_number `1`
-0:14 - 0:15                       "}"
-0:15 - 0:22                     literal `:suffix`
-0:22 - 0:23                   "}"
-0:24 - 0:45               argument: word
-0:24 - 0:45                 parameter_expansion
-0:24 - 0:25                   "$"
-0:25 - 0:26                   "{"
-0:26 - 0:27                   parameter: variable_name `x`
-0:27 - 0:29                   operator: parameter_value_operator `:-`
-0:29 - 0:44                   word: parameter_word
-0:29 - 0:37                     parameter_expansion
-0:29 - 0:30                       "$"
-0:30 - 0:31                       "{"
-0:31 - 0:32                       parameter: variable_name `y`
-0:32 - 0:36                       parameter_replacement
-0:32 - 0:33                         operator: parameter_replacement_operator `/`
-0:33 - 0:34                         pattern: parameter_pattern
-0:33 - 0:34                           literal `a`
-0:34 - 0:35                         parameter_replacement_separator `/`
-0:35 - 0:36                         replacement: parameter_word
-0:35 - 0:36                           literal `b`
-0:36 - 0:37                       "}"
-0:37 - 0:44                     literal `/suffix`
-0:44 - 0:45                   "}"
-0:46 - 0:72               argument: word
-0:46 - 0:72                 parameter_expansion
-0:46 - 0:47                   "$"
-0:47 - 0:48                   "{"
-0:48 - 0:49                   parameter: variable_name `x`
-0:49 - 0:71                   parameter_replacement
-0:49 - 0:50                     operator: parameter_replacement_operator `/`
-0:50 - 0:60                     pattern: parameter_pattern
-0:50 - 0:60                       parameter_expansion
-0:50 - 0:51                         "$"
-0:51 - 0:52                         "{"
-0:52 - 0:53                         parameter: variable_name `y`
-0:53 - 0:55                         operator: parameter_value_operator `:-`
-0:55 - 0:59                         word: parameter_word
-0:55 - 0:56                           literal `a`
-0:56 - 0:58                           escaped_character `\\/`
-0:58 - 0:59                           literal `b`
-0:59 - 0:60                         "}"
-0:60 - 0:61                     parameter_replacement_separator `/`
-0:61 - 0:71                     replacement: parameter_word
-0:61 - 0:71                       double_quoted
-0:61 - 0:62                         "\""
-0:62 - 0:69                         parameter_expansion
-0:62 - 0:63                           "$"
-0:63 - 0:64                           "{"
-0:64 - 0:65                           parameter: variable_name `z`
-0:65 - 0:67                           operator: parameter_value_operator `:-`
-0:67 - 0:68                           word: parameter_word
-0:67 - 0:68                             double_quote_text `c`
-0:68 - 0:69                           "}"
-0:69 - 0:70                         double_quote_text `d`
-0:70 - 0:71                         "\""
-0:71 - 0:72                   "}"
-0:72 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:72       command: complete_command
+0:0  - 0:72         body: list
+0:0  - 0:72           and_or: and_or
+0:0  - 0:72             pipeline: pipeline
+0:0  - 0:72               pipe_sequence
+0:0  - 0:72                 command: command
+0:0  - 0:72                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:23                     argument: word
+0:2  - 0:23                       parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          parameter: variable_name `x`
+0:5  - 0:7                          operator: parameter_value_operator `:-`
+0:7  - 0:22                         word: parameter_word
+0:7  - 0:15                           parameter_expansion
+0:7  - 0:8                              "$"
+0:8  - 0:9                              "{"
+0:9  - 0:10                             parameter: variable_name `y`
+0:10 - 0:14                             parameter_substring
+0:10 - 0:11                               operator: parameter_substring_operator `:`
+0:11 - 0:12                               offset: substring_source
+0:11 - 0:12                                 arithmetic_number `0`
+0:12 - 0:13                               parameter_substring_separator `:`
+0:13 - 0:14                               length: substring_source
+0:13 - 0:14                                 arithmetic_number `1`
+0:14 - 0:15                             "}"
+0:15 - 0:22                           literal `:suffix`
+0:22 - 0:23                         "}"
+0:24 - 0:45                     argument: word
+0:24 - 0:45                       parameter_expansion
+0:24 - 0:25                         "$"
+0:25 - 0:26                         "{"
+0:26 - 0:27                         parameter: variable_name `x`
+0:27 - 0:29                         operator: parameter_value_operator `:-`
+0:29 - 0:44                         word: parameter_word
+0:29 - 0:37                           parameter_expansion
+0:29 - 0:30                             "$"
+0:30 - 0:31                             "{"
+0:31 - 0:32                             parameter: variable_name `y`
+0:32 - 0:36                             parameter_replacement
+0:32 - 0:33                               operator: parameter_replacement_operator `/`
+0:33 - 0:34                               pattern: parameter_pattern
+0:33 - 0:34                                 literal `a`
+0:34 - 0:35                               parameter_replacement_separator `/`
+0:35 - 0:36                               replacement: parameter_word
+0:35 - 0:36                                 literal `b`
+0:36 - 0:37                             "}"
+0:37 - 0:44                           literal `/suffix`
+0:44 - 0:45                         "}"
+0:46 - 0:72                     argument: word
+0:46 - 0:72                       parameter_expansion
+0:46 - 0:47                         "$"
+0:47 - 0:48                         "{"
+0:48 - 0:49                         parameter: variable_name `x`
+0:49 - 0:71                         parameter_replacement
+0:49 - 0:50                           operator: parameter_replacement_operator `/`
+0:50 - 0:60                           pattern: parameter_pattern
+0:50 - 0:60                             parameter_expansion
+0:50 - 0:51                               "$"
+0:51 - 0:52                               "{"
+0:52 - 0:53                               parameter: variable_name `y`
+0:53 - 0:55                               operator: parameter_value_operator `:-`
+0:55 - 0:59                               word: parameter_word
+0:55 - 0:56                                 literal `a`
+0:56 - 0:58                                 escaped_character `\\/`
+0:58 - 0:59                                 literal `b`
+0:59 - 0:60                               "}"
+0:60 - 0:61                           parameter_replacement_separator `/`
+0:61 - 0:71                           replacement: parameter_word
+0:61 - 0:71                             double_quoted
+0:61 - 0:62                               "\""
+0:62 - 0:69                               parameter_expansion
+0:62 - 0:63                                 "$"
+0:63 - 0:64                                 "{"
+0:64 - 0:65                                 parameter: variable_name `z`
+0:65 - 0:67                                 operator: parameter_value_operator `:-`
+0:67 - 0:68                                 word: parameter_word
+0:67 - 0:68                                   double_quote_text `c`
+0:68 - 0:69                                 "}"
+0:69 - 0:70                               double_quote_text `d`
+0:70 - 0:71                               "\""
+0:71 - 0:72                         "}"
+0:72 - 1:0        separator: newline_list
+0:72 - 1:0          "\n"
 
 ==================
 substring source keeps incomplete lexemes and each operand's known structure
@@ -1887,67 +2036,71 @@ substring source keeps incomplete lexemes and each operand's known structure
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:42       and_or: and_or
-0:0  - 0:42         pipeline: pipeline
-0:0  - 0:42           command: command
-0:0  - 0:42             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:17               argument: word
-0:2  - 0:17                 parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    parameter: variable_name `s`
-0:5  - 0:16                   parameter_substring
-0:5  - 0:6                      operator: parameter_substring_operator `:`
-0:6  - 0:10                     offset: substring_source
-0:6  - 0:10                       arithmetic_source_expression
-0:6  - 0:8                          arithmetic_source_fragment `0x`
-0:8  - 0:10                         parameter_expansion
-0:8  - 0:9                            "$"
-0:9  - 0:10                           parameter: variable_name `y`
-0:10 - 0:11                     parameter_substring_separator `:`
-0:11 - 0:16                     length: substring_source
-0:11 - 0:16                       arithmetic_binary_expression
-0:11 - 0:12                         left: arithmetic_number `2`
-0:12 - 0:13                         operator: arithmetic_operator `+`
-0:13 - 0:16                         right: arithmetic_binary_expression
-0:13 - 0:14                           left: arithmetic_number `3`
-0:14 - 0:15                           operator: arithmetic_operator `*`
-0:15 - 0:16                           right: arithmetic_number `4`
-0:16 - 0:17                   "}"
-0:18 - 0:42               argument: word
-0:18 - 0:42                 parameter_expansion
-0:18 - 0:19                   "$"
-0:19 - 0:20                   "{"
-0:20 - 0:21                   parameter: variable_name `s`
-0:21 - 0:41                   parameter_substring
-0:21 - 0:22                     operator: parameter_substring_operator `:`
-0:22 - 0:30                     offset: substring_source
-0:22 - 0:30                       arithmetic_source_expression
-0:22 - 0:27                         parenthesized_arithmetic_source
-0:22 - 0:23                           "("
-0:23 - 0:24                           arithmetic_variable `x`
-0:25 - 0:26                           arithmetic_variable `y`
-0:26 - 0:27                           ")"
-0:27 - 0:28                         arithmetic_operator `+`
-0:28 - 0:30                         arithmetic_source_fragment `08`
-0:30 - 0:31                     parameter_substring_separator `:`
-0:31 - 0:41                     length: substring_source
-0:32 - 0:40                       arithmetic_array_reference
-0:32 - 0:33                         name: arithmetic_variable `a`
-0:33 - 0:40                         subscript: array_subscript
-0:33 - 0:34                           "["
-0:34 - 0:39                           source: subscript_source
-0:34 - 0:39                             candidate: arithmetic_candidate_source_expression
-0:34 - 0:39                               double_quoted
-0:34 - 0:35                                 "\""
-0:35 - 0:38                                 double_quote_text `1:2`
-0:38 - 0:39                                 "\""
-0:39 - 0:40                           "]"
-0:41 - 0:42                   "}"
-0:42 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:42       command: complete_command
+0:0  - 0:42         body: list
+0:0  - 0:42           and_or: and_or
+0:0  - 0:42             pipeline: pipeline
+0:0  - 0:42               pipe_sequence
+0:0  - 0:42                 command: command
+0:0  - 0:42                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:17                     argument: word
+0:2  - 0:17                       parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          parameter: variable_name `s`
+0:5  - 0:16                         parameter_substring
+0:5  - 0:6                            operator: parameter_substring_operator `:`
+0:6  - 0:10                           offset: substring_source
+0:6  - 0:10                             arithmetic_source_expression
+0:6  - 0:8                                arithmetic_source_fragment `0x`
+0:8  - 0:10                               parameter_expansion
+0:8  - 0:9                                  "$"
+0:9  - 0:10                                 parameter: variable_name `y`
+0:10 - 0:11                           parameter_substring_separator `:`
+0:11 - 0:16                           length: substring_source
+0:11 - 0:16                             arithmetic_binary_expression
+0:11 - 0:12                               left: arithmetic_number `2`
+0:12 - 0:13                               operator: arithmetic_operator `+`
+0:13 - 0:16                               right: arithmetic_binary_expression
+0:13 - 0:14                                 left: arithmetic_number `3`
+0:14 - 0:15                                 operator: arithmetic_operator `*`
+0:15 - 0:16                                 right: arithmetic_number `4`
+0:16 - 0:17                         "}"
+0:18 - 0:42                     argument: word
+0:18 - 0:42                       parameter_expansion
+0:18 - 0:19                         "$"
+0:19 - 0:20                         "{"
+0:20 - 0:21                         parameter: variable_name `s`
+0:21 - 0:41                         parameter_substring
+0:21 - 0:22                           operator: parameter_substring_operator `:`
+0:22 - 0:30                           offset: substring_source
+0:22 - 0:30                             arithmetic_source_expression
+0:22 - 0:27                               parenthesized_arithmetic_source
+0:22 - 0:23                                 "("
+0:23 - 0:24                                 arithmetic_variable `x`
+0:25 - 0:26                                 arithmetic_variable `y`
+0:26 - 0:27                                 ")"
+0:27 - 0:28                               arithmetic_operator `+`
+0:28 - 0:30                               arithmetic_source_fragment `08`
+0:30 - 0:31                           parameter_substring_separator `:`
+0:31 - 0:41                           length: substring_source
+0:32 - 0:40                             arithmetic_array_reference
+0:32 - 0:33                               name: arithmetic_variable `a`
+0:33 - 0:40                               subscript: array_subscript
+0:33 - 0:34                                 "["
+0:34 - 0:39                                 source: subscript_source
+0:34 - 0:39                                   candidate: arithmetic_candidate_source_expression
+0:34 - 0:39                                     double_quoted
+0:34 - 0:35                                       "\""
+0:35 - 0:38                                       double_quote_text `1:2`
+0:38 - 0:39                                       "\""
+0:39 - 0:40                                 "]"
+0:41 - 0:42                         "}"
+0:42 - 1:0        separator: newline_list
+0:42 - 1:0          "\n"
 
 ==================
 substring boundaries resume outside quoted and nested expansion sources
@@ -1959,109 +2112,119 @@ substring boundaries resume outside quoted and nested expansion sources
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:70       and_or: and_or
-0:0  - 0:70         pipeline: pipeline
-0:0  - 0:70           command: command
-0:0  - 0:70             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:39               argument: word
-0:2  - 0:39                 double_quoted
-0:2  - 0:3                    "\""
-0:3  - 0:38                   parameter_expansion
-0:3  - 0:4                      "$"
-0:4  - 0:5                      "{"
-0:5  - 0:6                      parameter: variable_name `x`
-0:6  - 0:37                     parameter_substring
-0:6  - 0:7                        operator: parameter_substring_operator `:`
-0:7  - 0:28                       offset: substring_source
-0:7  - 0:28                         arithmetic_conditional_expression
-0:7  - 0:8                            condition: arithmetic_number `1`
-0:8  - 0:9                            operator: arithmetic_operator `?`
-0:9  - 0:16                           consequence: parameter_expansion
-0:9  - 0:10                             "$"
-0:10 - 0:11                             "{"
-0:11 - 0:12                             parameter: variable_name `n`
-0:12 - 0:14                             operator: parameter_value_operator `:-`
-0:14 - 0:15                             word: parameter_word
-0:14 - 0:15                               double_quote_text `2`
-0:15 - 0:16                             "}"
-0:16 - 0:17                           operator: arithmetic_operator `:`
-0:17 - 0:28                           alternative: command_substitution
-0:17 - 0:18                             "$"
-0:18 - 0:19                             "("
-0:19 - 0:27                             body: command_substitution_body
-0:19 - 0:27                               list
-0:19 - 0:27                                 and_or: and_or
-0:19 - 0:27                                   pipeline: pipeline
-0:19 - 0:27                                     command: command
-0:19 - 0:27                                       body: simple_command
-0:19 - 0:25                                         name: word
-0:19 - 0:25                                           literal `printf`
-0:26 - 0:27                                         argument: word
-0:26 - 0:27                                           literal `3`
-0:27 - 0:28                             ")"
-0:28 - 0:29                       parameter_substring_separator `:`
-0:29 - 0:37                       length: substring_source
-0:29 - 0:37                         arithmetic_array_reference
-0:29 - 0:30                           name: arithmetic_variable `a`
-0:30 - 0:37                           subscript: array_subscript
-0:30 - 0:31                             "["
-0:31 - 0:36                             source: subscript_source
-0:31 - 0:36                               candidate: arithmetic_candidate_source_expression
-0:31 - 0:36                                 double_quoted
-0:31 - 0:32                                   "\""
-0:32 - 0:35                                   double_quote_text `1:2`
-0:35 - 0:36                                   "\""
-0:36 - 0:37                             "]"
-0:37 - 0:38                     "}"
-0:38 - 0:39                   "\""
-0:40 - 0:70               argument: word
-0:40 - 0:70                 parameter_expansion
-0:40 - 0:41                   "$"
-0:41 - 0:42                   "{"
-0:42 - 0:43                   parameter: variable_name `x`
-0:43 - 0:69                   parameter_substring
-0:43 - 0:44                     operator: parameter_substring_operator `:`
-0:44 - 0:58                     offset: substring_source
-0:44 - 0:58                       parenthesized_arithmetic
-0:44 - 0:45                         "("
-0:45 - 0:57                         expression: parameter_expansion
-0:45 - 0:46                           "$"
-0:46 - 0:47                           "{"
-0:47 - 0:48                           parameter: variable_name `y`
-0:48 - 0:56                           parameter_substring
-0:48 - 0:49                             operator: parameter_substring_operator `:`
-0:49 - 0:54                             offset: substring_source
-0:49 - 0:54                               arithmetic_conditional_expression
-0:49 - 0:50                                 condition: arithmetic_number `1`
-0:50 - 0:51                                 operator: arithmetic_operator `?`
-0:51 - 0:52                                 consequence: arithmetic_number `2`
-0:52 - 0:53                                 operator: arithmetic_operator `:`
-0:53 - 0:54                                 alternative: arithmetic_number `3`
-0:54 - 0:55                             parameter_substring_separator `:`
-0:55 - 0:56                             length: substring_source
-0:55 - 0:56                               arithmetic_number `4`
-0:56 - 0:57                           "}"
-0:57 - 0:58                         ")"
-0:58 - 0:59                     parameter_substring_separator `:`
-0:59 - 0:69                     length: substring_source
-0:59 - 0:69                       backquote_substitution
-0:59 - 0:60                         "\`"
-0:60 - 0:68                         body: backquote_substitution_body
-0:60 - 0:68                           list
-0:60 - 0:68                             and_or: and_or
-0:60 - 0:68                               pipeline: pipeline
-0:60 - 0:68                                 command: command
-0:60 - 0:68                                   body: simple_command
-0:60 - 0:66                                     name: word
-0:60 - 0:66                                       literal `printf`
-0:67 - 0:68                                     argument: word
-0:67 - 0:68                                       literal `2`
-0:68 - 0:69                         "\`"
-0:69 - 0:70                   "}"
-0:70 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:70       command: complete_command
+0:0  - 0:70         body: list
+0:0  - 0:70           and_or: and_or
+0:0  - 0:70             pipeline: pipeline
+0:0  - 0:70               pipe_sequence
+0:0  - 0:70                 command: command
+0:0  - 0:70                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:39                     argument: word
+0:2  - 0:39                       double_quoted
+0:2  - 0:3                          "\""
+0:3  - 0:38                         parameter_expansion
+0:3  - 0:4                            "$"
+0:4  - 0:5                            "{"
+0:5  - 0:6                            parameter: variable_name `x`
+0:6  - 0:37                           parameter_substring
+0:6  - 0:7                              operator: parameter_substring_operator `:`
+0:7  - 0:28                             offset: substring_source
+0:7  - 0:28                               arithmetic_conditional_expression
+0:7  - 0:8                                  condition: arithmetic_number `1`
+0:8  - 0:9                                  operator: arithmetic_operator `?`
+0:9  - 0:16                                 consequence: parameter_expansion
+0:9  - 0:10                                   "$"
+0:10 - 0:11                                   "{"
+0:11 - 0:12                                   parameter: variable_name `n`
+0:12 - 0:14                                   operator: parameter_value_operator `:-`
+0:14 - 0:15                                   word: parameter_word
+0:14 - 0:15                                     double_quote_text `2`
+0:15 - 0:16                                   "}"
+0:16 - 0:17                                 operator: arithmetic_operator `:`
+0:17 - 0:28                                 alternative: command_substitution
+0:17 - 0:18                                   "$"
+0:18 - 0:19                                   "("
+0:19 - 0:27                                   body: command_substitution_body
+0:19 - 0:27                                     complete_commands
+0:19 - 0:27                                       command: complete_command
+0:19 - 0:27                                         body: list
+0:19 - 0:27                                           and_or: and_or
+0:19 - 0:27                                             pipeline: pipeline
+0:19 - 0:27                                               pipe_sequence
+0:19 - 0:27                                                 command: command
+0:19 - 0:27                                                   body: simple_command
+0:19 - 0:25                                                     name: word
+0:19 - 0:25                                                       literal `printf`
+0:26 - 0:27                                                     argument: word
+0:26 - 0:27                                                       literal `3`
+0:27 - 0:28                                   ")"
+0:28 - 0:29                             parameter_substring_separator `:`
+0:29 - 0:37                             length: substring_source
+0:29 - 0:37                               arithmetic_array_reference
+0:29 - 0:30                                 name: arithmetic_variable `a`
+0:30 - 0:37                                 subscript: array_subscript
+0:30 - 0:31                                   "["
+0:31 - 0:36                                   source: subscript_source
+0:31 - 0:36                                     candidate: arithmetic_candidate_source_expression
+0:31 - 0:36                                       double_quoted
+0:31 - 0:32                                         "\""
+0:32 - 0:35                                         double_quote_text `1:2`
+0:35 - 0:36                                         "\""
+0:36 - 0:37                                   "]"
+0:37 - 0:38                           "}"
+0:38 - 0:39                         "\""
+0:40 - 0:70                     argument: word
+0:40 - 0:70                       parameter_expansion
+0:40 - 0:41                         "$"
+0:41 - 0:42                         "{"
+0:42 - 0:43                         parameter: variable_name `x`
+0:43 - 0:69                         parameter_substring
+0:43 - 0:44                           operator: parameter_substring_operator `:`
+0:44 - 0:58                           offset: substring_source
+0:44 - 0:58                             parenthesized_arithmetic
+0:44 - 0:45                               "("
+0:45 - 0:57                               expression: parameter_expansion
+0:45 - 0:46                                 "$"
+0:46 - 0:47                                 "{"
+0:47 - 0:48                                 parameter: variable_name `y`
+0:48 - 0:56                                 parameter_substring
+0:48 - 0:49                                   operator: parameter_substring_operator `:`
+0:49 - 0:54                                   offset: substring_source
+0:49 - 0:54                                     arithmetic_conditional_expression
+0:49 - 0:50                                       condition: arithmetic_number `1`
+0:50 - 0:51                                       operator: arithmetic_operator `?`
+0:51 - 0:52                                       consequence: arithmetic_number `2`
+0:52 - 0:53                                       operator: arithmetic_operator `:`
+0:53 - 0:54                                       alternative: arithmetic_number `3`
+0:54 - 0:55                                   parameter_substring_separator `:`
+0:55 - 0:56                                   length: substring_source
+0:55 - 0:56                                     arithmetic_number `4`
+0:56 - 0:57                                 "}"
+0:57 - 0:58                               ")"
+0:58 - 0:59                           parameter_substring_separator `:`
+0:59 - 0:69                           length: substring_source
+0:59 - 0:69                             backquote_substitution
+0:59 - 0:60                               "\`"
+0:60 - 0:68                               body: backquote_substitution_body
+0:60 - 0:68                                 complete_commands
+0:60 - 0:68                                   command: complete_command
+0:60 - 0:68                                     body: list
+0:60 - 0:68                                       and_or: and_or
+0:60 - 0:68                                         pipeline: pipeline
+0:60 - 0:68                                           pipe_sequence
+0:60 - 0:68                                             command: command
+0:60 - 0:68                                               body: simple_command
+0:60 - 0:66                                                 name: word
+0:60 - 0:66                                                   literal `printf`
+0:67 - 0:68                                                 argument: word
+0:67 - 0:68                                                   literal `2`
+0:68 - 0:69                               "\`"
+0:69 - 0:70                         "}"
+0:70 - 1:0        separator: newline_list
+0:70 - 1:0          "\n"
 
 ==================
 name enumeration prefixes keep stars and end at operators
@@ -2074,75 +2237,79 @@ name enumeration prefixes keep stars and end at operators
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:59       and_or: and_or
-0:0  - 0:59         pipeline: pipeline
-0:0  - 0:59           command: command
-0:0  - 0:59             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:10               argument: word
-0:2  - 0:10                 parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    operator: parameter_indirection_operator `!`
-0:5  - 0:8                    prefix: parameter_name_prefix
-0:5  - 0:8                      literal `x*y`
-0:8  - 0:9                    operator: parameter_names_operator `*`
-0:9  - 0:10                   "}"
-0:11 - 0:20               argument: word
-0:11 - 0:20                 parameter_expansion
-0:11 - 0:12                   "$"
-0:12 - 0:13                   "{"
-0:13 - 0:14                   operator: parameter_indirection_operator `!`
-0:14 - 0:18                   prefix: parameter_name_prefix
-0:14 - 0:18                     literal `x*!x`
-0:18 - 0:19                   operator: parameter_names_operator `@`
-0:19 - 0:20                   "}"
-0:21 - 0:32               argument: word
-0:21 - 0:32                 parameter_expansion
-0:21 - 0:22                   "$"
-0:22 - 0:23                   "{"
-0:23 - 0:24                   operator: parameter_indirection_operator `!`
-0:24 - 0:30                   prefix: parameter_name_prefix
-0:24 - 0:30                     literal `x[a:b]`
-0:30 - 0:31                   operator: parameter_names_operator `*`
-0:31 - 0:32                   "}"
-0:33 - 0:40               argument: word
-0:33 - 0:40                 parameter_expansion
-0:33 - 0:34                   "$"
-0:34 - 0:35                   "{"
-0:35 - 0:36                   operator: parameter_indirection_operator `!`
-0:36 - 0:38                   prefix: parameter_name_prefix
-0:36 - 0:38                     literal `x~`
-0:38 - 0:39                   operator: parameter_names_operator `*`
-0:39 - 0:40                   "}"
-0:41 - 0:52               argument: word
-0:41 - 0:52                 parameter_expansion
-0:41 - 0:42                   "$"
-0:42 - 0:43                   "{"
-0:43 - 0:44                   operator: parameter_indirection_operator `!`
-0:44 - 0:48                   parameter: array_reference
-0:44 - 0:45                     name: variable_name `x`
-0:45 - 0:48                     subscript: array_subscript
-0:45 - 0:46                       "["
-0:46 - 0:47                       source: subscript_source
-0:46 - 0:47                         candidate: arithmetic_candidate_number `1`
-0:47 - 0:48                       "]"
-0:48 - 0:50                   operator: parameter_value_operator `:-`
-0:50 - 0:51                   word: parameter_word
-0:50 - 0:51                     pattern_star_source `*`
-0:51 - 0:52                   "}"
-0:53 - 0:59               argument: word
-0:53 - 0:59                 parameter_expansion
-0:53 - 0:54                   "$"
-0:54 - 0:55                   "{"
-0:55 - 0:56                   parameter: special_parameter `!`
-0:56 - 0:57                   operator: parameter_value_operator `-`
-0:57 - 0:58                   word: parameter_word
-0:57 - 0:58                     pattern_star_source `*`
-0:58 - 0:59                   "}"
-0:59 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:59       command: complete_command
+0:0  - 0:59         body: list
+0:0  - 0:59           and_or: and_or
+0:0  - 0:59             pipeline: pipeline
+0:0  - 0:59               pipe_sequence
+0:0  - 0:59                 command: command
+0:0  - 0:59                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:10                     argument: word
+0:2  - 0:10                       parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          operator: parameter_indirection_operator `!`
+0:5  - 0:8                          prefix: parameter_name_prefix
+0:5  - 0:8                            literal `x*y`
+0:8  - 0:9                          operator: parameter_names_operator `*`
+0:9  - 0:10                         "}"
+0:11 - 0:20                     argument: word
+0:11 - 0:20                       parameter_expansion
+0:11 - 0:12                         "$"
+0:12 - 0:13                         "{"
+0:13 - 0:14                         operator: parameter_indirection_operator `!`
+0:14 - 0:18                         prefix: parameter_name_prefix
+0:14 - 0:18                           literal `x*!x`
+0:18 - 0:19                         operator: parameter_names_operator `@`
+0:19 - 0:20                         "}"
+0:21 - 0:32                     argument: word
+0:21 - 0:32                       parameter_expansion
+0:21 - 0:22                         "$"
+0:22 - 0:23                         "{"
+0:23 - 0:24                         operator: parameter_indirection_operator `!`
+0:24 - 0:30                         prefix: parameter_name_prefix
+0:24 - 0:30                           literal `x[a:b]`
+0:30 - 0:31                         operator: parameter_names_operator `*`
+0:31 - 0:32                         "}"
+0:33 - 0:40                     argument: word
+0:33 - 0:40                       parameter_expansion
+0:33 - 0:34                         "$"
+0:34 - 0:35                         "{"
+0:35 - 0:36                         operator: parameter_indirection_operator `!`
+0:36 - 0:38                         prefix: parameter_name_prefix
+0:36 - 0:38                           literal `x~`
+0:38 - 0:39                         operator: parameter_names_operator `*`
+0:39 - 0:40                         "}"
+0:41 - 0:52                     argument: word
+0:41 - 0:52                       parameter_expansion
+0:41 - 0:42                         "$"
+0:42 - 0:43                         "{"
+0:43 - 0:44                         operator: parameter_indirection_operator `!`
+0:44 - 0:48                         parameter: array_reference
+0:44 - 0:45                           name: variable_name `x`
+0:45 - 0:48                           subscript: array_subscript
+0:45 - 0:46                             "["
+0:46 - 0:47                             source: subscript_source
+0:46 - 0:47                               candidate: arithmetic_candidate_number `1`
+0:47 - 0:48                             "]"
+0:48 - 0:50                         operator: parameter_value_operator `:-`
+0:50 - 0:51                         word: parameter_word
+0:50 - 0:51                           pattern_star_source `*`
+0:51 - 0:52                         "}"
+0:53 - 0:59                     argument: word
+0:53 - 0:59                       parameter_expansion
+0:53 - 0:54                         "$"
+0:54 - 0:55                         "{"
+0:55 - 0:56                         parameter: special_parameter `!`
+0:56 - 0:57                         operator: parameter_value_operator `-`
+0:57 - 0:58                         word: parameter_word
+0:57 - 0:58                           pattern_star_source `*`
+0:58 - 0:59                         "}"
+0:59 - 1:0        separator: newline_list
+0:59 - 1:0          "\n"
 
 ==================
 name enumeration prefixes protect operators only inside closed subscripts
@@ -2154,27 +2321,31 @@ name enumeration prefixes protect operators only inside closed subscripts
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_indirection_operator)
-                prefix: (parameter_name_prefix
-                  (literal)
-                  (escaped_character)
-                  (literal))
-                operator: (parameter_names_operator)))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_indirection_operator)
-                prefix: (parameter_name_prefix
-                  (literal))
-                operator: (parameter_names_operator)))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal)
+                        (escaped_character)
+                        (literal))
+                      operator: (parameter_names_operator)))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal))
+                      operator: (parameter_names_operator))))))))))
+    separator: (newline_list)))
 
 ==================
 name enumeration operators after non-name prefix characters or unclosed subscripts are indirections "${!x.y:-*} ${!x!x-*} ${!xy[:-*}"
@@ -2197,35 +2368,39 @@ name enumeration leaves the backslash before its final operator in the prefix
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:19       and_or: and_or
-0:0  - 0:19         pipeline: pipeline
-0:0  - 0:19           command: command
-0:0  - 0:19             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:9                argument: word
-0:2  - 0:9                  parameter_expansion
-0:2  - 0:3                    "$"
-0:3  - 0:4                    "{"
-0:4  - 0:5                    operator: parameter_indirection_operator `!`
-0:5  - 0:7                    prefix: parameter_name_prefix
-0:5  - 0:7                      literal `x\\`
-0:7  - 0:8                    operator: parameter_names_operator `*`
-0:8  - 0:9                    "}"
-0:10 - 0:19               argument: word
-0:10 - 0:19                 double_quoted
-0:10 - 0:11                   "\""
-0:11 - 0:18                   parameter_expansion
-0:11 - 0:12                     "$"
-0:12 - 0:13                     "{"
-0:13 - 0:14                     operator: parameter_indirection_operator `!`
-0:14 - 0:16                     prefix: parameter_name_prefix
-0:14 - 0:16                       literal `x\\`
-0:16 - 0:17                     operator: parameter_names_operator `@`
-0:17 - 0:18                     "}"
-0:18 - 0:19                   "\""
-0:19 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:19       command: complete_command
+0:0  - 0:19         body: list
+0:0  - 0:19           and_or: and_or
+0:0  - 0:19             pipeline: pipeline
+0:0  - 0:19               pipe_sequence
+0:0  - 0:19                 command: command
+0:0  - 0:19                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:9                      argument: word
+0:2  - 0:9                        parameter_expansion
+0:2  - 0:3                          "$"
+0:3  - 0:4                          "{"
+0:4  - 0:5                          operator: parameter_indirection_operator `!`
+0:5  - 0:7                          prefix: parameter_name_prefix
+0:5  - 0:7                            literal `x\\`
+0:7  - 0:8                          operator: parameter_names_operator `*`
+0:8  - 0:9                          "}"
+0:10 - 0:19                     argument: word
+0:10 - 0:19                       double_quoted
+0:10 - 0:11                         "\""
+0:11 - 0:18                         parameter_expansion
+0:11 - 0:12                           "$"
+0:12 - 0:13                           "{"
+0:13 - 0:14                           operator: parameter_indirection_operator `!`
+0:14 - 0:16                           prefix: parameter_name_prefix
+0:14 - 0:16                             literal `x\\`
+0:16 - 0:17                           operator: parameter_names_operator `@`
+0:17 - 0:18                           "}"
+0:18 - 0:19                         "\""
+0:19 - 1:0        separator: newline_list
+0:19 - 1:0          "\n"
 
 ==================
 name enumeration retains nested expansions rejected by Bash
@@ -2237,39 +2412,46 @@ name enumeration retains nested expansions rejected by Bash
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_indirection_operator)
-                prefix: (parameter_name_prefix
-                  (literal)
-                  (parameter_expansion
-                    parameter: (variable_name)))
-                operator: (parameter_names_operator)))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_indirection_operator)
-                prefix: (parameter_name_prefix
-                  (literal)
-                  (command_substitution
-                    body: (command_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                argument: (word
-                                  (single_quoted
-                                    (single_quote_content)))))))))))
-                operator: (parameter_names_operator)))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal)
+                        (parameter_expansion
+                          parameter: (variable_name)))
+                      operator: (parameter_names_operator)))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal)
+                        (command_substitution
+                          body: (command_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            argument: (word
+                                              (single_quoted
+                                                (single_quote_content))))))))))))))
+                      operator: (parameter_names_operator))))))))))
+    separator: (newline_list)))
 
 ==================
 special parameters followed by brackets are operators not length operands
@@ -2281,44 +2463,48 @@ special parameters followed by brackets are operators not length operands
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (special_parameter)
-                operator: (parameter_pattern_operator)
-                pattern: (parameter_pattern
-                  (pattern_bracket_source
-                    members: (pattern_bracket_members_source
-                      member: (pattern_bracket_character_source))))))
-            argument: (word
-              (parameter_expansion
-                parameter: (special_parameter)
-                operator: (parameter_value_operator)
-                word: (parameter_word
-                  (pattern_bracket_source
-                    members: (pattern_bracket_members_source
-                      member: (pattern_bracket_character_source)))
-                  (literal))))
-            argument: (word
-              (parameter_expansion
-                parameter: (special_parameter)
-                operator: (parameter_value_operator)
-                word: (parameter_word
-                  (pattern_bracket_source
-                    members: (pattern_bracket_members_source
-                      member: (pattern_bracket_character_source)))
-                  (literal))))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_length_operator)
-                parameter: (array_reference
-                  name: (variable_name)
-                  subscript: (array_subscript
-                    source: (subscript_source
-                      candidate: (arithmetic_candidate_number))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (special_parameter)
+                      operator: (parameter_pattern_operator)
+                      pattern: (parameter_pattern
+                        (pattern_bracket_source
+                          members: (pattern_bracket_members_source
+                            member: (pattern_bracket_character_source))))))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (special_parameter)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (pattern_bracket_source
+                          members: (pattern_bracket_members_source
+                            member: (pattern_bracket_character_source)))
+                        (literal))))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (special_parameter)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (pattern_bracket_source
+                          members: (pattern_bracket_members_source
+                            member: (pattern_bracket_character_source)))
+                        (literal))))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_length_operator)
+                      parameter: (array_reference
+                        name: (variable_name)
+                        subscript: (array_subscript
+                          source: (subscript_source
+                            candidate: (arithmetic_candidate_number)))))))))))))
+    separator: (newline_list)))

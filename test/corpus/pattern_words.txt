@@ -10,60 +10,81 @@ Reserved punctuation separates groups and extglob
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_group
-              (conditional_group
-                (word
-                  (literal))))
-            (conditional_close)))))
-    (and_or
-      (pipeline
-        (bang)
-        (command
-          (subshell
-            (list
-              (and_or
-                (pipeline
-                  (command
-                    (simple_command
-                      (word
-                        (literal)))))))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal))))))))
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (word
-                (extglob_pattern
-                  (extglob_operator)
-                  (extglob_alternative
-                    (literal))
-                  (extglob_alternative
-                    (literal))))
-              (and_if)
-              (conditional_negation
-                (conditional_not)
-                (conditional_group
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_group
+                      (conditional_group
+                        (word
+                          (literal))))
+                    (conditional_close)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (bang)
+            (pipe_sequence
+              (command
+                (compound_command
+                  (subshell
+                    (compound_list
+                      (term
+                        (and_or
+                          (pipeline
+                            (pipe_sequence
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal)))))))))))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
                   (word
-                    (literal)))))
-            (conditional_close)))))))
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal)))))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (word
+                        (extglob_pattern
+                          (extglob_operator)
+                          (extglob_alternative
+                            (literal))
+                          (extglob_alternative
+                            (literal))))
+                      (and_if)
+                      (conditional_negation
+                        (conditional_not)
+                        (conditional_group
+                          (word
+                            (literal)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 special parameter spellings before extglob patterns are literal dollars
@@ -74,32 +95,36 @@ $@(a) $!(b|c)x $?(d)
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))))
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal)))
-              (literal))
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal)))
+                    (literal))
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 extglob kinds and nesting
@@ -110,59 +135,63 @@ echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal))))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal))))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (extglob_pattern
-                    (extglob_operator)
-                    (extglob_alternative
-                      (literal))
-                    (extglob_alternative
-                      (literal))))))
-            (word
-              (extglob_pattern
-                (extglob_operator)))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (extglob_pattern
+                          (extglob_operator)
+                          (extglob_alternative
+                            (literal))
+                          (extglob_alternative
+                            (literal))))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 extglob source delimiters
@@ -173,53 +202,60 @@ echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (pattern_bracket_source
-                    (pattern_bracket_members_source
-                      (pattern_bracket_character_source)
-                      (pattern_bracket_character_source))))
-                (extglob_alternative
-                  (double_quoted
-                    (double_quote_text)))
-                (extglob_alternative
-                  (escaped_character))
-                (extglob_alternative
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (word
-                                  (literal))))))))))
-                (extglob_alternative
-                  (parameter_expansion
-                    (variable_name)))))
-            (word
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal)
-                  (extglob_group
-                    (extglob_alternative
-                      (literal))
-                    (extglob_alternative
-                      (literal))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (pattern_bracket_source
+                          (pattern_bracket_members_source
+                            (pattern_bracket_character_source)
+                            (pattern_bracket_character_source))))
+                      (extglob_alternative
+                        (double_quoted
+                          (double_quote_text)))
+                      (extglob_alternative
+                        (escaped_character))
+                      (extglob_alternative
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (word
+                                              (literal)))))))))))))
+                      (extglob_alternative
+                        (parameter_expansion
+                          (variable_name)))))
+                  (word
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)
+                        (extglob_group
+                          (extglob_alternative
+                            (literal))
+                          (extglob_alternative
+                            (literal)))))))))))))
+    (newline_list)))
 
 ==================
 bracket negation
@@ -231,23 +267,27 @@ echo [^a] [!a]
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (pattern_bracket_source
-                (pattern_bracket_negation_source)
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))
-            (word
-              (pattern_bracket_source
-                (pattern_bracket_negation_source)
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (pattern_bracket_source
+                      (pattern_bracket_negation_source)
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (word
+                    (pattern_bracket_source
+                      (pattern_bracket_negation_source)
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))))))))))
+    (newline_list)))
 
 ==================
 Range endpoints treat class and equivalence openings as literal brackets
@@ -259,38 +299,43 @@ Range endpoints treat class and equivalence openings as literal brackets
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_bracket_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_bracket_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_bracket_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_bracket_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 Incomplete collating range endpoints keep the bracket close while complete symbols stay structured
@@ -302,31 +347,36 @@ Incomplete collating range endpoints keep the bracket close while complete symbo
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_bracket_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_collating_symbol_source
-                      value: (pattern_collating_symbol_character_source))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_bracket_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_collating_symbol_source
+                            value: (pattern_collating_symbol_character_source)))))))))))))
+    separator: (newline_list)))
 
 ==================
 Unclosed class and collating openings inside a bracket stay members
@@ -338,49 +388,54 @@ Unclosed class and collating openings inside a bracket stay members
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_equivalence_class_source
-                    value: (pattern_equivalence_class_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_collating_symbol_source
-                    value: (pattern_collating_symbol_character_source)
-                    value: (pattern_collating_symbol_character_source)
-                    value: (pattern_collating_symbol_character_source)))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_equivalence_class_source
+                          value: (pattern_equivalence_class_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_collating_symbol_source
+                          value: (pattern_collating_symbol_character_source)
+                          value: (pattern_collating_symbol_character_source)
+                          value: (pattern_collating_symbol_character_source))))))))))))
+    separator: (newline_list)))
 
 ==================
 Unterminated brackets with nested openings are re-read from the next bracket
@@ -392,40 +447,45 @@ Unterminated brackets with nested openings are re-read from the next bracket
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (escaped_character)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (escaped_character)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source))))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))))))))))
+    separator: (newline_list)))
 
 ==================
 Bracket elements stay structured in case patterns and assignments
@@ -437,37 +497,44 @@ case x in [a[:alpha:]]) ;; esac; x=[a[.b.]]
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (case_clause
-            (case_keyword)
-            word: (word (literal))
-            in: (in_keyword)
-            item: (case_item
-              patterns: (pattern_list
-                word: (word
-                  (pattern_bracket_source
-                    members: (pattern_bracket_members_source
-                      member: (pattern_bracket_character_source)
-                      member: (pattern_character_class_source
-                        content: (pattern_character_class_content_source))))))
-              terminator: (dsemi))
-            (esac_keyword)))))
-    separator: (separator_op)
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            assignment: (assignment_word
-              name: (variable_name)
-              value: (assignment_value
-                (pattern_bracket_source
-                  members: (pattern_bracket_members_source
-                    member: (pattern_bracket_character_source)
-                    member: (pattern_collating_symbol_source
-                      value: (pattern_collating_symbol_character_source))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (case_clause
+                    (case_keyword)
+                    word: (word
+                      (literal))
+                    in: (in_keyword)
+                    item: (case_item
+                      patterns: (pattern_list
+                        word: (word
+                          (pattern_bracket_source
+                            members: (pattern_bracket_members_source
+                              member: (pattern_bracket_character_source)
+                              member: (pattern_character_class_source
+                                content: (pattern_character_class_content_source))))))
+                      terminator: (dsemi))
+                    (esac_keyword)))))))
+        separator: (separator_op)
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  assignment: (assignment_word
+                    name: (variable_name)
+                    value: (assignment_value
+                      (pattern_bracket_source
+                        members: (pattern_bracket_members_source
+                          member: (pattern_bracket_character_source)
+                          member: (pattern_collating_symbol_source
+                            value: (pattern_collating_symbol_character_source)))))))))))))
+    separator: (newline_list)))
 
 ==================
 Dollar-prefixed extglobs retain literal prefixes and pattern operators
@@ -478,22 +545,29 @@ Dollar-prefixed extglobs retain literal prefixes and pattern operators
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word (literal))
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative (literal))))
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative (literal))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 Extglobs inside a bracket fallback count as members
@@ -504,36 +578,46 @@ Extglobs inside a bracket fallback count as members
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word (literal))
-            (word
-              (literal)
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative (literal)))
-              (literal))
-            (word
-              (literal)
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (process_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word (literal)))))))))))
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal)))
+                    (literal))
+                  (word
+                    (literal)
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (process_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))))))))))))))
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))))))))))
+    (newline_list)))
 
 ==================
 Process substitutions, locale strings, and braces count as bracket fallback members
@@ -545,58 +629,78 @@ Process substitutions, locale strings, and braces count as bracket fallback memb
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word (literal))
-            (word
-              (literal)
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word (literal)))))))))
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))
-            (word
-              (literal)
-              (locale_quoted (double_quote_text))
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word (literal)))))))))
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))
-            (word
-              (literal)
-              (brace_expansion
-                (brace_alternative (literal))
-                (brace_alternative (literal)))
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word (literal)))))))))
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))))))))))))
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (word
+                    (literal)
+                    (locale_quoted
+                      (double_quote_text))
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))))))))))))
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (word
+                    (literal)
+                    (brace_expansion
+                      (brace_alternative
+                        (literal))
+                      (brace_alternative
+                        (literal)))
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))))))))))))
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))))))))))
+    (newline_list)))
 
 ==================
 extglob suffixes stay in command words beside function definitions
@@ -608,72 +712,81 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:14       and_or: and_or
-0:0  - 0:14         pipeline: pipeline
-0:0  - 0:14           command: command
-0:0  - 0:14             body: simple_command
-0:0  - 0:10               name: word
-0:0  - 0:1                  literal `a`
-0:1  - 0:4                  pattern_bracket_source
-0:1  - 0:2                    "["
-0:2  - 0:3                    members: pattern_bracket_members_source
-0:2  - 0:3                      member: pattern_bracket_character_source ` `
-0:3  - 0:4                    "]"
-0:4  - 0:10                 extglob_pattern
-0:4  - 0:5                    operator: extglob_operator `@`
-0:5  - 0:6                    "("
-0:6  - 0:7                    alternative: extglob_alternative
-0:6  - 0:7                      literal `x`
-0:7  - 0:8                    "|"
-0:8  - 0:9                    alternative: extglob_alternative
-0:8  - 0:9                      literal `y`
-0:9  - 0:10                   ")"
-0:11 - 0:14               argument: word
-0:11 - 0:14                 literal `arg`
-0:14 - 0:15       separator: separator_op
-0:14 - 0:15         ";"
-0:16 - 0:27       and_or: and_or
-0:16 - 0:27         pipeline: pipeline
-0:16 - 0:27           command: command
-0:16 - 0:27             body: simple_command
-0:16 - 0:23               name: word
-0:16 - 0:17                 literal `x`
-0:17 - 0:23                 extglob_pattern
-0:17 - 0:18                   operator: extglob_operator `@`
-0:18 - 0:19                   "("
-0:19 - 0:20                   alternative: extglob_alternative
-0:19 - 0:20                     literal `a`
-0:20 - 0:21                   "|"
-0:21 - 0:22                   alternative: extglob_alternative
-0:21 - 0:22                     literal `b`
-0:22 - 0:23                   ")"
-0:24 - 0:27               argument: word
-0:24 - 0:27                 literal `arg`
-0:27 - 0:28       separator: separator_op
-0:27 - 0:28         ";"
-0:29 - 0:41       and_or: and_or
-0:29 - 0:41         pipeline: pipeline
-0:29 - 0:41           command: command
-0:29 - 0:41             body: function_definition
-0:29 - 0:31               name: function_name `f+`
-0:32 - 0:33               "("
-0:33 - 0:34               ")"
-0:35 - 0:41               body: function_body
-0:35 - 0:41                 body: brace_group
-0:35 - 0:36                   "{"
-0:36 - 0:40                   body: list
-0:37 - 0:38                     and_or: and_or
-0:37 - 0:38                       pipeline: pipeline
-0:37 - 0:38                         command: command
-0:37 - 0:38                           body: simple_command
-0:37 - 0:38                             name: word
-0:37 - 0:38                               literal `:`
-0:38 - 0:39                     separator: separator
-0:38 - 0:39                       operator: separator_op
-0:38 - 0:39                         ";"
-0:40 - 0:41                   "}"
-0:41 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:41       command: complete_command
+0:0  - 0:41         body: list
+0:0  - 0:14           and_or: and_or
+0:0  - 0:14             pipeline: pipeline
+0:0  - 0:14               pipe_sequence
+0:0  - 0:14                 command: command
+0:0  - 0:14                   body: simple_command
+0:0  - 0:10                     name: word
+0:0  - 0:1                        literal `a`
+0:1  - 0:4                        pattern_bracket_source
+0:1  - 0:2                          "["
+0:2  - 0:3                          members: pattern_bracket_members_source
+0:2  - 0:3                            member: pattern_bracket_character_source ` `
+0:3  - 0:4                          "]"
+0:4  - 0:10                       extglob_pattern
+0:4  - 0:5                          operator: extglob_operator `@`
+0:5  - 0:6                          "("
+0:6  - 0:7                          alternative: extglob_alternative
+0:6  - 0:7                            literal `x`
+0:7  - 0:8                          "|"
+0:8  - 0:9                          alternative: extglob_alternative
+0:8  - 0:9                            literal `y`
+0:9  - 0:10                         ")"
+0:11 - 0:14                     argument: word
+0:11 - 0:14                       literal `arg`
+0:14 - 0:15           separator: separator_op
+0:14 - 0:15             ";"
+0:16 - 0:27           and_or: and_or
+0:16 - 0:27             pipeline: pipeline
+0:16 - 0:27               pipe_sequence
+0:16 - 0:27                 command: command
+0:16 - 0:27                   body: simple_command
+0:16 - 0:23                     name: word
+0:16 - 0:17                       literal `x`
+0:17 - 0:23                       extglob_pattern
+0:17 - 0:18                         operator: extglob_operator `@`
+0:18 - 0:19                         "("
+0:19 - 0:20                         alternative: extglob_alternative
+0:19 - 0:20                           literal `a`
+0:20 - 0:21                         "|"
+0:21 - 0:22                         alternative: extglob_alternative
+0:21 - 0:22                           literal `b`
+0:22 - 0:23                         ")"
+0:24 - 0:27                     argument: word
+0:24 - 0:27                       literal `arg`
+0:27 - 0:28           separator: separator_op
+0:27 - 0:28             ";"
+0:29 - 0:41           and_or: and_or
+0:29 - 0:41             pipeline: pipeline
+0:29 - 0:41               pipe_sequence
+0:29 - 0:41                 command: command
+0:29 - 0:41                   body: function_definition
+0:29 - 0:31                     name: function_name `f+`
+0:32 - 0:33                     "("
+0:33 - 0:34                     ")"
+0:35 - 0:41                     body: function_body
+0:35 - 0:41                       body: compound_command
+0:35 - 0:41                         brace_group
+0:35 - 0:36                           "{"
+0:36 - 0:40                           body: compound_list
+0:37 - 0:40                             body: term
+0:37 - 0:38                               and_or: and_or
+0:37 - 0:38                                 pipeline: pipeline
+0:37 - 0:38                                   pipe_sequence
+0:37 - 0:38                                     command: command
+0:37 - 0:38                                       body: simple_command
+0:37 - 0:38                                         name: word
+0:37 - 0:38                                           literal `:`
+0:38 - 0:39                               separator: separator
+0:38 - 0:39                                 operator: separator_op
+0:38 - 0:39                                   ";"
+0:40 - 0:41                           "}"
+0:41 - 1:0        separator: newline_list
+0:41 - 1:0          "\n"
 
 ==================
 extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"
@@ -694,53 +807,64 @@ x=@([;]|c)
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (case_clause
-            (case_keyword)
-            (word
-              (parameter_expansion
-                (variable_name)))
-            (in_keyword)
-            (case_item
-              (pattern_list
-                (word
-                  (extglob_pattern
-                    (extglob_operator)
-                    (extglob_alternative
-                      (pattern_bracket_source
-                        (pattern_bracket_members_source
-                          (pattern_bracket_character_source)
-                          (pattern_bracket_character_source)
-                          (pattern_bracket_character_source))))
-                    (extglob_alternative
-                      (literal)))))
-              (list
-                (and_or
-                  (pipeline
-                    (command
-                      (simple_command
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (case_clause
+                    (case_keyword)
+                    (word
+                      (parameter_expansion
+                        (variable_name)))
+                    (in_keyword)
+                    (case_item
+                      (pattern_list
                         (word
-                          (literal)))))))
-              (dsemi))
-            (esac_keyword)))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (assignment_word
-              (variable_name)
-              (assignment_value
-                (extglob_pattern
-                  (extglob_operator)
-                  (extglob_alternative
-                    (pattern_bracket_source
-                      (pattern_bracket_members_source
-                        (pattern_bracket_character_source))))
-                  (extglob_alternative
-                    (literal)))))))))))
+                          (extglob_pattern
+                            (extglob_operator)
+                            (extglob_alternative
+                              (pattern_bracket_source
+                                (pattern_bracket_members_source
+                                  (pattern_bracket_character_source)
+                                  (pattern_bracket_character_source)
+                                  (pattern_bracket_character_source))))
+                            (extglob_alternative
+                              (literal)))))
+                      (compound_list
+                        (term
+                          (and_or
+                            (pipeline
+                              (pipe_sequence
+                                (command
+                                  (simple_command
+                                    (word
+                                      (literal)))))))))
+                      (dsemi))
+                    (esac_keyword)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (assignment_word
+                    (variable_name)
+                    (assignment_value
+                      (extglob_pattern
+                        (extglob_operator)
+                        (extglob_alternative
+                          (pattern_bracket_source
+                            (pattern_bracket_members_source
+                              (pattern_bracket_character_source))))
+                        (extglob_alternative
+                          (literal))))))))))))
+    (newline_list)))
 
 ==================
 conditional patterns keep blanks inside bracket expressions within extglob groups
@@ -752,27 +876,32 @@ conditional patterns keep blanks inside bracket expressions within extglob group
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (parameter_expansion
-                  (variable_name)))
-              (conditional_match_operator)
-              (conditional_pattern
-                (extglob_pattern
-                  (extglob_operator)
-                  (extglob_alternative
-                    (pattern_bracket_source
-                      (pattern_bracket_members_source
-                        (pattern_bracket_character_source))))
-                  (extglob_alternative
-                    (literal)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (parameter_expansion
+                          (variable_name)))
+                      (conditional_match_operator)
+                      (conditional_pattern
+                        (extglob_pattern
+                          (extglob_operator)
+                          (extglob_alternative
+                            (pattern_bracket_source
+                              (pattern_bracket_members_source
+                                (pattern_bracket_character_source))))
+                          (extglob_alternative
+                            (literal)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 Empty class, equivalence, and collating elements retain their complete boundaries
@@ -784,24 +913,29 @@ Empty class, equivalence, and collating elements retain their complete boundarie
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_character_class_source))))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_collating_symbol_source))))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_equivalence_class_source))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_character_class_source))))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_collating_symbol_source))))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_equivalence_class_source)))))))))))
+    separator: (newline_list)))
 
 ==================
 Only empty collating symbols form special range endpoints
@@ -813,36 +947,41 @@ Only empty collating symbols form special range endpoints
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_collating_symbol_source)))))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_bracket_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))
-            argument: (word
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_range_source
-                    start: (pattern_bracket_character_source)
-                    operator: (pattern_bracket_range_operator_source)
-                    end: (pattern_bracket_character_source))
-                  member: (pattern_bracket_character_source)
-                  member: (pattern_bracket_character_source)))
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_collating_symbol_source)))))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_bracket_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal))
+                  argument: (word
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_range_source
+                          start: (pattern_bracket_character_source)
+                          operator: (pattern_bracket_range_operator_source)
+                          end: (pattern_bracket_character_source))
+                        member: (pattern_bracket_character_source)
+                        member: (pattern_bracket_character_source)))
+                    (literal)))))))))
+    separator: (newline_list)))

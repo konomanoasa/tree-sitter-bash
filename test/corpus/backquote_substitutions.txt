@@ -8,30 +8,37 @@ echo `printf '%s' "$x"`
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (backquote_substitution
-                body: (backquote_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (literal))
-                            argument: (word
-                              (single_quoted
-                                (single_quote_content)))
-                            argument: (word
-                              (double_quoted
-                                (parameter_expansion
-                                  parameter: (variable_name))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (complete_commands
+                          command: (complete_command
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (single_quoted
+                                            (single_quote_content)))
+                                        argument: (word
+                                          (double_quoted
+                                            (parameter_expansion
+                                              parameter: (variable_name))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 backquote nesting
@@ -42,43 +49,50 @@ echo `printf "%s" @(a|b) ${x//a/b}`
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (backquote_substitution
-                (backquote_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (double_quoted
-                                (double_quote_text)))
-                            (word
-                              (extglob_pattern
-                                (extglob_operator)
-                                (extglob_alternative
-                                  (literal))
-                                (extglob_alternative
-                                  (literal))))
-                            (word
-                              (parameter_expansion
-                                (variable_name)
-                                (parameter_replacement
-                                  (parameter_replacement_operator)
-                                  (parameter_pattern
-                                    (literal))
-                                  (parameter_replacement_separator)
-                                  (parameter_word
-                                    (literal)))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (backquote_substitution
+                      (backquote_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (double_quoted
+                                            (double_quote_text)))
+                                        (word
+                                          (extglob_pattern
+                                            (extglob_operator)
+                                            (extglob_alternative
+                                              (literal))
+                                            (extglob_alternative
+                                              (literal))))
+                                        (word
+                                          (parameter_expansion
+                                            (variable_name)
+                                            (parameter_replacement
+                                              (parameter_replacement_operator)
+                                              (parameter_pattern
+                                                (literal))
+                                              (parameter_replacement_separator)
+                                              (parameter_word
+                                                (literal)))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 backquotes join continued lines inside single quotes
@@ -91,29 +105,36 @@ b'`
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (backquote_substitution
-                (backquote_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))
-                            (word
-                              (single_quoted
-                                (single_quote_content
-                                  (line_continuation))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (backquote_substitution
+                      (backquote_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))
+                                        (word
+                                          (single_quoted
+                                            (single_quote_content
+                                              (line_continuation))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 closing backquote ends arithmetic and quoted source
@@ -138,105 +159,129 @@ echo "`echo \"a\"`" "${x:-`echo \"a\"`}" $((`echo \"1\"`)) ${!x`echo \"a\"`*}
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (backquote_substitution
-                  body: (backquote_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              argument: (word
-                                (double_quoted
-                                  (double_quote_text))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (backquote_substitution
-                      body: (backquote_substitution_body
-                        (list
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              command: (command
-                                body: (simple_command
-                                  name: (word
-                                    (literal))
-                                  argument: (word
-                                    (escaped_character)
-                                    (literal)
-                                    (escaped_character)))))))))))))
-            argument: (word
-              (arithmetic_expansion
-                expression: (backquote_substitution
-                  body: (backquote_substitution_body
-                    (list
-                      and_or: (and_or
-                        pipeline: (pipeline
-                          command: (command
-                            body: (simple_command
-                              name: (word
-                                (literal))
-                              argument: (word
-                                (escaped_character)
-                                (literal)
-                                (escaped_character)))))))))))
-            argument: (word
-              (parameter_expansion
-                operator: (parameter_indirection_operator)
-                prefix: (parameter_name_prefix
-                  (literal)
-                  (backquote_substitution
-                    body: (backquote_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                argument: (word
-                                  (escaped_character)
-                                  (literal)
-                                  (escaped_character))))))))))
-                operator: (parameter_names_operator)))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (conditional_command
-            (conditional_open)
-            condition: (conditional_binary_expression
-              left: (word
-                (literal))
-              operator: (conditional_regex_operator)
-              right: (regex_operand
-                expression: (regex_source_expression
-                  (backquote_substitution
-                    body: (backquote_substitution_body
-                      (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))
-                                argument: (word
-                                  (escaped_character)
-                                  (literal)
-                                  (escaped_character))))))))))))
-            (conditional_close)))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (backquote_substitution
+                        body: (backquote_substitution_body
+                          (complete_commands
+                            command: (complete_command
+                              body: (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    (pipe_sequence
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (double_quoted
+                                              (double_quote_text)))))))))))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (complete_commands
+                                command: (complete_command
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        (pipe_sequence
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal))
+                                              argument: (word
+                                                (escaped_character)
+                                                (literal)
+                                                (escaped_character))))))))))))))))
+                  argument: (word
+                    (arithmetic_expansion
+                      expression: (backquote_substitution
+                        body: (backquote_substitution_body
+                          (complete_commands
+                            command: (complete_command
+                              body: (list
+                                and_or: (and_or
+                                  pipeline: (pipeline
+                                    (pipe_sequence
+                                      command: (command
+                                        body: (simple_command
+                                          name: (word
+                                            (literal))
+                                          argument: (word
+                                            (escaped_character)
+                                            (literal)
+                                            (escaped_character))))))))))))))
+                  argument: (word
+                    (parameter_expansion
+                      operator: (parameter_indirection_operator)
+                      prefix: (parameter_name_prefix
+                        (literal)
+                        (backquote_substitution
+                          body: (backquote_substitution_body
+                            (complete_commands
+                              command: (complete_command
+                                body: (list
+                                  and_or: (and_or
+                                    pipeline: (pipeline
+                                      (pipe_sequence
+                                        command: (command
+                                          body: (simple_command
+                                            name: (word
+                                              (literal))
+                                            argument: (word
+                                              (escaped_character)
+                                              (literal)
+                                              (escaped_character)))))))))))))
+                      operator: (parameter_names_operator))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    condition: (conditional_binary_expression
+                      left: (word
+                        (literal))
+                      operator: (conditional_regex_operator)
+                      right: (regex_operand
+                        expression: (regex_source_expression
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (complete_commands
+                                command: (complete_command
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        (pipe_sequence
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal))
+                                              argument: (word
+                                                (escaped_character)
+                                                (literal)
+                                                (escaped_character)))))))))))))))
+                    (conditional_close)))))))))
+    separator: (newline_list)))
 
 ==================
 command words after escaped backslashes and a continuation keep quoted segments
@@ -251,54 +296,69 @@ echo `x; \\\
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (backquote_substitution
-                body: (backquote_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (escaped_character
-                                (line_continuation))
-                              (single_quoted
-                                (single_quote_content)))))))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (backquote_substitution
-                body: (backquote_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (literal))))))
-                    separator: (separator_op)
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (escaped_character
-                                (line_continuation))
-                              (single_quoted
-                                (single_quote_content)))
-                            argument: (word
-                              (literal))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (complete_commands
+                          command: (complete_command
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (escaped_character
+                                            (line_continuation))
+                                          (single_quoted
+                                            (single_quote_content)))))))))))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (backquote_substitution
+                      body: (backquote_substitution_body
+                        (complete_commands
+                          command: (complete_command
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal)))))))
+                              separator: (separator_op)
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (escaped_character
+                                            (line_continuation))
+                                          (single_quoted
+                                            (single_quote_content)))
+                                        argument: (word
+                                          (literal))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 quoted parameter value operators preserve escaped backquote quotes
@@ -310,133 +370,155 @@ quoted parameter value operators preserve escaped backquote quotes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))))))))
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 unquoted parameter words decode quotes in their own double quotes
@@ -448,31 +530,38 @@ unquoted parameter words decode quotes in their own double quotes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                operator: (parameter_value_operator)
-                word: (parameter_word
-                  (double_quoted
-                    (backquote_substitution
-                      body: (backquote_substitution_body
-                        (list
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              command: (command
-                                body: (simple_command
-                                  name: (word
-                                    (literal))
-                                  argument: (word
-                                    (double_quoted
-                                      (double_quote_text))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (complete_commands
+                                command: (complete_command
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        (pipe_sequence
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal))
+                                              argument: (word
+                                                (double_quoted
+                                                  (double_quote_text))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 nested parameter values retain inherited quote removal
@@ -484,62 +573,72 @@ nested parameter values retain inherited quote removal
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (parameter_expansion
-                      parameter: (variable_name)
-                      operator: (parameter_value_operator)
-                      word: (parameter_word
-                        (double_quoted
-                          (backquote_substitution
-                            body: (backquote_substitution_body
-                              (list
-                                and_or: (and_or
-                                  pipeline: (pipeline
-                                    command: (command
-                                      body: (simple_command
-                                        name: (word
-                                          (literal))
-                                        argument: (word
-                                          (escaped_character)
-                                          (literal)
-                                          (escaped_character))))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (double_quoted
+                                (backquote_substitution
+                                  body: (backquote_substitution_body
+                                    (complete_commands
+                                      command: (complete_command
+                                        body: (list
+                                          and_or: (and_or
+                                            pipeline: (pipeline
+                                              (pipe_sequence
+                                                command: (command
+                                                  body: (simple_command
+                                                    name: (word
+                                                      (literal))
+                                                    argument: (word
+                                                      (escaped_character)
+                                                      (literal)
+                                                      (escaped_character)))))))))))))))))))
+                  argument: (word
                     (double_quoted
                       (parameter_expansion
                         parameter: (variable_name)
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (double_quoted
-                            (backquote_substitution
-                              body: (backquote_substitution_body
-                                (list
-                                  and_or: (and_or
-                                    pipeline: (pipeline
-                                      command: (command
-                                        body: (simple_command
-                                          name: (word
-                                            (literal))
-                                          argument: (word
-                                            (escaped_character)
-                                            (literal)
-                                            (escaped_character)))))))))))))))))))))))
+                            (parameter_expansion
+                              parameter: (variable_name)
+                              operator: (parameter_value_operator)
+                              word: (parameter_word
+                                (double_quoted
+                                  (backquote_substitution
+                                    body: (backquote_substitution_body
+                                      (complete_commands
+                                        command: (complete_command
+                                          body: (list
+                                            and_or: (and_or
+                                              pipeline: (pipeline
+                                                (pipe_sequence
+                                                  command: (command
+                                                    body: (simple_command
+                                                      name: (word
+                                                        (literal))
+                                                      argument: (word
+                                                        (escaped_character)
+                                                        (literal)
+                                                        (escaped_character)))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 parameter error words reset inherited backquote quoting
@@ -551,51 +650,61 @@ parameter error words reset inherited backquote quoting
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (double_quote_text)))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (double_quote_text))))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (double_quote_text)))))))))))))))))))))
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (double_quote_text)))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 parameter errors and nested values apply their own quote context
@@ -607,85 +716,98 @@ parameter errors and nested values apply their own quote context
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (parameter_expansion
-                      parameter: (variable_name)
-                      operator: (parameter_value_operator)
-                      word: (parameter_word
-                        (double_quoted
-                          (backquote_substitution
-                            body: (backquote_substitution_body
-                              (list
-                                and_or: (and_or
-                                  pipeline: (pipeline
-                                    command: (command
-                                      body: (simple_command
-                                        name: (word
-                                          (literal))
-                                        argument: (word
-                                          (double_quoted
-                                            (double_quote_text)))))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (double_quoted
+                                (backquote_substitution
+                                  body: (backquote_substitution_body
+                                    (complete_commands
+                                      command: (complete_command
+                                        body: (list
+                                          and_or: (and_or
+                                            pipeline: (pipeline
+                                              (pipe_sequence
+                                                command: (command
+                                                  body: (simple_command
+                                                    name: (word
+                                                      (literal))
+                                                    argument: (word
+                                                      (double_quoted
+                                                        (double_quote_text))))))))))))))))))))
+                  argument: (word
                     (double_quoted
                       (parameter_expansion
                         parameter: (variable_name)
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (double_quoted
-                            (backquote_substitution
-                              body: (backquote_substitution_body
-                                (list
-                                  and_or: (and_or
-                                    pipeline: (pipeline
-                                      command: (command
-                                        body: (simple_command
-                                          name: (word
-                                            (literal))
-                                          argument: (word
-                                            (escaped_character)
-                                            (literal)
-                                            (escaped_character)))))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+                            (parameter_expansion
+                              parameter: (variable_name)
+                              operator: (parameter_value_operator)
+                              word: (parameter_word
+                                (double_quoted
+                                  (backquote_substitution
+                                    body: (backquote_substitution_body
+                                      (complete_commands
+                                        command: (complete_command
+                                          body: (list
+                                            and_or: (and_or
+                                              pipeline: (pipeline
+                                                (pipe_sequence
+                                                  command: (command
+                                                    body: (simple_command
+                                                      name: (word
+                                                        (literal))
+                                                      argument: (word
+                                                        (escaped_character)
+                                                        (literal)
+                                                        (escaped_character))))))))))))))))))))
+                  argument: (word
                     (double_quoted
                       (parameter_expansion
                         parameter: (variable_name)
                         operator: (parameter_value_operator)
                         word: (parameter_word
                           (double_quoted
-                            (backquote_substitution
-                              body: (backquote_substitution_body
-                                (list
-                                  and_or: (and_or
-                                    pipeline: (pipeline
-                                      command: (command
-                                        body: (simple_command
-                                          name: (word
-                                            (literal))
-                                          argument: (word
-                                            (double_quoted
-                                              (double_quote_text))))))))))))))))))))))))
+                            (parameter_expansion
+                              parameter: (variable_name)
+                              operator: (parameter_value_operator)
+                              word: (parameter_word
+                                (double_quoted
+                                  (backquote_substitution
+                                    body: (backquote_substitution_body
+                                      (complete_commands
+                                        command: (complete_command
+                                          body: (list
+                                            and_or: (and_or
+                                              pipeline: (pipeline
+                                                (pipe_sequence
+                                                  command: (command
+                                                    body: (simple_command
+                                                      name: (word
+                                                        (literal))
+                                                      argument: (word
+                                                        (double_quoted
+                                                          (double_quote_text))))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 parameter patterns reset inherited backquote quoting
@@ -697,110 +819,129 @@ parameter patterns reset inherited backquote quoting
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_pattern_operator)
-                  pattern: (parameter_pattern
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (double_quote_text)))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_pattern_operator)
-                  pattern: (parameter_pattern
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_pattern_operator)
+                        pattern: (parameter_pattern
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (double_quote_text))))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (double_quote_text)))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_pattern_operator)
-                  pattern: (parameter_pattern
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_pattern_operator)
+                        pattern: (parameter_pattern
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (double_quote_text))))))))))))))))))
+                  argument: (word
                     (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (double_quote_text)))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  (parameter_case_conversion
-                    operator: (parameter_case_operator)
-                    pattern: (parameter_pattern
-                      (double_quoted
-                        (backquote_substitution
-                          body: (backquote_substitution_body
-                            (list
-                              and_or: (and_or
-                                pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  (parameter_case_conversion
-                    operator: (parameter_case_operator)
-                    pattern: (parameter_pattern
-                      (double_quoted
-                        (backquote_substitution
-                          body: (backquote_substitution_body
-                            (list
-                              and_or: (and_or
-                                pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))))))))))))
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_pattern_operator)
+                        pattern: (parameter_pattern
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (double_quote_text))))))))))))))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        (parameter_case_conversion
+                          operator: (parameter_case_operator)
+                          pattern: (parameter_pattern
+                            (double_quoted
+                              (backquote_substitution
+                                body: (backquote_substitution_body
+                                  (complete_commands
+                                    command: (complete_command
+                                      body: (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal))
+                                                  argument: (word
+                                                    (double_quoted
+                                                      (double_quote_text)))))))))))))))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        (parameter_case_conversion
+                          operator: (parameter_case_operator)
+                          pattern: (parameter_pattern
+                            (double_quoted
+                              (backquote_substitution
+                                body: (backquote_substitution_body
+                                  (complete_commands
+                                    command: (complete_command
+                                      body: (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal))
+                                                  argument: (word
+                                                    (double_quoted
+                                                      (double_quote_text))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 parameter replacement pattern and value decode their quoted backquotes
@@ -812,48 +953,58 @@ parameter replacement pattern and value decode their quoted backquotes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  (parameter_replacement
-                    operator: (parameter_replacement_operator)
-                    pattern: (parameter_pattern
-                      (double_quoted
-                        (backquote_substitution
-                          body: (backquote_substitution_body
-                            (list
-                              and_or: (and_or
-                                pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))
-                    (parameter_replacement_separator)
-                    replacement: (parameter_word
-                      (double_quoted
-                        (backquote_substitution
-                          body: (backquote_substitution_body
-                            (list
-                              and_or: (and_or
-                                pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        (parameter_replacement
+                          operator: (parameter_replacement_operator)
+                          pattern: (parameter_pattern
+                            (double_quoted
+                              (backquote_substitution
+                                body: (backquote_substitution_body
+                                  (complete_commands
+                                    command: (complete_command
+                                      body: (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal))
+                                                  argument: (word
+                                                    (double_quoted
+                                                      (double_quote_text)))))))))))))))
+                          (parameter_replacement_separator)
+                          replacement: (parameter_word
+                            (double_quoted
+                              (backquote_substitution
+                                body: (backquote_substitution_body
+                                  (complete_commands
+                                    command: (complete_command
+                                      body: (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal))
+                                                  argument: (word
+                                                    (double_quoted
+                                                      (double_quote_text))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 nested pattern values acquire quotation only from an inner quote
@@ -865,61 +1016,71 @@ nested pattern values acquire quotation only from an inner quote
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_pattern_operator)
-                  pattern: (parameter_pattern
-                    (parameter_expansion
-                      parameter: (variable_name)
-                      operator: (parameter_value_operator)
-                      word: (parameter_word
-                        (double_quoted
-                          (backquote_substitution
-                            body: (backquote_substitution_body
-                              (list
-                                and_or: (and_or
-                                  pipeline: (pipeline
-                                    command: (command
-                                      body: (simple_command
-                                        name: (word
-                                          (literal))
-                                        argument: (word
-                                          (double_quoted
-                                            (double_quote_text)))))))))))))))))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_pattern_operator)
-                  pattern: (parameter_pattern
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (double_quoted
                       (parameter_expansion
                         parameter: (variable_name)
-                        operator: (parameter_value_operator)
-                        word: (parameter_word
+                        operator: (parameter_pattern_operator)
+                        pattern: (parameter_pattern
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (double_quoted
+                                (backquote_substitution
+                                  body: (backquote_substitution_body
+                                    (complete_commands
+                                      command: (complete_command
+                                        body: (list
+                                          and_or: (and_or
+                                            pipeline: (pipeline
+                                              (pipe_sequence
+                                                command: (command
+                                                  body: (simple_command
+                                                    name: (word
+                                                      (literal))
+                                                    argument: (word
+                                                      (double_quoted
+                                                        (double_quote_text))))))))))))))))))))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_pattern_operator)
+                        pattern: (parameter_pattern
                           (double_quoted
-                            (backquote_substitution
-                              body: (backquote_substitution_body
-                                (list
-                                  and_or: (and_or
-                                    pipeline: (pipeline
-                                      command: (command
-                                        body: (simple_command
-                                          name: (word
-                                            (literal))
-                                          argument: (word
-                                            (escaped_character)
-                                            (literal)
-                                            (escaped_character)))))))))))))))))))))))
+                            (parameter_expansion
+                              parameter: (variable_name)
+                              operator: (parameter_value_operator)
+                              word: (parameter_word
+                                (double_quoted
+                                  (backquote_substitution
+                                    body: (backquote_substitution_body
+                                      (complete_commands
+                                        command: (complete_command
+                                          body: (list
+                                            and_or: (and_or
+                                              pipeline: (pipeline
+                                                (pipe_sequence
+                                                  command: (command
+                                                    body: (simple_command
+                                                      name: (word
+                                                        (literal))
+                                                      argument: (word
+                                                        (escaped_character)
+                                                        (literal)
+                                                        (escaped_character)))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 command bodies reset parameter quote inheritance
@@ -931,43 +1092,53 @@ command bodies reset parameter quote inheritance
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (double_quoted
-                (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (double_quoted
-                      (command_substitution
-                        body: (command_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (double_quoted
-                                        (backquote_substitution
-                                          body: (backquote_substitution_body
-                                            (list
-                                              and_or: (and_or
-                                                pipeline: (pipeline
-                                                  command: (command
-                                                    body: (simple_command
-                                                      name: (word
-                                                        (literal))
-                                                      argument: (word
-                                                        (double_quoted
-                                                          (double_quote_text))))))))))))))))))))))))))))))
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (command_substitution
+                              body: (command_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (double_quoted
+                                                    (backquote_substitution
+                                                      body: (backquote_substitution_body
+                                                        (complete_commands
+                                                          command: (complete_command
+                                                            body: (list
+                                                              and_or: (and_or
+                                                                pipeline: (pipeline
+                                                                  (pipe_sequence
+                                                                    command: (command
+                                                                      body: (simple_command
+                                                                        name: (word
+                                                                          (literal))
+                                                                        argument: (word
+                                                                          (double_quoted
+                                                                            (double_quote_text)))))))))))))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 arithmetic parameter values preserve escaped backquote quotes
@@ -979,53 +1150,63 @@ arithmetic parameter values preserve escaped backquote quotes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (arithmetic_expansion
-                expression: (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))
-            argument: (word
-              (arithmetic_expansion
-                expression: (parameter_expansion
-                  parameter: (variable_name)
-                  operator: (parameter_value_operator)
-                  word: (parameter_word
-                    (double_quoted
-                      (backquote_substitution
-                        body: (backquote_substitution_body
-                          (list
-                            and_or: (and_or
-                              pipeline: (pipeline
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (escaped_character)
-                                      (literal)
-                                      (escaped_character))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (arithmetic_expansion
+                      expression: (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character)))))))))))))))))
+                  argument: (word
+                    (arithmetic_expansion
+                      expression: (parameter_expansion
+                        parameter: (variable_name)
+                        operator: (parameter_value_operator)
+                        word: (parameter_word
+                          (double_quoted
+                            (backquote_substitution
+                              body: (backquote_substitution_body
+                                (complete_commands
+                                  command: (complete_command
+                                    body: (list
+                                      and_or: (and_or
+                                        pipeline: (pipeline
+                                          (pipe_sequence
+                                            command: (command
+                                              body: (simple_command
+                                                name: (word
+                                                  (literal))
+                                                argument: (word
+                                                  (escaped_character)
+                                                  (literal)
+                                                  (escaped_character))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 arithmetic quotes directly around backquotes still decode
@@ -1037,29 +1218,36 @@ arithmetic quotes directly around backquotes still decode
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (arithmetic_expansion
-                expression: (arithmetic_source_expression
-                  (double_quoted
-                    (backquote_substitution
-                      body: (backquote_substitution_body
-                        (list
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              command: (command
-                                body: (simple_command
-                                  name: (word
-                                    (literal))
-                                  argument: (word
-                                    (double_quoted
-                                      (double_quote_text))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (arithmetic_expansion
+                      expression: (arithmetic_source_expression
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (complete_commands
+                                command: (complete_command
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        (pipe_sequence
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal))
+                                              argument: (word
+                                                (double_quoted
+                                                  (double_quote_text))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 substring nested values inherit arithmetic quoting
@@ -1071,37 +1259,44 @@ substring nested values inherit arithmetic quoting
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                (parameter_substring
-                  operator: (parameter_substring_operator)
-                  offset: (substring_source
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
                     (parameter_expansion
                       parameter: (variable_name)
-                      operator: (parameter_value_operator)
-                      word: (parameter_word
-                        (double_quoted
-                          (backquote_substitution
-                            body: (backquote_substitution_body
-                              (list
-                                and_or: (and_or
-                                  pipeline: (pipeline
-                                    command: (command
-                                      body: (simple_command
-                                        name: (word
-                                          (literal))
-                                        argument: (word
-                                          (escaped_character)
-                                          (literal)
-                                          (escaped_character))))))))))))))))))))))
+                      (parameter_substring
+                        operator: (parameter_substring_operator)
+                        offset: (substring_source
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (double_quoted
+                                (backquote_substitution
+                                  body: (backquote_substitution_body
+                                    (complete_commands
+                                      command: (complete_command
+                                        body: (list
+                                          and_or: (and_or
+                                            pipeline: (pipeline
+                                              (pipe_sequence
+                                                command: (command
+                                                  body: (simple_command
+                                                    name: (word
+                                                      (literal))
+                                                    argument: (word
+                                                      (escaped_character)
+                                                      (literal)
+                                                      (escaped_character))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 substring explicit quotes decode their backquotes
@@ -1113,33 +1308,40 @@ substring explicit quotes decode their backquotes
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                (parameter_substring
-                  operator: (parameter_substring_operator)
-                  offset: (substring_source
-                    (arithmetic_source_expression
-                      (double_quoted
-                        (backquote_substitution
-                          body: (backquote_substitution_body
-                            (list
-                              and_or: (and_or
-                                pipeline: (pipeline
-                                  command: (command
-                                    body: (simple_command
-                                      name: (word
-                                        (literal))
-                                      argument: (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      (parameter_substring
+                        operator: (parameter_substring_operator)
+                        offset: (substring_source
+                          (arithmetic_source_expression
+                            (double_quoted
+                              (backquote_substitution
+                                body: (backquote_substitution_body
+                                  (complete_commands
+                                    command: (complete_command
+                                      body: (list
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal))
+                                                  argument: (word
+                                                    (double_quoted
+                                                      (double_quote_text))))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 unquoted parameter backquotes protect decoded grouping characters
@@ -1151,31 +1353,38 @@ unquoted parameter backquotes protect decoded grouping characters
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (parameter_expansion
-                parameter: (variable_name)
-                operator: (parameter_value_operator)
-                word: (parameter_word
-                  (double_quoted
-                    (backquote_substitution
-                      body: (backquote_substitution_body
-                        (list
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              command: (command
-                                body: (simple_command
-                                  name: (word
-                                    (literal))
-                                  argument: (word
-                                    (double_quoted
-                                      (double_quote_text))))))))))))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      operator: (parameter_value_operator)
+                      word: (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            body: (backquote_substitution_body
+                              (complete_commands
+                                command: (complete_command
+                                  body: (list
+                                    and_or: (and_or
+                                      pipeline: (pipeline
+                                        (pipe_sequence
+                                          command: (command
+                                            body: (simple_command
+                                              name: (word
+                                                (literal))
+                                              argument: (word
+                                                (double_quoted
+                                                  (double_quote_text))))))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 quoted parameter backquotes expose grouping characters
@@ -1207,29 +1416,37 @@ arithmetic commands pass quoting into parameter values
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (arithmetic_command
-            (parameter_expansion
-              (variable_name)
-              (parameter_value_operator)
-              (parameter_word
-                (double_quoted
-                  (backquote_substitution
-                    (backquote_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (word
-                                  (escaped_character)
-                                  (literal)
-                                  (escaped_character))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (arithmetic_command
+                    (parameter_expansion
+                      (variable_name)
+                      (parameter_value_operator)
+                      (parameter_word
+                        (double_quoted
+                          (backquote_substitution
+                            (backquote_substitution_body
+                              (complete_commands
+                                (complete_command
+                                  (list
+                                    (and_or
+                                      (pipeline
+                                        (pipe_sequence
+                                          (command
+                                            (simple_command
+                                              (word
+                                                (literal))
+                                              (word
+                                                (escaped_character)
+                                                (literal)
+                                                (escaped_character)))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 array subscripts pass quoting into parameter values
@@ -1241,37 +1458,44 @@ array subscripts pass quoting into parameter values
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (parameter_expansion
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (array_reference
                         (variable_name)
-                        (parameter_value_operator)
-                        (parameter_word
-                          (double_quoted
-                            (backquote_substitution
-                              (backquote_substitution_body
-                                (list
-                                  (and_or
-                                    (pipeline
-                                      (command
-                                        (simple_command
-                                          (word
-                                            (literal))
-                                          (word
-                                            (escaped_character)
-                                            (literal)
-                                            (escaped_character)))))))))))))))))))))))
+                        (array_subscript
+                          (subscript_source
+                            (parameter_expansion
+                              (variable_name)
+                              (parameter_value_operator)
+                              (parameter_word
+                                (double_quoted
+                                  (backquote_substitution
+                                    (backquote_substitution_body
+                                      (complete_commands
+                                        (complete_command
+                                          (list
+                                            (and_or
+                                              (pipeline
+                                                (pipe_sequence
+                                                  (command
+                                                    (simple_command
+                                                      (word
+                                                        (literal))
+                                                      (word
+                                                        (escaped_character)
+                                                        (literal)
+                                                        (escaped_character)))))))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 array subscript quotes directly around backquotes still decode
@@ -1283,33 +1507,40 @@ array subscript quotes directly around backquotes still decode
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (parameter_expansion
-                (array_reference
-                  (variable_name)
-                  (array_subscript
-                    (subscript_source
-                      (arithmetic_candidate_source_expression
-                        (double_quoted
-                          (backquote_substitution
-                            (backquote_substitution_body
-                              (list
-                                (and_or
-                                  (pipeline
-                                    (command
-                                      (simple_command
-                                        (word
-                                          (literal))
-                                        (word
-                                          (double_quoted
-                                            (double_quote_text)))))))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (parameter_expansion
+                      (array_reference
+                        (variable_name)
+                        (array_subscript
+                          (subscript_source
+                            (arithmetic_candidate_source_expression
+                              (double_quoted
+                                (backquote_substitution
+                                  (backquote_substitution_body
+                                    (complete_commands
+                                      (complete_command
+                                        (list
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (double_quoted
+                                                        (double_quote_text)))))))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 regex operand quotes decode backquote quotes
@@ -1321,32 +1552,40 @@ regex operand quotes decode backquote quotes
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (double_quoted
-                    (backquote_substitution
-                      (backquote_substitution_body
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (word
-                                    (double_quoted
-                                      (double_quote_text))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (double_quoted
+                            (backquote_substitution
+                              (backquote_substitution_body
+                                (complete_commands
+                                  (complete_command
+                                    (list
+                                      (and_or
+                                        (pipeline
+                                          (pipe_sequence
+                                            (command
+                                              (simple_command
+                                                (word
+                                                  (literal))
+                                                (word
+                                                  (double_quoted
+                                                    (double_quote_text)))))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 regex parameter values decode backquote quotes in their own quotes
@@ -1358,36 +1597,44 @@ regex parameter values decode backquote quotes in their own quotes
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (parameter_expansion
-                    (variable_name)
-                    (parameter_value_operator)
-                    (parameter_word
-                      (double_quoted
-                        (backquote_substitution
-                          (backquote_substitution_body
-                            (list
-                              (and_or
-                                (pipeline
-                                  (command
-                                    (simple_command
-                                      (word
-                                        (literal))
-                                      (word
-                                        (double_quoted
-                                          (double_quote_text))))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (parameter_expansion
+                            (variable_name)
+                            (parameter_value_operator)
+                            (parameter_word
+                              (double_quoted
+                                (backquote_substitution
+                                  (backquote_substitution_body
+                                    (complete_commands
+                                      (complete_command
+                                        (list
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (double_quoted
+                                                        (double_quote_text)))))))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 parenthesized arithmetic resets parameter quotation while bracket arithmetic retains it
@@ -1399,79 +1646,92 @@ parenthesized arithmetic resets parameter quotation while bracket arithmetic ret
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (arithmetic_expansion
-                      (arithmetic_source_expression
-                        (double_quoted
-                          (backquote_substitution
-                            (backquote_substitution_body
-                              (list
-                                (and_or
-                                  (pipeline
-                                    (command
-                                      (simple_command
-                                        (word
-                                          (literal))
-                                        (word
-                                          (double_quoted
-                                            (double_quote_text)))))))))))))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
-                    (arithmetic_expansion
-                      (arithmetic_source_expression
-                        (double_quoted
-                          (backquote_substitution
-                            (backquote_substitution_body
-                              (list
-                                (and_or
-                                  (pipeline
-                                    (command
-                                      (simple_command
-                                        (word
-                                          (literal))
-                                        (word
-                                          (escaped_character)
-                                          (literal)
-                                          (escaped_character))))))))))))))))
-            (word
-              (double_quoted
-                (parameter_expansion
-                  (variable_name)
-                  (parameter_value_operator)
-                  (parameter_word
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
                     (double_quoted
-                      (arithmetic_expansion
-                        (arithmetic_source_expression
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (arithmetic_expansion
+                            (arithmetic_source_expression
+                              (double_quoted
+                                (backquote_substitution
+                                  (backquote_substitution_body
+                                    (complete_commands
+                                      (complete_command
+                                        (list
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (double_quoted
+                                                        (double_quote_text))))))))))))))))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
+                          (arithmetic_expansion
+                            (arithmetic_source_expression
+                              (double_quoted
+                                (backquote_substitution
+                                  (backquote_substitution_body
+                                    (complete_commands
+                                      (complete_command
+                                        (list
+                                          (and_or
+                                            (pipeline
+                                              (pipe_sequence
+                                                (command
+                                                  (simple_command
+                                                    (word
+                                                      (literal))
+                                                    (word
+                                                      (escaped_character)
+                                                      (literal)
+                                                      (escaped_character)))))))))))))))))))
+                  (word
+                    (double_quoted
+                      (parameter_expansion
+                        (variable_name)
+                        (parameter_value_operator)
+                        (parameter_word
                           (double_quoted
-                            (backquote_substitution
-                              (backquote_substitution_body
-                                (list
-                                  (and_or
-                                    (pipeline
-                                      (command
-                                        (simple_command
-                                          (word
-                                            (literal))
-                                          (word
-                                            (escaped_character)
-                                            (literal)
-                                            (escaped_character)))))))))))))))))))))))
+                            (arithmetic_expansion
+                              (arithmetic_source_expression
+                                (double_quoted
+                                  (backquote_substitution
+                                    (backquote_substitution_body
+                                      (complete_commands
+                                        (complete_command
+                                          (list
+                                            (and_or
+                                              (pipeline
+                                                (pipe_sequence
+                                                  (command
+                                                    (simple_command
+                                                      (word
+                                                        (literal))
+                                                      (word
+                                                        (escaped_character)
+                                                        (literal)
+                                                        (escaped_character)))))))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 bracket arithmetic inside a quoted parameter exposes escaped grouping characters

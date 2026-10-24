@@ -9,19 +9,25 @@ echo ok # trailing
 ------------------
 
 (program
-  leading: (comment
-    (comment_text))
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal))))))
-    separator: (comment
-      (comment_text))))
+  leading: (linebreak
+    (newline_list
+      (comment
+        (comment_text))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list
+      (comment
+        (comment_text)))))
 
 ==================
 comments starting with a function-like word are not function names
@@ -35,27 +41,38 @@ comments starting with a function-like word are not function names
 ------------------
 
 (program
-  leading: (comment
-    (comment_text))
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (command_substitution
-                body: (command_substitution_body
-                  (comment
-                    (comment_text))
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (literal))))))))))))))))
+  leading: (linebreak
+    (newline_list
+      (comment
+        (comment_text))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (command_substitution
+                      body: (command_substitution_body
+                        (linebreak
+                          (newline_list
+                            (comment
+                              (comment_text))))
+                        (complete_commands
+                          command: (complete_command
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 a continuation right after the comment marker stays in the comment
@@ -71,34 +88,48 @@ echo a #\
 ------------------
 
 (program
-  (comment
-    (comment_text))
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (literal))))))
-    (comment
-      (comment_text))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (backquote_substitution
-                (backquote_substitution_body
-                  (comment
-                    (comment_text)))
-                (line_continuation)))))))))
+  (linebreak
+    (newline_list
+      (comment
+        (comment_text))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))))
+    (newline_list
+      (comment
+        (comment_text)))
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (backquote_substitution
+                      (backquote_substitution_body
+                        (comment
+                          (comment_text)))
+                      (line_continuation))))))))))
+    (newline_list)))

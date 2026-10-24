@@ -8,54 +8,61 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source)))
-              (literal))
-            (word
-              (literal))
-            (word
-              (literal))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (literal))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (literal))
-            (word
-              (literal))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (double_quoted
-                (double_quote_text))
-              (literal))
-            (word
-              (literal))
-            (word
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (double_quoted
+                      (double_quote_text))
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 command-name brackets nest through assignments redirects and extglobs
@@ -66,56 +73,64 @@ a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (io_redirect
-                                  (io_file
-                                    (word
-                                      (literal))))
-                                (assignment_word
-                                  (variable_name)
-                                  (assignment_value
-                                    (literal)))
-                                (word
-                                  (literal)
-                                  (pattern_bracket_source
-                                    (pattern_bracket_members_source
-                                      (pattern_bracket_character_source)))))))))))
-                  (pattern_bracket_character_source))))
-            (word
-              (literal))))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source)))
-              (extglob_pattern
-                (extglob_operator)
-                (extglob_alternative
-                  (literal))
-                (extglob_alternative
-                  (literal))))
-            (word
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (io_redirect
+                                              (io_file
+                                                (word
+                                                  (literal))))
+                                            (assignment_word
+                                              (variable_name)
+                                              (assignment_value
+                                                (literal)))
+                                            (word
+                                              (literal)
+                                              (pattern_bracket_source
+                                                (pattern_bracket_members_source
+                                                  (pattern_bracket_character_source))))))))))))))
+                        (pattern_bracket_character_source))))
+                  (word
+                    (literal)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))
+                    (extglob_pattern
+                      (extglob_operator)
+                      (extglob_alternative
+                        (literal))
+                      (extglob_alternative
+                        (literal))))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 reserved word spellings glued to subscripts or plus signs are command words
@@ -128,39 +143,47 @@ in[b] then+=2
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source)
-                  (pattern_bracket_character_source)
-                  (pattern_bracket_character_source)
-                  (pattern_bracket_character_source)))
-              (literal))
-            (word
-              (literal))
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source)))
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal)
-              (pattern_bracket_source
-                (pattern_bracket_members_source
-                  (pattern_bracket_character_source))))
-            (word
-              (literal))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)
+                        (pattern_bracket_character_source)
+                        (pattern_bracket_character_source)
+                        (pattern_bracket_character_source)))
+                    (literal))
+                  (word
+                    (literal))
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source)))
+                    (literal)))))))))
+    (newline_list)
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal)
+                    (pattern_bracket_source
+                      (pattern_bracket_members_source
+                        (pattern_bracket_character_source))))
+                  (word
+                    (literal)))))))))
+    (newline_list)))
 
 ==================
 quoted and expanded command names
@@ -172,26 +195,31 @@ quoted and expanded command names
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (double_quoted
-                (double_quote_text)))
-            argument: (word
-              (literal))))))
-    separator: (separator_op)
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (parameter_expansion
-                parameter: (variable_name)))
-            argument: (word
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (double_quoted
+                      (double_quote_text)))
+                  argument: (word
+                    (literal)))))))
+        separator: (separator_op)
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (parameter_expansion
+                      parameter: (variable_name)))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 reserved words remain words outside keyword positions
@@ -203,23 +231,27 @@ echo if then do done fi
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal))
-            argument: (word
-              (literal))
-            argument: (word
-              (literal))
-            argument: (word
-              (literal))
-            argument: (word
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 trailing backslash at end of input is a literal
@@ -230,15 +262,18 @@ echo a\
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)))))))))))
 
 ==================
 conditional closing words remain words outside command position
@@ -250,34 +285,39 @@ x=1 ]]; echo ]] >]]
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:6        and_or: and_or
-0:0  - 0:6          pipeline: pipeline
-0:0  - 0:6            command: command
-0:0  - 0:6              body: simple_command
-0:0  - 0:3                assignment: assignment_word
-0:0  - 0:1                  name: variable_name `x`
-0:1  - 0:2                  "="
-0:2  - 0:3                  value: assignment_value
-0:2  - 0:3                    literal `1`
-0:4  - 0:6                name: word
-0:4  - 0:6                  literal `]]`
-0:6  - 0:7        separator: separator_op
-0:6  - 0:7          ";"
-0:8  - 0:19       and_or: and_or
-0:8  - 0:19         pipeline: pipeline
-0:8  - 0:19           command: command
-0:8  - 0:19             body: simple_command
-0:8  - 0:12               name: word
-0:8  - 0:12                 literal `echo`
-0:13 - 0:15               argument: word
-0:13 - 0:15                 literal `]]`
-0:16 - 0:19               redirect: io_redirect
-0:16 - 0:19                 body: io_file
-0:16 - 0:17                   ">"
-0:17 - 0:19                   filename: word
-0:17 - 0:19                     literal `]]`
-0:19 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:19       command: complete_command
+0:0  - 0:19         body: list
+0:0  - 0:6            and_or: and_or
+0:0  - 0:6              pipeline: pipeline
+0:0  - 0:6                pipe_sequence
+0:0  - 0:6                  command: command
+0:0  - 0:6                    body: simple_command
+0:0  - 0:3                      assignment: assignment_word
+0:0  - 0:1                        name: variable_name `x`
+0:1  - 0:2                        "="
+0:2  - 0:3                        value: assignment_value
+0:2  - 0:3                          literal `1`
+0:4  - 0:6                      name: word
+0:4  - 0:6                        literal `]]`
+0:6  - 0:7            separator: separator_op
+0:6  - 0:7              ";"
+0:8  - 0:19           and_or: and_or
+0:8  - 0:19             pipeline: pipeline
+0:8  - 0:19               pipe_sequence
+0:8  - 0:19                 command: command
+0:8  - 0:19                   body: simple_command
+0:8  - 0:12                     name: word
+0:8  - 0:12                       literal `echo`
+0:13 - 0:15                     argument: word
+0:13 - 0:15                       literal `]]`
+0:16 - 0:19                     redirect: io_redirect
+0:16 - 0:19                       body: io_file
+0:16 - 0:17                         ">"
+0:17 - 0:19                         filename: word
+0:17 - 0:19                           literal `]]`
+0:19 - 1:0        separator: newline_list
+0:19 - 1:0          "\n"
 
 ==================
 command-name subscript boundaries stop at the first lexical bracket pair
@@ -289,99 +329,109 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\[ ] tail; 1a[ ] tail; a-b[ ] t
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:12       and_or: and_or
-0:0  - 0:12         pipeline: pipeline
-0:0  - 0:12           command: command
-0:0  - 0:12             body: simple_command
-0:0  - 0:5                name: word
-0:0  - 0:1                  literal `a`
-0:1  - 0:4                  pattern_bracket_source
-0:1  - 0:2                    "["
-0:2  - 0:3                    members: pattern_bracket_members_source
-0:2  - 0:3                      member: pattern_bracket_character_source `x`
-0:3  - 0:4                    "]"
-0:4  - 0:5                  literal `[`
-0:6  - 0:7                argument: word
-0:6  - 0:7                  literal `]`
-0:8  - 0:12               argument: word
-0:8  - 0:12                 literal `tail`
-0:12 - 0:13       separator: separator_op
-0:12 - 0:13         ";"
-0:14 - 0:22       and_or: and_or
-0:14 - 0:22         pipeline: pipeline
-0:14 - 0:22           command: command
-0:14 - 0:22             body: simple_command
-0:14 - 0:17               name: word
-0:14 - 0:17                 literal `a[]`
-0:18 - 0:22               argument: word
-0:18 - 0:22                 literal `next`
-0:22 - 0:23       separator: separator_op
-0:22 - 0:23         ";"
-0:24 - 0:33       and_or: and_or
-0:24 - 0:33         pipeline: pipeline
-0:24 - 0:33           command: command
-0:24 - 0:33             body: simple_command
-0:24 - 0:28               name: word
-0:24 - 0:28                 literal `echo`
-0:29 - 0:31               argument: word
-0:29 - 0:31                 literal `a[`
-0:32 - 0:33               argument: word
-0:32 - 0:33                 literal `]`
-0:33 - 0:34       separator: separator_op
-0:33 - 0:34         ";"
-0:35 - 0:46       and_or: and_or
-0:35 - 0:46         pipeline: pipeline
-0:35 - 0:46           command: command
-0:35 - 0:46             body: simple_command
-0:35 - 0:39               name: word
-0:35 - 0:38                 double_quoted
-0:35 - 0:36                   "\""
-0:36 - 0:37                   double_quote_text `a`
-0:37 - 0:38                   "\""
-0:38 - 0:39                 literal `[`
-0:40 - 0:41               argument: word
-0:40 - 0:41                 literal `]`
-0:42 - 0:46               argument: word
-0:42 - 0:46                 literal `tail`
-0:46 - 0:47       separator: separator_op
-0:46 - 0:47         ";"
-0:48 - 0:58       and_or: and_or
-0:48 - 0:58         pipeline: pipeline
-0:48 - 0:58           command: command
-0:48 - 0:58             body: simple_command
-0:48 - 0:51               name: word
-0:48 - 0:49                 literal `a`
-0:49 - 0:51                 escaped_character `\\[`
-0:52 - 0:53               argument: word
-0:52 - 0:53                 literal `]`
-0:54 - 0:58               argument: word
-0:54 - 0:58                 literal `tail`
-0:58 - 0:59       separator: separator_op
-0:58 - 0:59         ";"
-0:60 - 0:70       and_or: and_or
-0:60 - 0:70         pipeline: pipeline
-0:60 - 0:70           command: command
-0:60 - 0:70             body: simple_command
-0:60 - 0:63               name: word
-0:60 - 0:63                 literal `1a[`
-0:64 - 0:65               argument: word
-0:64 - 0:65                 literal `]`
-0:66 - 0:70               argument: word
-0:66 - 0:70                 literal `tail`
-0:70 - 0:71       separator: separator_op
-0:70 - 0:71         ";"
-0:72 - 0:83       and_or: and_or
-0:72 - 0:83         pipeline: pipeline
-0:72 - 0:83           command: command
-0:72 - 0:83             body: simple_command
-0:72 - 0:76               name: word
-0:72 - 0:76                 literal `a-b[`
-0:77 - 0:78               argument: word
-0:77 - 0:78                 literal `]`
-0:79 - 0:83               argument: word
-0:79 - 0:83                 literal `tail`
-0:83 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:83       command: complete_command
+0:0  - 0:83         body: list
+0:0  - 0:12           and_or: and_or
+0:0  - 0:12             pipeline: pipeline
+0:0  - 0:12               pipe_sequence
+0:0  - 0:12                 command: command
+0:0  - 0:12                   body: simple_command
+0:0  - 0:5                      name: word
+0:0  - 0:1                        literal `a`
+0:1  - 0:4                        pattern_bracket_source
+0:1  - 0:2                          "["
+0:2  - 0:3                          members: pattern_bracket_members_source
+0:2  - 0:3                            member: pattern_bracket_character_source `x`
+0:3  - 0:4                          "]"
+0:4  - 0:5                        literal `[`
+0:6  - 0:7                      argument: word
+0:6  - 0:7                        literal `]`
+0:8  - 0:12                     argument: word
+0:8  - 0:12                       literal `tail`
+0:12 - 0:13           separator: separator_op
+0:12 - 0:13             ";"
+0:14 - 0:22           and_or: and_or
+0:14 - 0:22             pipeline: pipeline
+0:14 - 0:22               pipe_sequence
+0:14 - 0:22                 command: command
+0:14 - 0:22                   body: simple_command
+0:14 - 0:17                     name: word
+0:14 - 0:17                       literal `a[]`
+0:18 - 0:22                     argument: word
+0:18 - 0:22                       literal `next`
+0:22 - 0:23           separator: separator_op
+0:22 - 0:23             ";"
+0:24 - 0:33           and_or: and_or
+0:24 - 0:33             pipeline: pipeline
+0:24 - 0:33               pipe_sequence
+0:24 - 0:33                 command: command
+0:24 - 0:33                   body: simple_command
+0:24 - 0:28                     name: word
+0:24 - 0:28                       literal `echo`
+0:29 - 0:31                     argument: word
+0:29 - 0:31                       literal `a[`
+0:32 - 0:33                     argument: word
+0:32 - 0:33                       literal `]`
+0:33 - 0:34           separator: separator_op
+0:33 - 0:34             ";"
+0:35 - 0:46           and_or: and_or
+0:35 - 0:46             pipeline: pipeline
+0:35 - 0:46               pipe_sequence
+0:35 - 0:46                 command: command
+0:35 - 0:46                   body: simple_command
+0:35 - 0:39                     name: word
+0:35 - 0:38                       double_quoted
+0:35 - 0:36                         "\""
+0:36 - 0:37                         double_quote_text `a`
+0:37 - 0:38                         "\""
+0:38 - 0:39                       literal `[`
+0:40 - 0:41                     argument: word
+0:40 - 0:41                       literal `]`
+0:42 - 0:46                     argument: word
+0:42 - 0:46                       literal `tail`
+0:46 - 0:47           separator: separator_op
+0:46 - 0:47             ";"
+0:48 - 0:58           and_or: and_or
+0:48 - 0:58             pipeline: pipeline
+0:48 - 0:58               pipe_sequence
+0:48 - 0:58                 command: command
+0:48 - 0:58                   body: simple_command
+0:48 - 0:51                     name: word
+0:48 - 0:49                       literal `a`
+0:49 - 0:51                       escaped_character `\\[`
+0:52 - 0:53                     argument: word
+0:52 - 0:53                       literal `]`
+0:54 - 0:58                     argument: word
+0:54 - 0:58                       literal `tail`
+0:58 - 0:59           separator: separator_op
+0:58 - 0:59             ";"
+0:60 - 0:70           and_or: and_or
+0:60 - 0:70             pipeline: pipeline
+0:60 - 0:70               pipe_sequence
+0:60 - 0:70                 command: command
+0:60 - 0:70                   body: simple_command
+0:60 - 0:63                     name: word
+0:60 - 0:63                       literal `1a[`
+0:64 - 0:65                     argument: word
+0:64 - 0:65                       literal `]`
+0:66 - 0:70                     argument: word
+0:66 - 0:70                       literal `tail`
+0:70 - 0:71           separator: separator_op
+0:70 - 0:71             ";"
+0:72 - 0:83           and_or: and_or
+0:72 - 0:83             pipeline: pipeline
+0:72 - 0:83               pipe_sequence
+0:72 - 0:83                 command: command
+0:72 - 0:83                   body: simple_command
+0:72 - 0:76                     name: word
+0:72 - 0:76                       literal `a-b[`
+0:77 - 0:78                     argument: word
+0:77 - 0:78                       literal `]`
+0:79 - 0:83                     argument: word
+0:79 - 0:83                       literal `tail`
+0:83 - 1:0        separator: newline_list
+0:83 - 1:0          "\n"
 
 ==================
 command-name subscripts retain whitespace and operators in one word
@@ -395,72 +445,79 @@ a[ ] one; a[(x)] two; a[;|
 ------------------
 
 0:0  - 2:0    program
-0:0  - 2:0      commands: list
-0:0  - 0:8        and_or: and_or
-0:0  - 0:8          pipeline: pipeline
-0:0  - 0:8            command: command
-0:0  - 0:8              body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:1                  literal `a`
-0:1  - 0:4                  pattern_bracket_source
-0:1  - 0:2                    "["
-0:2  - 0:3                    members: pattern_bracket_members_source
-0:2  - 0:3                      member: pattern_bracket_character_source ` `
-0:3  - 0:4                    "]"
-0:5  - 0:8                argument: word
-0:5  - 0:8                  literal `one`
-0:8  - 0:9        separator: separator_op
-0:8  - 0:9          ";"
-0:10 - 0:20       and_or: and_or
-0:10 - 0:20         pipeline: pipeline
-0:10 - 0:20           command: command
-0:10 - 0:20             body: simple_command
-0:10 - 0:16               name: word
-0:10 - 0:11                 literal `a`
-0:11 - 0:16                 pattern_bracket_source
-0:11 - 0:12                   "["
-0:12 - 0:15                   members: pattern_bracket_members_source
-0:12 - 0:13                     member: pattern_bracket_character_source `(`
-0:13 - 0:14                     member: pattern_bracket_character_source `x`
-0:14 - 0:15                     member: pattern_bracket_character_source `)`
-0:15 - 0:16                   "]"
-0:17 - 0:20               argument: word
-0:17 - 0:20                 literal `two`
-0:20 - 0:21       separator: separator_op
-0:20 - 0:21         ";"
-0:22 - 1:8        and_or: and_or
-0:22 - 1:8          pipeline: pipeline
-0:22 - 1:8            command: command
-0:22 - 1:8              body: simple_command
-0:22 - 1:2                name: word
-0:22 - 0:23                 literal `a`
-0:23 - 1:2                  pattern_bracket_source
-0:23 - 0:24                   "["
-0:24 - 1:1                    members: pattern_bracket_members_source
-0:24 - 0:25                     member: pattern_bracket_character_source `;`
-0:25 - 0:26                     member: pattern_bracket_character_source `|`
-0:26 - 1:0                      member: pattern_bracket_character_source
-0:26 - 0:27                       `\n`
-1:0  - 1:1                      member: pattern_bracket_character_source `)`
-1:1  - 1:2                    "]"
-1:3  - 1:8                argument: word
-1:3  - 1:8                  literal `three`
-1:8  - 1:9        separator: separator_op
-1:8  - 1:9          ";"
-1:10 - 1:19       and_or: and_or
-1:10 - 1:19         pipeline: pipeline
-1:10 - 1:19           command: command
-1:10 - 1:19             body: simple_command
-1:10 - 1:14               name: word
-1:10 - 1:11                 literal `a`
-1:11 - 1:14                 pattern_bracket_source
-1:11 - 1:12                   "["
-1:12 - 1:13                   members: pattern_bracket_members_source
-1:12 - 1:13                     member: pattern_bracket_character_source `(`
-1:13 - 1:14                   "]"
-1:15 - 1:19               argument: word
-1:15 - 1:19                 literal `four`
-1:19 - 2:0        "\n"
+0:0  - 2:0      commands: complete_commands
+0:0  - 1:19       command: complete_command
+0:0  - 1:19         body: list
+0:0  - 0:8            and_or: and_or
+0:0  - 0:8              pipeline: pipeline
+0:0  - 0:8                pipe_sequence
+0:0  - 0:8                  command: command
+0:0  - 0:8                    body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:1                        literal `a`
+0:1  - 0:4                        pattern_bracket_source
+0:1  - 0:2                          "["
+0:2  - 0:3                          members: pattern_bracket_members_source
+0:2  - 0:3                            member: pattern_bracket_character_source ` `
+0:3  - 0:4                          "]"
+0:5  - 0:8                      argument: word
+0:5  - 0:8                        literal `one`
+0:8  - 0:9            separator: separator_op
+0:8  - 0:9              ";"
+0:10 - 0:20           and_or: and_or
+0:10 - 0:20             pipeline: pipeline
+0:10 - 0:20               pipe_sequence
+0:10 - 0:20                 command: command
+0:10 - 0:20                   body: simple_command
+0:10 - 0:16                     name: word
+0:10 - 0:11                       literal `a`
+0:11 - 0:16                       pattern_bracket_source
+0:11 - 0:12                         "["
+0:12 - 0:15                         members: pattern_bracket_members_source
+0:12 - 0:13                           member: pattern_bracket_character_source `(`
+0:13 - 0:14                           member: pattern_bracket_character_source `x`
+0:14 - 0:15                           member: pattern_bracket_character_source `)`
+0:15 - 0:16                         "]"
+0:17 - 0:20                     argument: word
+0:17 - 0:20                       literal `two`
+0:20 - 0:21           separator: separator_op
+0:20 - 0:21             ";"
+0:22 - 1:8            and_or: and_or
+0:22 - 1:8              pipeline: pipeline
+0:22 - 1:8                pipe_sequence
+0:22 - 1:8                  command: command
+0:22 - 1:8                    body: simple_command
+0:22 - 1:2                      name: word
+0:22 - 0:23                       literal `a`
+0:23 - 1:2                        pattern_bracket_source
+0:23 - 0:24                         "["
+0:24 - 1:1                          members: pattern_bracket_members_source
+0:24 - 0:25                           member: pattern_bracket_character_source `;`
+0:25 - 0:26                           member: pattern_bracket_character_source `|`
+0:26 - 1:0                            member: pattern_bracket_character_source
+0:26 - 0:27                             `\n`
+1:0  - 1:1                            member: pattern_bracket_character_source `)`
+1:1  - 1:2                          "]"
+1:3  - 1:8                      argument: word
+1:3  - 1:8                        literal `three`
+1:8  - 1:9            separator: separator_op
+1:8  - 1:9              ";"
+1:10 - 1:19           and_or: and_or
+1:10 - 1:19             pipeline: pipeline
+1:10 - 1:19               pipe_sequence
+1:10 - 1:19                 command: command
+1:10 - 1:19                   body: simple_command
+1:10 - 1:14                     name: word
+1:10 - 1:11                       literal `a`
+1:11 - 1:14                       pattern_bracket_source
+1:11 - 1:12                         "["
+1:12 - 1:13                         members: pattern_bracket_members_source
+1:12 - 1:13                           member: pattern_bracket_character_source `(`
+1:13 - 1:14                         "]"
+1:15 - 1:19                     argument: word
+1:15 - 1:19                       literal `four`
+1:19 - 2:0        separator: newline_list
+1:19 - 2:0          "\n"
 
 ==================
 nested command-name subscript bounds survive assignments and redirections
@@ -472,48 +529,55 @@ a[$(>out x=y a[)] ) ] next
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:26       and_or: and_or
-0:0  - 0:26         pipeline: pipeline
-0:0  - 0:26           command: command
-0:0  - 0:26             body: simple_command
-0:0  - 0:21               name: word
-0:0  - 0:1                  literal `a`
-0:1  - 0:21                 pattern_bracket_source
-0:1  - 0:2                    "["
-0:2  - 0:20                   members: pattern_bracket_members_source
-0:2  - 0:19                     member: command_substitution
-0:2  - 0:3                        "$"
-0:3  - 0:4                        "("
-0:4  - 0:18                       body: command_substitution_body
-0:4  - 0:17                         list
-0:4  - 0:17                           and_or: and_or
-0:4  - 0:17                             pipeline: pipeline
-0:4  - 0:17                               command: command
-0:4  - 0:17                                 body: simple_command
-0:4  - 0:8                                    redirect: io_redirect
-0:4  - 0:8                                      body: io_file
-0:4  - 0:5                                        ">"
-0:5  - 0:8                                        filename: word
-0:5  - 0:8                                          literal `out`
-0:9  - 0:12                                   assignment: assignment_word
-0:9  - 0:10                                     name: variable_name `x`
-0:10 - 0:11                                     "="
-0:11 - 0:12                                     value: assignment_value
-0:11 - 0:12                                       literal `y`
-0:13 - 0:17                                   name: word
-0:13 - 0:14                                     literal `a`
-0:14 - 0:17                                     pattern_bracket_source
-0:14 - 0:15                                       "["
-0:15 - 0:16                                       members: pattern_bracket_members_source
-0:15 - 0:16                                         member: pattern_bracket_character_source `)`
-0:16 - 0:17                                       "]"
-0:18 - 0:19                       ")"
-0:19 - 0:20                     member: pattern_bracket_character_source ` `
-0:20 - 0:21                   "]"
-0:22 - 0:26               argument: word
-0:22 - 0:26                 literal `next`
-0:26 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:26       command: complete_command
+0:0  - 0:26         body: list
+0:0  - 0:26           and_or: and_or
+0:0  - 0:26             pipeline: pipeline
+0:0  - 0:26               pipe_sequence
+0:0  - 0:26                 command: command
+0:0  - 0:26                   body: simple_command
+0:0  - 0:21                     name: word
+0:0  - 0:1                        literal `a`
+0:1  - 0:21                       pattern_bracket_source
+0:1  - 0:2                          "["
+0:2  - 0:20                         members: pattern_bracket_members_source
+0:2  - 0:19                           member: command_substitution
+0:2  - 0:3                              "$"
+0:3  - 0:4                              "("
+0:4  - 0:18                             body: command_substitution_body
+0:4  - 0:17                               complete_commands
+0:4  - 0:17                                 command: complete_command
+0:4  - 0:17                                   body: list
+0:4  - 0:17                                     and_or: and_or
+0:4  - 0:17                                       pipeline: pipeline
+0:4  - 0:17                                         pipe_sequence
+0:4  - 0:17                                           command: command
+0:4  - 0:17                                             body: simple_command
+0:4  - 0:8                                                redirect: io_redirect
+0:4  - 0:8                                                  body: io_file
+0:4  - 0:5                                                    ">"
+0:5  - 0:8                                                    filename: word
+0:5  - 0:8                                                      literal `out`
+0:9  - 0:12                                               assignment: assignment_word
+0:9  - 0:10                                                 name: variable_name `x`
+0:10 - 0:11                                                 "="
+0:11 - 0:12                                                 value: assignment_value
+0:11 - 0:12                                                   literal `y`
+0:13 - 0:17                                               name: word
+0:13 - 0:14                                                 literal `a`
+0:14 - 0:17                                                 pattern_bracket_source
+0:14 - 0:15                                                   "["
+0:15 - 0:16                                                   members: pattern_bracket_members_source
+0:15 - 0:16                                                     member: pattern_bracket_character_source `)`
+0:16 - 0:17                                                   "]"
+0:18 - 0:19                             ")"
+0:19 - 0:20                           member: pattern_bracket_character_source ` `
+0:20 - 0:21                         "]"
+0:22 - 0:26                     argument: word
+0:22 - 0:26                       literal `next`
+0:26 - 1:0        separator: newline_list
+0:26 - 1:0          "\n"
 
 ==================
 eval and let compound-shaped arguments remain ordinary words
@@ -527,41 +591,53 @@ eval a[1]=(x y)
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (literal))
-            argument: (word
-              (literal))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (literal)
-              (literal))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (pattern_bracket_source
-                members: (pattern_bracket_members_source
-                  member: (pattern_bracket_character_source)))
-              (literal)
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (literal))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (literal)
+                    (literal)))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (pattern_bracket_source
+                      members: (pattern_bracket_members_source
+                        member: (pattern_bracket_character_source)))
+                    (literal)
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 eval compound-shaped argument after a split subscript "eval x[1 2]=(1 2)\n"
@@ -586,35 +662,42 @@ eval a=("x $v" $(printf z) # c
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (double_quoted
-                (double_quote_text)
-                (parameter_expansion
-                  parameter: (variable_name)))
-              (command_substitution
-                body: (command_substitution_body
-                  (list
-                    and_or: (and_or
-                      pipeline: (pipeline
-                        command: (command
-                          body: (simple_command
-                            name: (word
-                              (literal))
-                            argument: (word
-                              (literal)))))))))
-              (comment
-                (comment_text))
-              (literal))
-            argument: (word
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (double_quoted
+                      (double_quote_text)
+                      (parameter_expansion
+                        parameter: (variable_name)))
+                    (command_substitution
+                      body: (command_substitution_body
+                        (complete_commands
+                          command: (complete_command
+                            body: (list
+                              and_or: (and_or
+                                pipeline: (pipeline
+                                  (pipe_sequence
+                                    command: (command
+                                      body: (simple_command
+                                        name: (word
+                                          (literal))
+                                        argument: (word
+                                          (literal))))))))))))
+                    (comment
+                      (comment_text))
+                    (literal))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 eval argument whitespace belongs to the single word
@@ -627,17 +710,21 @@ eval a=(x y)
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:12       and_or: and_or
-0:0  - 0:12         pipeline: pipeline
-0:0  - 0:12           command: command
-0:0  - 0:12             body: simple_command
-0:0  - 0:4                name: word
-0:0  - 0:4                  literal `eval`
-0:5  - 0:12               argument: word
-0:5  - 0:9                  literal `a=(x`
-0:10 - 0:12                 literal `y)`
-0:12 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:12       command: complete_command
+0:0  - 0:12         body: list
+0:0  - 0:12           and_or: and_or
+0:0  - 0:12             pipeline: pipeline
+0:0  - 0:12               pipe_sequence
+0:0  - 0:12                 command: command
+0:0  - 0:12                   body: simple_command
+0:0  - 0:4                      name: word
+0:0  - 0:4                        literal `eval`
+0:5  - 0:12                     argument: word
+0:5  - 0:9                        literal `a=(x`
+0:10 - 0:12                       literal `y)`
+0:12 - 1:0        separator: newline_list
+0:12 - 1:0          "\n"
 
 ==================
 quoting eval disables compound-shaped argument boundaries
@@ -668,24 +755,28 @@ eval a=(@( a#b | #c)) tail
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (extglob_pattern
-                operator: (extglob_operator)
-                alternative: (extglob_alternative
-                  (literal))
-                alternative: (extglob_alternative
-                  (literal)))
-              (literal))
-            argument: (word
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (extglob_pattern
+                      operator: (extglob_operator)
+                      alternative: (extglob_alternative
+                        (literal))
+                      alternative: (extglob_alternative
+                        (literal)))
+                    (literal))
+                  argument: (word
+                    (literal)))))))))
+    separator: (newline_list)))
 
 ==================
 eval arguments preserve brace alternatives across comments
@@ -698,21 +789,25 @@ eval a=({a, # {,(;
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            argument: (word
-              (literal)
-              (brace_expansion
-                alternative: (brace_alternative
-                  (literal))
-                alternative: (brace_alternative
-                  (literal)
-                  (comment
-                    (comment_text))
-                  (literal)))
-              (literal))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal)
+                    (brace_expansion
+                      alternative: (brace_alternative
+                        (literal))
+                      alternative: (brace_alternative
+                        (literal)
+                        (comment
+                          (comment_text))
+                        (literal)))
+                    (literal)))))))))
+    separator: (newline_list)))

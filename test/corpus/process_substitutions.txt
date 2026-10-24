@@ -8,51 +8,64 @@ cat <(echo hi) pre<(echo hi)post > >(cat)
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))))))))))
-            (word
-              (literal)
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal)))))))))
-              (literal))
-            (io_redirect
-              (io_file
-                (word
-                  (process_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal)))))))))))))
+                  (word
+                    (literal)
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal))))))))))))
+                    (literal))
+                  (io_redirect
+                    (io_file
+                      (word
+                        (process_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 nested process substitutions
@@ -64,61 +77,77 @@ echo $(cat <(echo hi)) $((1+$(cat <(echo 2))))
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (command_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (process_substitution
-                                (command_substitution_body
-                                  (list
-                                    (and_or
-                                      (pipeline
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (command_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (process_substitution
+                                            (command_substitution_body
+                                              (complete_commands
+                                                (complete_command
+                                                  (list
+                                                    (and_or
+                                                      (pipeline
+                                                        (pipe_sequence
+                                                          (command
+                                                            (simple_command
+                                                              (word
+                                                                (literal))
+                                                              (word
+                                                                (literal))))))))))))))))))))))))
+                  (word
+                    (arithmetic_expansion
+                      (arithmetic_binary_expression
+                        (arithmetic_number)
+                        (arithmetic_operator)
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
                                         (command
                                           (simple_command
                                             (word
                                               (literal))
                                             (word
-                                              (literal))))))))))))))))))
-            (word
-              (arithmetic_expansion
-                (arithmetic_binary_expression
-                  (arithmetic_number)
-                  (arithmetic_operator)
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal))
-                                (word
-                                  (process_substitution
-                                    (command_substitution_body
-                                      (list
-                                        (and_or
-                                          (pipeline
-                                            (command
-                                              (simple_command
-                                                (word
-                                                  (literal))
-                                                (word
-                                                  (literal))))))))))))))))))))))))))
+                                              (process_substitution
+                                                (command_substitution_body
+                                                  (complete_commands
+                                                    (complete_command
+                                                      (list
+                                                        (and_or
+                                                          (pipeline
+                                                            (pipe_sequence
+                                                              (command
+                                                                (simple_command
+                                                                  (word
+                                                                    (literal))
+                                                                  (word
+                                                                    (literal)))))))))))))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 descriptor spellings remain word prefixes before process substitutions
@@ -130,63 +159,76 @@ descriptor spellings remain word prefixes before process substitutions
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:42       and_or: and_or
-0:0  - 0:42         pipeline: pipeline
-0:0  - 0:42           command: command
-0:0  - 0:42             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:14               argument: word
-0:2  - 0:3                  literal `2`
-0:3  - 0:14                 process_substitution
-0:3  - 0:4                    "<"
-0:4  - 0:5                    "("
-0:5  - 0:13                   body: command_substitution_body
-0:5  - 0:13                     list
-0:5  - 0:13                       and_or: and_or
-0:5  - 0:13                         pipeline: pipeline
-0:5  - 0:13                           command: command
-0:5  - 0:13                             body: simple_command
-0:5  - 0:11                               name: word
-0:5  - 0:11                                 literal `printf`
-0:12 - 0:13                               argument: word
-0:12 - 0:13                                 literal `x`
-0:13 - 0:14                   ")"
-0:15 - 0:23               argument: word
-0:15 - 0:19                 literal `{fd}`
-0:19 - 0:23                 process_substitution
-0:19 - 0:20                   ">"
-0:20 - 0:21                   "("
-0:21 - 0:22                   body: command_substitution_body
-0:21 - 0:22                     list
-0:21 - 0:22                       and_or: and_or
-0:21 - 0:22                         pipeline: pipeline
-0:21 - 0:22                           command: command
-0:21 - 0:22                             body: simple_command
-0:21 - 0:22                               name: word
-0:21 - 0:22                                 literal `:`
-0:22 - 0:23                   ")"
-0:24 - 0:42               argument: word
-0:24 - 0:27                 literal `{fd`
-0:27 - 0:30                 pattern_bracket_source
-0:27 - 0:28                   "["
-0:28 - 0:29                   members: pattern_bracket_members_source
-0:28 - 0:29                     member: pattern_bracket_character_source `0`
-0:29 - 0:30                   "]"
-0:30 - 0:31                 literal `}`
-0:31 - 0:42                 process_substitution
-0:31 - 0:32                   "<"
-0:32 - 0:33                   "("
-0:33 - 0:41                   body: command_substitution_body
-0:33 - 0:41                     list
-0:33 - 0:41                       and_or: and_or
-0:33 - 0:41                         pipeline: pipeline
-0:33 - 0:41                           command: command
-0:33 - 0:41                             body: simple_command
-0:33 - 0:39                               name: word
-0:33 - 0:39                                 literal `printf`
-0:40 - 0:41                               argument: word
-0:40 - 0:41                                 literal `y`
-0:41 - 0:42                   ")"
-0:42 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:42       command: complete_command
+0:0  - 0:42         body: list
+0:0  - 0:42           and_or: and_or
+0:0  - 0:42             pipeline: pipeline
+0:0  - 0:42               pipe_sequence
+0:0  - 0:42                 command: command
+0:0  - 0:42                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:14                     argument: word
+0:2  - 0:3                        literal `2`
+0:3  - 0:14                       process_substitution
+0:3  - 0:4                          "<"
+0:4  - 0:5                          "("
+0:5  - 0:13                         body: command_substitution_body
+0:5  - 0:13                           complete_commands
+0:5  - 0:13                             command: complete_command
+0:5  - 0:13                               body: list
+0:5  - 0:13                                 and_or: and_or
+0:5  - 0:13                                   pipeline: pipeline
+0:5  - 0:13                                     pipe_sequence
+0:5  - 0:13                                       command: command
+0:5  - 0:13                                         body: simple_command
+0:5  - 0:11                                           name: word
+0:5  - 0:11                                             literal `printf`
+0:12 - 0:13                                           argument: word
+0:12 - 0:13                                             literal `x`
+0:13 - 0:14                         ")"
+0:15 - 0:23                     argument: word
+0:15 - 0:19                       literal `{fd}`
+0:19 - 0:23                       process_substitution
+0:19 - 0:20                         ">"
+0:20 - 0:21                         "("
+0:21 - 0:22                         body: command_substitution_body
+0:21 - 0:22                           complete_commands
+0:21 - 0:22                             command: complete_command
+0:21 - 0:22                               body: list
+0:21 - 0:22                                 and_or: and_or
+0:21 - 0:22                                   pipeline: pipeline
+0:21 - 0:22                                     pipe_sequence
+0:21 - 0:22                                       command: command
+0:21 - 0:22                                         body: simple_command
+0:21 - 0:22                                           name: word
+0:21 - 0:22                                             literal `:`
+0:22 - 0:23                         ")"
+0:24 - 0:42                     argument: word
+0:24 - 0:27                       literal `{fd`
+0:27 - 0:30                       pattern_bracket_source
+0:27 - 0:28                         "["
+0:28 - 0:29                         members: pattern_bracket_members_source
+0:28 - 0:29                           member: pattern_bracket_character_source `0`
+0:29 - 0:30                         "]"
+0:30 - 0:31                       literal `}`
+0:31 - 0:42                       process_substitution
+0:31 - 0:32                         "<"
+0:32 - 0:33                         "("
+0:33 - 0:41                         body: command_substitution_body
+0:33 - 0:41                           complete_commands
+0:33 - 0:41                             command: complete_command
+0:33 - 0:41                               body: list
+0:33 - 0:41                                 and_or: and_or
+0:33 - 0:41                                   pipeline: pipeline
+0:33 - 0:41                                     pipe_sequence
+0:33 - 0:41                                       command: command
+0:33 - 0:41                                         body: simple_command
+0:33 - 0:39                                           name: word
+0:33 - 0:39                                             literal `printf`
+0:40 - 0:41                                           argument: word
+0:40 - 0:41                                             literal `y`
+0:41 - 0:42                         ")"
+0:42 - 1:0        separator: newline_list
+0:42 - 1:0          "\n"

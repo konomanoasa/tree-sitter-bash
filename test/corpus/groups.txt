@@ -10,38 +10,52 @@ closing blanks belong to a list after its separator and outside it otherwise
 ------------------
 
 0:0 - 2:0   program
-0:0 - 2:0     commands: list
-0:0 - 0:6       and_or: and_or
-0:0 - 0:6         pipeline: pipeline
-0:0 - 0:6           command: command
-0:0 - 0:6             body: brace_group
-0:0 - 0:1               "{"
-0:1 - 0:5               body: list
-0:2 - 0:3                 and_or: and_or
-0:2 - 0:3                   pipeline: pipeline
-0:2 - 0:3                     command: command
-0:2 - 0:3                       body: simple_command
-0:2 - 0:3                         name: word
-0:2 - 0:3                           literal `a`
-0:3 - 0:4                 separator: separator
-0:3 - 0:4                   operator: separator_op
-0:3 - 0:4                     ";"
-0:5 - 0:6               "}"
-0:6 - 1:0       "\n"
-1:0 - 1:5       and_or: and_or
-1:0 - 1:5         pipeline: pipeline
-1:0 - 1:5           command: command
-1:0 - 1:5             body: subshell
-1:0 - 1:1               "("
-1:1 - 1:3               body: list
-1:2 - 1:3                 and_or: and_or
-1:2 - 1:3                   pipeline: pipeline
-1:2 - 1:3                     command: command
-1:2 - 1:3                       body: simple_command
-1:2 - 1:3                         name: word
-1:2 - 1:3                           literal `a`
-1:4 - 1:5               ")"
-1:5 - 2:0       "\n"
+0:0 - 2:0     commands: complete_commands
+0:0 - 0:6       command: complete_command
+0:0 - 0:6         body: list
+0:0 - 0:6           and_or: and_or
+0:0 - 0:6             pipeline: pipeline
+0:0 - 0:6               pipe_sequence
+0:0 - 0:6                 command: command
+0:0 - 0:6                   body: compound_command
+0:0 - 0:6                     brace_group
+0:0 - 0:1                       "{"
+0:1 - 0:5                       body: compound_list
+0:2 - 0:5                         body: term
+0:2 - 0:3                           and_or: and_or
+0:2 - 0:3                             pipeline: pipeline
+0:2 - 0:3                               pipe_sequence
+0:2 - 0:3                                 command: command
+0:2 - 0:3                                   body: simple_command
+0:2 - 0:3                                     name: word
+0:2 - 0:3                                       literal `a`
+0:3 - 0:4                           separator: separator
+0:3 - 0:4                             operator: separator_op
+0:3 - 0:4                               ";"
+0:5 - 0:6                       "}"
+0:6 - 1:0       separator: newline_list
+0:6 - 1:0         "\n"
+1:0 - 1:5       command: complete_command
+1:0 - 1:5         body: list
+1:0 - 1:5           and_or: and_or
+1:0 - 1:5             pipeline: pipeline
+1:0 - 1:5               pipe_sequence
+1:0 - 1:5                 command: command
+1:0 - 1:5                   body: compound_command
+1:0 - 1:5                     subshell
+1:0 - 1:1                       "("
+1:1 - 1:3                       body: compound_list
+1:2 - 1:3                         body: term
+1:2 - 1:3                           and_or: and_or
+1:2 - 1:3                             pipeline: pipeline
+1:2 - 1:3                               pipe_sequence
+1:2 - 1:3                                 command: command
+1:2 - 1:3                                   body: simple_command
+1:2 - 1:3                                     name: word
+1:2 - 1:3                                       literal `a`
+1:4 - 1:5                       ")"
+1:5 - 2:0       separator: newline_list
+1:5 - 2:0         "\n"
 
 ==================
 groups own nested lists and following redirects
@@ -53,54 +67,66 @@ groups own nested lists and following redirects
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (brace_group
-            body: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))
-                      argument: (word
-                        (literal))))))
-              separator: (separator
-                operator: (separator_op))
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))
-                      argument: (word
-                        (literal))))))
-              separator: (separator
-                operator: (separator_op))))
-          redirect: (io_redirect
-            body: (io_file
-              filename: (word
-                (literal)))))))
-    separator: (separator_op)
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (subshell
-            body: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))
-                      argument: (word
-                        (literal))))))))
-          redirect: (io_redirect
-            body: (io_file
-              filename: (word
-                (literal)))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (brace_group
+                    body: (compound_list
+                      body: (term
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (literal)))))))
+                        separator: (separator
+                          operator: (separator_op))
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (literal)))))))
+                        separator: (separator
+                          operator: (separator_op))))))
+                redirect: (io_redirect
+                  body: (io_file
+                    filename: (word
+                      (literal))))))))
+        separator: (separator_op)
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (subshell
+                    body: (compound_list
+                      body: (term
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal))
+                                  argument: (word
+                                    (literal)))))))))))
+                redirect: (io_redirect
+                  body: (io_file
+                    filename: (word
+                      (literal))))))))))
+    separator: (newline_list)))
 
 ==================
 compound commands close groups and subshells after separators without a terminator
@@ -113,57 +139,79 @@ compound commands close groups and subshells after separators without a terminat
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (brace_group
-            body: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))))))
-              separator: (separator
-                operator: (separator_op))
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (subshell
-                      body: (list
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (brace_group
+                    body: (compound_list
+                      body: (term
                         and_or: (and_or
                           pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))))))))))))))))
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (subshell
-            body: (list
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (simple_command
-                      name: (word
-                        (literal))))))
-              separator: (separator
-                operator: (separator_op))
-              and_or: (and_or
-                pipeline: (pipeline
-                  command: (command
-                    body: (brace_group
-                      body: (list
-                        and_or: (and_or
-                          pipeline: (pipeline
-                            command: (command
-                              body: (simple_command
-                                name: (word
-                                  (literal))))))
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal)))))))
                         separator: (separator
-                          operator: (separator_op))))))))))))))
+                          operator: (separator_op))
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (compound_command
+                                  (subshell
+                                    body: (compound_list
+                                      body: (term
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal)))))))))))))))))))))))))
+    separator: (newline_list)
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (compound_command
+                  (subshell
+                    body: (compound_list
+                      body: (term
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (simple_command
+                                  name: (word
+                                    (literal)))))))
+                        separator: (separator
+                          operator: (separator_op))
+                        and_or: (and_or
+                          pipeline: (pipeline
+                            (pipe_sequence
+                              command: (command
+                                body: (compound_command
+                                  (brace_group
+                                    body: (compound_list
+                                      body: (term
+                                        and_or: (and_or
+                                          pipeline: (pipeline
+                                            (pipe_sequence
+                                              command: (command
+                                                body: (simple_command
+                                                  name: (word
+                                                    (literal)))))))
+                                        separator: (separator
+                                          operator: (separator_op))))))))))))))))))))
+    separator: (newline_list)))
 
 ==================
 closing reserved words cannot follow a compound redirection target

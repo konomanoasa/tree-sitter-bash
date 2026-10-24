@@ -8,91 +8,96 @@ ERE ranges retain dynamic endpoints as source
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (regex_source_expression
-                                    (regex_source_fragment)))
-                                (expression_term
-                                  (regex_source_expression
-                                    (parameter_expansion
-                                      (variable_name))))
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))
-                                    (end_range
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (regex_source_expression
-                                    (regex_source_fragment)))
-                                (expression_term
-                                  (regex_source_expression
-                                    (double_quoted
-                                      (double_quote_text))))
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))
-                                    (end_range
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (regex_source_expression
-                                    (regex_source_fragment)))
-                                (expression_term
-                                  (regex_source_expression
-                                    (escaped_character)))
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))
-                                    (end_range
-                                      (collating_element_single))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (regex_source_fragment)))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (parameter_expansion
+                                              (variable_name))))
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))
+                                            (end_range
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (regex_source_fragment)))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (double_quoted
+                                              (double_quote_text))))
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))
+                                            (end_range
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (regex_source_fragment)))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (escaped_character)))
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))
+                                            (end_range
+                                              (collating_element_single))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex groups
@@ -104,34 +109,39 @@ conditional regex groups
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (parameter_expansion
-                  (variable_name)))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression)
-                    (ere_expression
-                      (extended_reg_exp
-                        (ere_branch
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character))))
-                        (ere_branch
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character)))))
-                      (ere_dupl_symbol))
-                    (ere_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (parameter_expansion
+                          (variable_name)))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression)
+                            (ere_expression
+                              (extended_reg_exp
+                                (ere_branch
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character))))
+                                (ere_branch
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character)))))
+                              (ere_dupl_symbol))
+                            (ere_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex whitespace group
@@ -143,32 +153,37 @@ conditional regex whitespace group
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (extended_reg_exp
-                        (ere_branch
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character)))
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character)))
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (extended_reg_exp
+                                (ere_branch
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character)))
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character)))
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex escaped parentheses
@@ -180,27 +195,32 @@ conditional regex escaped parentheses
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (regex_source_expression
-                      (escaped_character))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (regex_source_expression
-                      (escaped_character))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (regex_source_expression
+                              (escaped_character))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (regex_source_expression
+                              (escaped_character))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex brackets
@@ -212,34 +232,39 @@ conditional regex brackets
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex deferred validation
@@ -251,20 +276,25 @@ conditional regex deferred validation
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (regex_source_fragment))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (regex_source_fragment))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex expansion
@@ -276,32 +306,37 @@ conditional regex expansion
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (double_quoted
-                    (parameter_expansion
-                      (variable_name)))
-                  (ere_expression
-                    (extended_reg_exp
-                      (ere_branch
-                        (ere_expression
-                          (one_char_or_coll_elem_ere
-                            (ordinary_character))))
-                      (ere_branch
-                        (ere_expression
-                          (one_char_or_coll_elem_ere
-                            (ordinary_character)))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (double_quoted
+                            (parameter_expansion
+                              (variable_name)))
+                          (ere_expression
+                            (extended_reg_exp
+                              (ere_branch
+                                (ere_expression
+                                  (one_char_or_coll_elem_ere
+                                    (ordinary_character))))
+                              (ere_branch
+                                (ere_expression
+                                  (one_char_or_coll_elem_ere
+                                    (ordinary_character)))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex adjacent boolean and
@@ -313,27 +348,32 @@ conditional regex adjacent boolean and
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_and_expression
-              (conditional_binary_expression
-                (word
-                  (literal))
-                (conditional_regex_operator)
-                (regex_operand
-                  (extended_reg_exp
-                    (ere_branch
-                      (ere_expression
-                        (one_char_or_coll_elem_ere
-                          (ordinary_character)))))))
-              (and_if)
-              (word
-                (literal)))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_and_expression
+                      (conditional_binary_expression
+                        (word
+                          (literal))
+                        (conditional_regex_operator)
+                        (regex_operand
+                          (extended_reg_exp
+                            (ere_branch
+                              (ere_expression
+                                (one_char_or_coll_elem_ere
+                                  (ordinary_character)))))))
+                      (and_if)
+                      (word
+                        (literal)))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 conditional regex adjacent bars
@@ -345,24 +385,29 @@ conditional regex adjacent bars
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (regex_source_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (regex_source_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE alternation and concatenation own static repetition
@@ -374,31 +419,36 @@ ERE alternation and concatenation own static repetition
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character))))
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character))
-                      (ere_dupl_symbol))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character))))
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character))
+                              (ere_dupl_symbol))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE anchors groups intervals and modifiers
@@ -410,51 +460,56 @@ ERE anchors groups intervals and modifiers
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression)
-                    (ere_expression
-                      (extended_reg_exp
-                        (ere_branch
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character)))
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character)))))
-                      (ere_dupl_symbol))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))
-                                    (end_range
-                                      (collating_element_single)))))))))
-                      (ere_dupl_symbol
-                        (duplication_count)
-                        (duplication_count)
-                        (repetition_modifier)))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere))
-                    (ere_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression)
+                            (ere_expression
+                              (extended_reg_exp
+                                (ere_branch
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character)))
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character)))))
+                              (ere_dupl_symbol))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))
+                                            (end_range
+                                              (collating_element_single)))))))))
+                              (ere_dupl_symbol
+                                (duplication_count)
+                                (duplication_count)
+                                (repetition_modifier)))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere))
+                            (ere_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE bracket hierarchy and collating content
@@ -466,82 +521,87 @@ ERE bracket hierarchy and collating content
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (nonmatching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (character_class
-                                      (class_name))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_symbol
-                                        (collating_element_multi)))))
-                                (expression_term
-                                  (single_expression
-                                    (equivalence_class
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (nonmatching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (character_class
+                                              (class_name))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_symbol
+                                                (collating_element_multi)))))
+                                        (expression_term
+                                          (single_expression
+                                            (equivalence_class
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE opaque source retains unbound duplication
@@ -553,27 +613,32 @@ ERE opaque source retains unbound duplication
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (double_quoted
-                    (double_quote_text))
-                  (ere_dupl_symbol)
-                  (parameter_expansion
-                    (variable_name))
-                  (ere_dupl_symbol)
-                  (escaped_character)
-                  (ere_dupl_symbol))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (double_quoted
+                            (double_quote_text))
+                          (ere_dupl_symbol)
+                          (parameter_expansion
+                            (variable_name))
+                          (ere_dupl_symbol)
+                          (escaped_character)
+                          (ere_dupl_symbol))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE static hierarchy surrounds source payloads
@@ -585,54 +650,59 @@ ERE static hierarchy surrounds source payloads
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (extended_reg_exp
-                        (ere_branch
-                          (ere_expression
-                            (one_char_or_coll_elem_ere
-                              (ordinary_character))))
-                        (regex_source_expression
-                          (parameter_expansion
-                            (variable_name))))
-                      (ere_dupl_symbol))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (range_expression
-                                    (start_range
-                                      (end_range
-                                        (collating_element_single)))
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (regex_source_expression
-                                    (parameter_expansion
-                                      (variable_name)))))))))
-                      (ere_dupl_symbol
-                        (regex_source_expression
-                          (duplication_count)
-                          (parameter_expansion
-                            (variable_name)))
-                        (duplication_count)))
-                    (ere_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (extended_reg_exp
+                                (ere_branch
+                                  (ere_expression
+                                    (one_char_or_coll_elem_ere
+                                      (ordinary_character))))
+                                (regex_source_expression
+                                  (parameter_expansion
+                                    (variable_name))))
+                              (ere_dupl_symbol))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (range_expression
+                                            (start_range
+                                              (end_range
+                                                (collating_element_single)))
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (regex_source_expression
+                                            (parameter_expansion
+                                              (variable_name)))))))))
+                              (ere_dupl_symbol
+                                (regex_source_expression
+                                  (duplication_count)
+                                  (parameter_expansion
+                                    (variable_name)))
+                                (duplication_count)))
+                            (ere_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE runtime-invalid spellings remain shell operands
@@ -644,57 +714,66 @@ ERE runtime-invalid spellings remain shell operands
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (regex_source_fragment))))
-            (conditional_close)))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (regex_source_expression
-                      (regex_source_fragment))))))
-            (conditional_close)))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (regex_source_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (regex_source_fragment))))
+                    (conditional_close)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (regex_source_expression
+                              (regex_source_fragment))))))
+                    (conditional_close)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (regex_source_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE grouping differs from Bash parenthesis boundaries
@@ -706,72 +785,79 @@ ERE grouping differs from Bash parenthesis boundaries
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (regex_source_expression
-                  (extended_reg_exp
-                    (ere_branch
-                      (ere_expression
-                        (one_char_or_coll_elem_ere
-                          (bracket_expression
-                            (matching_list
-                              (bracket_list
-                                (follow_list
-                                  (expression_term
-                                    (single_expression
-                                      (end_range
-                                        (collating_element_single))))
-                                  (expression_term
-                                    (single_expression
-                                      (end_range
-                                        (collating_element_single))))))))))
-                      (ere_expression
-                        (one_char_or_coll_elem_ere
-                          (ordinary_character))))))))
-            (conditional_close)))))
-    (separator_op)
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (regex_source_expression
+                          (extended_reg_exp
+                            (ere_branch
+                              (ere_expression
+                                (one_char_or_coll_elem_ere
+                                  (bracket_expression
+                                    (matching_list
+                                      (bracket_list
+                                        (follow_list
+                                          (expression_term
+                                            (single_expression
+                                              (end_range
+                                                (collating_element_single))))
+                                          (expression_term
+                                            (single_expression
+                                              (end_range
+                                                (collating_element_single))))))))))
+                              (ere_expression
+                                (one_char_or_coll_elem_ere
+                                  (ordinary_character))))))))
+                    (conditional_close)))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE compound payloads keep quote and expansion ownership
@@ -783,63 +869,68 @@ ERE compound payloads keep quote and expansion ownership
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_symbol
-                                        (regex_source_expression
-                                          (collating_element_single)
-                                          (parameter_expansion
-                                            (variable_name))
-                                          (collating_element_single))))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (character_class
-                                      (regex_source_expression
-                                        (class_name)
-                                        (double_quoted
-                                          (double_quote_text))
-                                        (class_name)))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (equivalence_class
-                                      (regex_source_expression
-                                        (collating_element_single)
-                                        (parameter_expansion
-                                          (variable_name))
-                                        (collating_element_single)))))))))))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_symbol
+                                                (regex_source_expression
+                                                  (collating_element_single)
+                                                  (parameter_expansion
+                                                    (variable_name))
+                                                  (collating_element_single))))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (character_class
+                                              (regex_source_expression
+                                                (class_name)
+                                                (double_quoted
+                                                  (double_quote_text))
+                                                (class_name)))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (equivalence_class
+                                              (regex_source_expression
+                                                (collating_element_single)
+                                                (parameter_expansion
+                                                  (variable_name))
+                                                (collating_element_single)))))))))))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE substitutions retain nested shell commands
@@ -851,57 +942,70 @@ ERE substitutions retain nested shell commands
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression)
-                    (regex_source_expression
-                      (command_substitution
-                        (command_substitution_body
-                          (list
-                            (and_or
-                              (pipeline
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal))
-                                    (word
-                                      (literal)))))))))
-                      (current_shell_substitution
-                        (list
-                          (and_or
-                            (pipeline
-                              (command
-                                (simple_command
-                                  (word
-                                    (literal))
-                                  (word
-                                    (literal))))))
-                          (separator
-                            (separator_op))))
-                      (process_substitution
-                        (command_substitution_body
-                          (list
-                            (and_or
-                              (pipeline
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal))
-                                    (word
-                                      (literal))))))))))
-                    (ere_expression)))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression)
+                            (regex_source_expression
+                              (command_substitution
+                                (command_substitution_body
+                                  (complete_commands
+                                    (complete_command
+                                      (list
+                                        (and_or
+                                          (pipeline
+                                            (pipe_sequence
+                                              (command
+                                                (simple_command
+                                                  (word
+                                                    (literal))
+                                                  (word
+                                                    (literal))))))))))))
+                              (current_shell_substitution
+                                (compound_list
+                                  (term
+                                    (and_or
+                                      (pipeline
+                                        (pipe_sequence
+                                          (command
+                                            (simple_command
+                                              (word
+                                                (literal))
+                                              (word
+                                                (literal)))))))
+                                    (separator
+                                      (separator_op)))))
+                              (process_substitution
+                                (command_substitution_body
+                                  (complete_commands
+                                    (complete_command
+                                      (list
+                                        (and_or
+                                          (pipeline
+                                            (pipe_sequence
+                                              (command
+                                                (simple_command
+                                                  (word
+                                                    (literal))
+                                                  (word
+                                                    (literal)))))))))))))
+                            (ere_expression)))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE static duplication and source operators stay distinct
@@ -913,32 +1017,37 @@ ERE static duplication and source operators stay distinct
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (regex_source_expression
-                      (ere_dupl_symbol))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character))
-                      (ere_dupl_symbol)
-                      (ere_dupl_symbol))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character))
-                      (ere_dupl_symbol
-                        (repetition_modifier)))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (regex_source_expression
+                              (ere_dupl_symbol))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character))
+                              (ere_dupl_symbol)
+                              (ere_dupl_symbol))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character))
+                              (ere_dupl_symbol
+                                (repetition_modifier)))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE ordinary brace and bracket members keep literal roles
@@ -950,44 +1059,49 @@ ERE ordinary brace and bracket members keep literal roles
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (conditional_command
-            (conditional_open)
-            (conditional_binary_expression
-              (word
-                (literal))
-              (conditional_regex_operator)
-              (regex_operand
-                (extended_reg_exp
-                  (ere_branch
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (bracket_expression
-                          (matching_list
-                            (bracket_list
-                              (follow_list
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_element_single))))
-                                (expression_term
-                                  (single_expression
-                                    (end_range
-                                      (collating_symbol
-                                        (collating_element_multi)))))))))))
-                    (ere_expression
-                      (one_char_or_coll_elem_ere
-                        (ordinary_character)))))))
-            (conditional_close)))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (conditional_command
+                    (conditional_open)
+                    (conditional_binary_expression
+                      (word
+                        (literal))
+                      (conditional_regex_operator)
+                      (regex_operand
+                        (extended_reg_exp
+                          (ere_branch
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (bracket_expression
+                                  (matching_list
+                                    (bracket_list
+                                      (follow_list
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_element_single))))
+                                        (expression_term
+                                          (single_expression
+                                            (end_range
+                                              (collating_symbol
+                                                (collating_element_multi)))))))))))
+                            (ere_expression
+                              (one_char_or_coll_elem_ere
+                                (ordinary_character)))))))
+                    (conditional_close)))))))))
+    (newline_list)))
 
 ==================
 ERE ordinary characters retain individual UTF-8 source ranges
@@ -999,33 +1113,38 @@ ERE ordinary characters retain individual UTF-8 source ranges
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:24       and_or: and_or
-0:0  - 0:24         pipeline: pipeline
-0:0  - 0:24           command: command
-0:0  - 0:24             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:21               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:21                 right: regex_operand
-0:8  - 0:21                   expression: extended_reg_exp
-0:8  - 0:21                     ere_branch
-0:8  - 0:11                       ere_expression
-0:8  - 0:11                         one_char_or_coll_elem_ere
-0:8  - 0:11                           ordinary_character `日`
-0:11 - 0:14                       ere_expression
-0:11 - 0:14                         one_char_or_coll_elem_ere
-0:11 - 0:14                           ordinary_character `本`
-0:14 - 0:18                       ere_expression
-0:14 - 0:18                         one_char_or_coll_elem_ere
-0:14 - 0:18                           ordinary_character `🙂`
-0:18 - 0:21                       ere_expression
-0:18 - 0:21                         one_char_or_coll_elem_ere
-0:18 - 0:21                           ordinary_character `日`
-0:22 - 0:24               conditional_close `]]`
-0:24 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:24       command: complete_command
+0:0  - 0:24         body: list
+0:0  - 0:24           and_or: and_or
+0:0  - 0:24             pipeline: pipeline
+0:0  - 0:24               pipe_sequence
+0:0  - 0:24                 command: command
+0:0  - 0:24                   body: compound_command
+0:0  - 0:24                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:21                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:21                         right: regex_operand
+0:8  - 0:21                           expression: extended_reg_exp
+0:8  - 0:21                             ere_branch
+0:8  - 0:11                               ere_expression
+0:8  - 0:11                                 one_char_or_coll_elem_ere
+0:8  - 0:11                                   ordinary_character `日`
+0:11 - 0:14                               ere_expression
+0:11 - 0:14                                 one_char_or_coll_elem_ere
+0:11 - 0:14                                   ordinary_character `本`
+0:14 - 0:18                               ere_expression
+0:14 - 0:18                                 one_char_or_coll_elem_ere
+0:14 - 0:18                                   ordinary_character `🙂`
+0:18 - 0:21                               ere_expression
+0:18 - 0:21                                 one_char_or_coll_elem_ere
+0:18 - 0:21                                   ordinary_character `日`
+0:22 - 0:24                       conditional_close `]]`
+0:24 - 1:0        separator: newline_list
+0:24 - 1:0          "\n"
 
 ==================
 ERE hierarchy owns static repetition, intervals and code point leaves
@@ -1037,83 +1156,88 @@ ERE hierarchy owns static repetition, intervals and code point leaves
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:45       and_or: and_or
-0:0  - 0:45         pipeline: pipeline
-0:0  - 0:45           command: command
-0:0  - 0:45             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:42               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:42                 right: regex_operand
-0:8  - 0:42                   expression: extended_reg_exp
-0:8  - 0:42                     ere_branch
-0:8  - 0:9                        ere_expression
-0:8  - 0:9                          "^"
-0:9  - 0:17                       ere_expression
-0:9  - 0:10                         "("
-0:10 - 0:15                         expression: extended_reg_exp
-0:10 - 0:12                           ere_branch
-0:10 - 0:11                             ere_expression
-0:10 - 0:11                               one_char_or_coll_elem_ere
-0:10 - 0:11                                 ordinary_character `a`
-0:11 - 0:12                             ere_expression
-0:11 - 0:12                               one_char_or_coll_elem_ere
-0:11 - 0:12                                 ordinary_character `b`
-0:12 - 0:13                           "|"
-0:13 - 0:15                           ere_branch
-0:13 - 0:14                             ere_expression
-0:13 - 0:14                               one_char_or_coll_elem_ere
-0:13 - 0:14                                 ordinary_character `c`
-0:14 - 0:15                             ere_expression
-0:14 - 0:15                               one_char_or_coll_elem_ere
-0:14 - 0:15                                 ordinary_character `d`
-0:15 - 0:16                         ")"
-0:16 - 0:17                         ere_dupl_symbol
-0:16 - 0:17                           "+"
-0:17 - 0:37                       ere_expression
-0:17 - 0:31                         one_char_or_coll_elem_ere
-0:17 - 0:31                           bracket_expression
-0:17 - 0:18                             "["
-0:18 - 0:30                             matching_list
-0:18 - 0:30                               bracket_list
-0:18 - 0:30                                 follow_list
-0:18 - 0:27                                   expression_term
-0:18 - 0:27                                     single_expression
-0:18 - 0:27                                       character_class
-0:18 - 0:19                                         "["
-0:19 - 0:20                                         ":"
-0:20 - 0:25                                         name: class_name `digit`
-0:25 - 0:26                                         ":"
-0:26 - 0:27                                         "]"
-0:27 - 0:30                                   expression_term
-0:27 - 0:30                                     range_expression
-0:27 - 0:29                                       start_range
-0:27 - 0:28                                         end_range
-0:27 - 0:28                                           collating_element_single `a`
-0:28 - 0:29                                         "-"
-0:29 - 0:30                                       end_range
-0:29 - 0:30                                         collating_element_single `z`
-0:30 - 0:31                             "]"
-0:31 - 0:37                         ere_dupl_symbol
-0:31 - 0:32                           "{"
-0:32 - 0:33                           minimum: duplication_count `2`
-0:33 - 0:34                           ","
-0:34 - 0:35                           maximum: duplication_count `4`
-0:35 - 0:36                           "}"
-0:36 - 0:37                           modifier: repetition_modifier `?`
-0:37 - 0:40                       ere_expression
-0:37 - 0:40                         one_char_or_coll_elem_ere
-0:37 - 0:40                           ordinary_character `日`
-0:40 - 0:41                       ere_expression
-0:40 - 0:41                         one_char_or_coll_elem_ere
-0:40 - 0:41                           "."
-0:41 - 0:42                       ere_expression
-0:41 - 0:42                         "$"
-0:43 - 0:45               conditional_close `]]`
-0:45 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:45       command: complete_command
+0:0  - 0:45         body: list
+0:0  - 0:45           and_or: and_or
+0:0  - 0:45             pipeline: pipeline
+0:0  - 0:45               pipe_sequence
+0:0  - 0:45                 command: command
+0:0  - 0:45                   body: compound_command
+0:0  - 0:45                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:42                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:42                         right: regex_operand
+0:8  - 0:42                           expression: extended_reg_exp
+0:8  - 0:42                             ere_branch
+0:8  - 0:9                                ere_expression
+0:8  - 0:9                                  "^"
+0:9  - 0:17                               ere_expression
+0:9  - 0:10                                 "("
+0:10 - 0:15                                 expression: extended_reg_exp
+0:10 - 0:12                                   ere_branch
+0:10 - 0:11                                     ere_expression
+0:10 - 0:11                                       one_char_or_coll_elem_ere
+0:10 - 0:11                                         ordinary_character `a`
+0:11 - 0:12                                     ere_expression
+0:11 - 0:12                                       one_char_or_coll_elem_ere
+0:11 - 0:12                                         ordinary_character `b`
+0:12 - 0:13                                   "|"
+0:13 - 0:15                                   ere_branch
+0:13 - 0:14                                     ere_expression
+0:13 - 0:14                                       one_char_or_coll_elem_ere
+0:13 - 0:14                                         ordinary_character `c`
+0:14 - 0:15                                     ere_expression
+0:14 - 0:15                                       one_char_or_coll_elem_ere
+0:14 - 0:15                                         ordinary_character `d`
+0:15 - 0:16                                 ")"
+0:16 - 0:17                                 ere_dupl_symbol
+0:16 - 0:17                                   "+"
+0:17 - 0:37                               ere_expression
+0:17 - 0:31                                 one_char_or_coll_elem_ere
+0:17 - 0:31                                   bracket_expression
+0:17 - 0:18                                     "["
+0:18 - 0:30                                     matching_list
+0:18 - 0:30                                       bracket_list
+0:18 - 0:30                                         follow_list
+0:18 - 0:27                                           expression_term
+0:18 - 0:27                                             single_expression
+0:18 - 0:27                                               character_class
+0:18 - 0:19                                                 "["
+0:19 - 0:20                                                 ":"
+0:20 - 0:25                                                 name: class_name `digit`
+0:25 - 0:26                                                 ":"
+0:26 - 0:27                                                 "]"
+0:27 - 0:30                                           expression_term
+0:27 - 0:30                                             range_expression
+0:27 - 0:29                                               start_range
+0:27 - 0:28                                                 end_range
+0:27 - 0:28                                                   collating_element_single `a`
+0:28 - 0:29                                                 "-"
+0:29 - 0:30                                               end_range
+0:29 - 0:30                                                 collating_element_single `z`
+0:30 - 0:31                                     "]"
+0:31 - 0:37                                 ere_dupl_symbol
+0:31 - 0:32                                   "{"
+0:32 - 0:33                                   minimum: duplication_count `2`
+0:33 - 0:34                                   ","
+0:34 - 0:35                                   maximum: duplication_count `4`
+0:35 - 0:36                                   "}"
+0:36 - 0:37                                   modifier: repetition_modifier `?`
+0:37 - 0:40                               ere_expression
+0:37 - 0:40                                 one_char_or_coll_elem_ere
+0:37 - 0:40                                   ordinary_character `日`
+0:40 - 0:41                               ere_expression
+0:40 - 0:41                                 one_char_or_coll_elem_ere
+0:40 - 0:41                                   "."
+0:41 - 0:42                               ere_expression
+0:41 - 0:42                                 "$"
+0:43 - 0:45                       conditional_close `]]`
+0:45 - 1:0        separator: newline_list
+0:45 - 1:0          "\n"
 
 ==================
 opaque ERE source and following repetitions are not single atoms
@@ -1125,36 +1249,41 @@ opaque ERE source and following repetitions are not single atoms
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:27       and_or: and_or
-0:0  - 0:27         pipeline: pipeline
-0:0  - 0:27           command: command
-0:0  - 0:27             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:24               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:24                 right: regex_operand
-0:8  - 0:24                   expression: regex_source_expression
-0:8  - 0:12                     double_quoted
-0:8  - 0:9                        "\""
-0:9  - 0:11                       double_quote_text `ab`
-0:11 - 0:12                       "\""
-0:12 - 0:13                     ere_dupl_symbol
-0:12 - 0:13                       "+"
-0:13 - 0:20                     parameter_expansion
-0:13 - 0:14                       "$"
-0:14 - 0:15                       "{"
-0:15 - 0:19                       parameter: variable_name `part`
-0:19 - 0:20                       "}"
-0:20 - 0:21                     ere_dupl_symbol
-0:20 - 0:21                       "+"
-0:21 - 0:23                     escaped_character `\\.`
-0:23 - 0:24                     ere_dupl_symbol
-0:23 - 0:24                       "+"
-0:25 - 0:27               conditional_close `]]`
-0:27 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:27       command: complete_command
+0:0  - 0:27         body: list
+0:0  - 0:27           and_or: and_or
+0:0  - 0:27             pipeline: pipeline
+0:0  - 0:27               pipe_sequence
+0:0  - 0:27                 command: command
+0:0  - 0:27                   body: compound_command
+0:0  - 0:27                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:24                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:24                         right: regex_operand
+0:8  - 0:24                           expression: regex_source_expression
+0:8  - 0:12                             double_quoted
+0:8  - 0:9                                "\""
+0:9  - 0:11                               double_quote_text `ab`
+0:11 - 0:12                               "\""
+0:12 - 0:13                             ere_dupl_symbol
+0:12 - 0:13                               "+"
+0:13 - 0:20                             parameter_expansion
+0:13 - 0:14                               "$"
+0:14 - 0:15                               "{"
+0:15 - 0:19                               parameter: variable_name `part`
+0:19 - 0:20                               "}"
+0:20 - 0:21                             ere_dupl_symbol
+0:20 - 0:21                               "+"
+0:21 - 0:23                             escaped_character `\\.`
+0:23 - 0:24                             ere_dupl_symbol
+0:23 - 0:24                               "+"
+0:25 - 0:27                       conditional_close `]]`
+0:27 - 1:0        separator: newline_list
+0:27 - 1:0          "\n"
 
 ==================
 ERE groups, brackets and interval payloads retain embedded Bash source
@@ -1166,70 +1295,75 @@ ERE groups, brackets and interval payloads retain embedded Bash source
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:41       and_or: and_or
-0:0  - 0:41         pipeline: pipeline
-0:0  - 0:41           command: command
-0:0  - 0:41             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:38               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:38                 right: regex_operand
-0:8  - 0:38                   expression: extended_reg_exp
-0:8  - 0:38                     ere_branch
-0:8  - 0:20                       ere_expression
-0:8  - 0:9                          "("
-0:9  - 0:18                         expression: extended_reg_exp
-0:9  - 0:10                           ere_branch
-0:9  - 0:10                             ere_expression
-0:9  - 0:10                               one_char_or_coll_elem_ere
-0:9  - 0:10                                 ordinary_character `a`
-0:10 - 0:11                           "|"
-0:11 - 0:18                           regex_source_expression
-0:11 - 0:18                             parameter_expansion
-0:11 - 0:12                               "$"
-0:12 - 0:13                               "{"
-0:13 - 0:17                               parameter: variable_name `part`
-0:17 - 0:18                               "}"
-0:18 - 0:19                         ")"
-0:19 - 0:20                         ere_dupl_symbol
-0:19 - 0:20                           "+"
-0:20 - 0:38                       ere_expression
-0:20 - 0:32                         one_char_or_coll_elem_ere
-0:20 - 0:32                           bracket_expression
-0:20 - 0:21                             "["
-0:21 - 0:31                             matching_list
-0:21 - 0:31                               bracket_list
-0:21 - 0:31                                 follow_list
-0:21 - 0:24                                   expression_term
-0:21 - 0:24                                     range_expression
-0:21 - 0:23                                       start_range
-0:21 - 0:22                                         end_range
-0:21 - 0:22                                           collating_element_single `a`
-0:22 - 0:23                                         "-"
-0:23 - 0:24                                       end_range
-0:23 - 0:24                                         collating_element_single `z`
-0:24 - 0:31                                   expression_term
-0:24 - 0:31                                     regex_source_expression
-0:24 - 0:31                                       parameter_expansion
-0:24 - 0:25                                         "$"
-0:25 - 0:26                                         "{"
-0:26 - 0:30                                         parameter: variable_name `part`
-0:30 - 0:31                                         "}"
-0:31 - 0:32                             "]"
-0:32 - 0:38                         ere_dupl_symbol
-0:32 - 0:33                           "{"
-0:33 - 0:37                           minimum: regex_source_expression
-0:33 - 0:37                             parameter_expansion
-0:33 - 0:34                               "$"
-0:34 - 0:35                               "{"
-0:35 - 0:36                               parameter: variable_name `n`
-0:36 - 0:37                               "}"
-0:37 - 0:38                           "}"
-0:39 - 0:41               conditional_close `]]`
-0:41 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:41       command: complete_command
+0:0  - 0:41         body: list
+0:0  - 0:41           and_or: and_or
+0:0  - 0:41             pipeline: pipeline
+0:0  - 0:41               pipe_sequence
+0:0  - 0:41                 command: command
+0:0  - 0:41                   body: compound_command
+0:0  - 0:41                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:38                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:38                         right: regex_operand
+0:8  - 0:38                           expression: extended_reg_exp
+0:8  - 0:38                             ere_branch
+0:8  - 0:20                               ere_expression
+0:8  - 0:9                                  "("
+0:9  - 0:18                                 expression: extended_reg_exp
+0:9  - 0:10                                   ere_branch
+0:9  - 0:10                                     ere_expression
+0:9  - 0:10                                       one_char_or_coll_elem_ere
+0:9  - 0:10                                         ordinary_character `a`
+0:10 - 0:11                                   "|"
+0:11 - 0:18                                   regex_source_expression
+0:11 - 0:18                                     parameter_expansion
+0:11 - 0:12                                       "$"
+0:12 - 0:13                                       "{"
+0:13 - 0:17                                       parameter: variable_name `part`
+0:17 - 0:18                                       "}"
+0:18 - 0:19                                 ")"
+0:19 - 0:20                                 ere_dupl_symbol
+0:19 - 0:20                                   "+"
+0:20 - 0:38                               ere_expression
+0:20 - 0:32                                 one_char_or_coll_elem_ere
+0:20 - 0:32                                   bracket_expression
+0:20 - 0:21                                     "["
+0:21 - 0:31                                     matching_list
+0:21 - 0:31                                       bracket_list
+0:21 - 0:31                                         follow_list
+0:21 - 0:24                                           expression_term
+0:21 - 0:24                                             range_expression
+0:21 - 0:23                                               start_range
+0:21 - 0:22                                                 end_range
+0:21 - 0:22                                                   collating_element_single `a`
+0:22 - 0:23                                                 "-"
+0:23 - 0:24                                               end_range
+0:23 - 0:24                                                 collating_element_single `z`
+0:24 - 0:31                                           expression_term
+0:24 - 0:31                                             regex_source_expression
+0:24 - 0:31                                               parameter_expansion
+0:24 - 0:25                                                 "$"
+0:25 - 0:26                                                 "{"
+0:26 - 0:30                                                 parameter: variable_name `part`
+0:30 - 0:31                                                 "}"
+0:31 - 0:32                                     "]"
+0:32 - 0:38                                 ere_dupl_symbol
+0:32 - 0:33                                   "{"
+0:33 - 0:37                                   minimum: regex_source_expression
+0:33 - 0:37                                     parameter_expansion
+0:33 - 0:34                                       "$"
+0:34 - 0:35                                       "{"
+0:35 - 0:36                                       parameter: variable_name `n`
+0:36 - 0:37                                       "}"
+0:37 - 0:38                                   "}"
+0:39 - 0:41                       conditional_close `]]`
+0:41 - 1:0        separator: newline_list
+0:41 - 1:0          "\n"
 
 ==================
 ERE delimiter probes preserve process substitution payloads
@@ -1241,109 +1375,126 @@ ERE delimiter probes preserve process substitution payloads
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:60       and_or: and_or
-0:0  - 0:60         pipeline: pipeline
-0:0  - 0:60           command: command
-0:0  - 0:60             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:57               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:57                 right: regex_operand
-0:8  - 0:57                   expression: extended_reg_exp
-0:8  - 0:57                     ere_branch
-0:8  - 0:24                       ere_expression
-0:8  - 0:24                         one_char_or_coll_elem_ere
-0:8  - 0:24                           bracket_expression
-0:8  - 0:9                              "["
-0:9  - 0:23                             matching_list
-0:9  - 0:23                               bracket_list
-0:9  - 0:23                                 follow_list
-0:9  - 0:10                                   expression_term
-0:9  - 0:10                                     single_expression
-0:9  - 0:10                                       end_range
-0:9  - 0:10                                         collating_element_single `a`
-0:10 - 0:23                                   expression_term
-0:10 - 0:23                                     regex_source_expression
-0:10 - 0:23                                       process_substitution
-0:10 - 0:11                                         "<"
-0:11 - 0:12                                         "("
-0:12 - 0:22                                         body: command_substitution_body
-0:12 - 0:22                                           list
-0:12 - 0:22                                             and_or: and_or
-0:12 - 0:22                                               pipeline: pipeline
-0:12 - 0:22                                                 command: command
-0:12 - 0:22                                                   body: simple_command
-0:12 - 0:18                                                     name: word
-0:12 - 0:18                                                       literal `printf`
-0:19 - 0:22                                                     argument: word
-0:19 - 0:22                                                       double_quoted
-0:19 - 0:20                                                         "\""
-0:20 - 0:21                                                         double_quote_text `]`
-0:21 - 0:22                                                         "\""
-0:22 - 0:23                                         ")"
-0:23 - 0:24                             "]"
-0:24 - 0:57                       ere_expression
-0:24 - 0:44                         one_char_or_coll_elem_ere
-0:24 - 0:44                           bracket_expression
-0:24 - 0:25                             "["
-0:25 - 0:43                             matching_list
-0:25 - 0:43                               bracket_list
-0:25 - 0:43                                 follow_list
-0:25 - 0:43                                   expression_term
-0:25 - 0:43                                     single_expression
-0:25 - 0:43                                       end_range
-0:25 - 0:43                                         collating_symbol
-0:25 - 0:26                                           "["
-0:26 - 0:27                                           "."
-0:27 - 0:41                                           element: regex_source_expression
-0:27 - 0:28                                             collating_element_single `b`
-0:28 - 0:41                                             process_substitution
-0:28 - 0:29                                               ">"
-0:29 - 0:30                                               "("
-0:30 - 0:40                                               body: command_substitution_body
-0:30 - 0:40                                                 list
-0:30 - 0:40                                                   and_or: and_or
-0:30 - 0:40                                                     pipeline: pipeline
-0:30 - 0:40                                                       command: command
-0:30 - 0:40                                                         body: subshell
-0:30 - 0:31                                                           "("
-0:31 - 0:39                                                           body: list
-0:31 - 0:39                                                             and_or: and_or
-0:31 - 0:39                                                               pipeline: pipeline
-0:31 - 0:39                                                                 command: command
-0:31 - 0:39                                                                   body: simple_command
-0:31 - 0:37                                                                     name: word
-0:31 - 0:37                                                                       literal `printf`
-0:38 - 0:39                                                                     argument: word
-0:38 - 0:39                                                                       literal `c`
-0:39 - 0:40                                                           ")"
-0:40 - 0:41                                               ")"
-0:41 - 0:42                                           "."
-0:42 - 0:43                                           "]"
-0:43 - 0:44                             "]"
-0:44 - 0:57                         ere_dupl_symbol
-0:44 - 0:45                           "{"
-0:45 - 0:56                           minimum: regex_source_expression
-0:45 - 0:56                             process_substitution
-0:45 - 0:46                               "<"
-0:46 - 0:47                               "("
-0:47 - 0:55                               body: command_substitution_body
-0:47 - 0:55                                 list
-0:47 - 0:55                                   and_or: and_or
-0:47 - 0:55                                     pipeline: pipeline
-0:47 - 0:55                                       command: command
-0:47 - 0:55                                         body: simple_command
-0:47 - 0:53                                           name: word
-0:47 - 0:53                                             literal `printf`
-0:54 - 0:55                                           argument: word
-0:54 - 0:55                                             literal `1`
-0:55 - 0:56                               ")"
-0:56 - 0:57                           "}"
-0:58 - 0:60               conditional_close `]]`
-0:60 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:60       command: complete_command
+0:0  - 0:60         body: list
+0:0  - 0:60           and_or: and_or
+0:0  - 0:60             pipeline: pipeline
+0:0  - 0:60               pipe_sequence
+0:0  - 0:60                 command: command
+0:0  - 0:60                   body: compound_command
+0:0  - 0:60                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:57                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:57                         right: regex_operand
+0:8  - 0:57                           expression: extended_reg_exp
+0:8  - 0:57                             ere_branch
+0:8  - 0:24                               ere_expression
+0:8  - 0:24                                 one_char_or_coll_elem_ere
+0:8  - 0:24                                   bracket_expression
+0:8  - 0:9                                      "["
+0:9  - 0:23                                     matching_list
+0:9  - 0:23                                       bracket_list
+0:9  - 0:23                                         follow_list
+0:9  - 0:10                                           expression_term
+0:9  - 0:10                                             single_expression
+0:9  - 0:10                                               end_range
+0:9  - 0:10                                                 collating_element_single `a`
+0:10 - 0:23                                           expression_term
+0:10 - 0:23                                             regex_source_expression
+0:10 - 0:23                                               process_substitution
+0:10 - 0:11                                                 "<"
+0:11 - 0:12                                                 "("
+0:12 - 0:22                                                 body: command_substitution_body
+0:12 - 0:22                                                   complete_commands
+0:12 - 0:22                                                     command: complete_command
+0:12 - 0:22                                                       body: list
+0:12 - 0:22                                                         and_or: and_or
+0:12 - 0:22                                                           pipeline: pipeline
+0:12 - 0:22                                                             pipe_sequence
+0:12 - 0:22                                                               command: command
+0:12 - 0:22                                                                 body: simple_command
+0:12 - 0:18                                                                   name: word
+0:12 - 0:18                                                                     literal `printf`
+0:19 - 0:22                                                                   argument: word
+0:19 - 0:22                                                                     double_quoted
+0:19 - 0:20                                                                       "\""
+0:20 - 0:21                                                                       double_quote_text `]`
+0:21 - 0:22                                                                       "\""
+0:22 - 0:23                                                 ")"
+0:23 - 0:24                                     "]"
+0:24 - 0:57                               ere_expression
+0:24 - 0:44                                 one_char_or_coll_elem_ere
+0:24 - 0:44                                   bracket_expression
+0:24 - 0:25                                     "["
+0:25 - 0:43                                     matching_list
+0:25 - 0:43                                       bracket_list
+0:25 - 0:43                                         follow_list
+0:25 - 0:43                                           expression_term
+0:25 - 0:43                                             single_expression
+0:25 - 0:43                                               end_range
+0:25 - 0:43                                                 collating_symbol
+0:25 - 0:26                                                   "["
+0:26 - 0:27                                                   "."
+0:27 - 0:41                                                   element: regex_source_expression
+0:27 - 0:28                                                     collating_element_single `b`
+0:28 - 0:41                                                     process_substitution
+0:28 - 0:29                                                       ">"
+0:29 - 0:30                                                       "("
+0:30 - 0:40                                                       body: command_substitution_body
+0:30 - 0:40                                                         complete_commands
+0:30 - 0:40                                                           command: complete_command
+0:30 - 0:40                                                             body: list
+0:30 - 0:40                                                               and_or: and_or
+0:30 - 0:40                                                                 pipeline: pipeline
+0:30 - 0:40                                                                   pipe_sequence
+0:30 - 0:40                                                                     command: command
+0:30 - 0:40                                                                       body: compound_command
+0:30 - 0:40                                                                         subshell
+0:30 - 0:31                                                                           "("
+0:31 - 0:39                                                                           body: compound_list
+0:31 - 0:39                                                                             body: term
+0:31 - 0:39                                                                               and_or: and_or
+0:31 - 0:39                                                                                 pipeline: pipeline
+0:31 - 0:39                                                                                   pipe_sequence
+0:31 - 0:39                                                                                     command: command
+0:31 - 0:39                                                                                       body: simple_command
+0:31 - 0:37                                                                                         name: word
+0:31 - 0:37                                                                                           literal `printf`
+0:38 - 0:39                                                                                         argument: word
+0:38 - 0:39                                                                                           literal `c`
+0:39 - 0:40                                                                           ")"
+0:40 - 0:41                                                       ")"
+0:41 - 0:42                                                   "."
+0:42 - 0:43                                                   "]"
+0:43 - 0:44                                     "]"
+0:44 - 0:57                                 ere_dupl_symbol
+0:44 - 0:45                                   "{"
+0:45 - 0:56                                   minimum: regex_source_expression
+0:45 - 0:56                                     process_substitution
+0:45 - 0:46                                       "<"
+0:46 - 0:47                                       "("
+0:47 - 0:55                                       body: command_substitution_body
+0:47 - 0:55                                         complete_commands
+0:47 - 0:55                                           command: complete_command
+0:47 - 0:55                                             body: list
+0:47 - 0:55                                               and_or: and_or
+0:47 - 0:55                                                 pipeline: pipeline
+0:47 - 0:55                                                   pipe_sequence
+0:47 - 0:55                                                     command: command
+0:47 - 0:55                                                       body: simple_command
+0:47 - 0:53                                                         name: word
+0:47 - 0:53                                                           literal `printf`
+0:54 - 0:55                                                         argument: word
+0:54 - 0:55                                                           literal `1`
+0:55 - 0:56                                       ")"
+0:56 - 0:57                                   "}"
+0:58 - 0:60                       conditional_close `]]`
+0:60 - 1:0        separator: newline_list
+0:60 - 1:0          "\n"
 
 ==================
 ERE groups remain structured immediately after opaque source
@@ -1355,56 +1506,61 @@ ERE groups remain structured immediately after opaque source
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:30       and_or: and_or
-0:0  - 0:30         pipeline: pipeline
-0:0  - 0:30           command: command
-0:0  - 0:30             body: conditional_command
-0:0  - 0:2                conditional_open `[[`
-0:3  - 0:27               condition: conditional_binary_expression
-0:3  - 0:4                  left: word
-0:3  - 0:4                    literal `x`
-0:5  - 0:7                  operator: conditional_regex_operator `=~`
-0:8  - 0:27                 right: regex_operand
-0:8  - 0:27                   expression: regex_source_expression
-0:8  - 0:14                     double_quoted
-0:8  - 0:9                        "\""
-0:9  - 0:13                       parameter_expansion
-0:9  - 0:10                         "$"
-0:10 - 0:11                         "{"
-0:11 - 0:12                         parameter: variable_name `p`
-0:12 - 0:13                         "}"
-0:13 - 0:14                       "\""
-0:14 - 0:20                     ere_expression
-0:14 - 0:15                       "("
-0:15 - 0:18                       expression: extended_reg_exp
-0:15 - 0:16                         ere_branch
-0:15 - 0:16                           ere_expression
-0:15 - 0:16                             one_char_or_coll_elem_ere
-0:15 - 0:16                               ordinary_character `a`
-0:16 - 0:17                         "|"
-0:17 - 0:18                         ere_branch
-0:17 - 0:18                           ere_expression
-0:17 - 0:18                             one_char_or_coll_elem_ere
-0:17 - 0:18                               ordinary_character `b`
-0:18 - 0:19                       ")"
-0:19 - 0:20                       ere_dupl_symbol
-0:19 - 0:20                         "+"
-0:20 - 0:24                     parameter_expansion
-0:20 - 0:21                       "$"
-0:21 - 0:22                       "{"
-0:22 - 0:23                       parameter: variable_name `q`
-0:23 - 0:24                       "}"
-0:24 - 0:27                     ere_expression
-0:24 - 0:25                       "("
-0:25 - 0:26                       expression: extended_reg_exp
-0:25 - 0:26                         ere_branch
-0:25 - 0:26                           ere_expression
-0:25 - 0:26                             one_char_or_coll_elem_ere
-0:25 - 0:26                               ordinary_character `c`
-0:26 - 0:27                       ")"
-0:28 - 0:30               conditional_close `]]`
-0:30 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:30       command: complete_command
+0:0  - 0:30         body: list
+0:0  - 0:30           and_or: and_or
+0:0  - 0:30             pipeline: pipeline
+0:0  - 0:30               pipe_sequence
+0:0  - 0:30                 command: command
+0:0  - 0:30                   body: compound_command
+0:0  - 0:30                     conditional_command
+0:0  - 0:2                        conditional_open `[[`
+0:3  - 0:27                       condition: conditional_binary_expression
+0:3  - 0:4                          left: word
+0:3  - 0:4                            literal `x`
+0:5  - 0:7                          operator: conditional_regex_operator `=~`
+0:8  - 0:27                         right: regex_operand
+0:8  - 0:27                           expression: regex_source_expression
+0:8  - 0:14                             double_quoted
+0:8  - 0:9                                "\""
+0:9  - 0:13                               parameter_expansion
+0:9  - 0:10                                 "$"
+0:10 - 0:11                                 "{"
+0:11 - 0:12                                 parameter: variable_name `p`
+0:12 - 0:13                                 "}"
+0:13 - 0:14                               "\""
+0:14 - 0:20                             ere_expression
+0:14 - 0:15                               "("
+0:15 - 0:18                               expression: extended_reg_exp
+0:15 - 0:16                                 ere_branch
+0:15 - 0:16                                   ere_expression
+0:15 - 0:16                                     one_char_or_coll_elem_ere
+0:15 - 0:16                                       ordinary_character `a`
+0:16 - 0:17                                 "|"
+0:17 - 0:18                                 ere_branch
+0:17 - 0:18                                   ere_expression
+0:17 - 0:18                                     one_char_or_coll_elem_ere
+0:17 - 0:18                                       ordinary_character `b`
+0:18 - 0:19                               ")"
+0:19 - 0:20                               ere_dupl_symbol
+0:19 - 0:20                                 "+"
+0:20 - 0:24                             parameter_expansion
+0:20 - 0:21                               "$"
+0:21 - 0:22                               "{"
+0:22 - 0:23                               parameter: variable_name `q`
+0:23 - 0:24                               "}"
+0:24 - 0:27                             ere_expression
+0:24 - 0:25                               "("
+0:25 - 0:26                               expression: extended_reg_exp
+0:25 - 0:26                                 ere_branch
+0:25 - 0:26                                   ere_expression
+0:25 - 0:26                                     one_char_or_coll_elem_ere
+0:25 - 0:26                                       ordinary_character `c`
+0:26 - 0:27                               ")"
+0:28 - 0:30                       conditional_close `]]`
+0:30 - 1:0        separator: newline_list
+0:30 - 1:0          "\n"
 
 ==================
 conditional regex unclosed group "[[ x =~ ( ]]\n"

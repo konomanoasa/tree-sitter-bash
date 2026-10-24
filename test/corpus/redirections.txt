@@ -8,52 +8,58 @@ exec {fd}>out; : {fd}>&-; : 3<&4- 5>&6-
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (io_redirect
-              (io_variable
-                (variable_name))
-              (io_file
-                (word
-                  (literal ))))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (io_redirect
-              (io_variable
-                (variable_name))
-              (io_file
-                (greatand )
-                (word
-                  (literal ))))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (io_redirect
-              (io_number )
-              (io_file
-                (lessand )
-                (word
-                  (literal ))))
-            (io_redirect
-              (io_number )
-              (io_file
-                (greatand )
-                (word
-                  (literal ))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_variable
+                      (variable_name))
+                    (io_file
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_variable
+                      (variable_name))
+                    (io_file
+                      (greatand)
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_number)
+                    (io_file
+                      (lessand)
+                      (word
+                        (literal))))
+                  (io_redirect
+                    (io_number)
+                    (io_file
+                      (greatand)
+                      (word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 redirect stdout and stderr
@@ -65,34 +71,39 @@ echo x &>out; echo y &>>out
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (literal ))
-            (io_redirect
-              (io_file
-                (andgreat )
-                (word
-                  (literal ))))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (word
-              (literal ))
-            (io_redirect
-              (io_file
-                (anddgreat )
-                (word
-                  (literal ))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_file
+                      (andgreat)
+                      (word
+                        (literal)))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_file
+                      (anddgreat)
+                      (word
+                        (literal)))))))))))
+    (newline_list)))
 
 ==================
 redirect compound output
@@ -104,25 +115,32 @@ redirect compound output
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (brace_group
-            (list
-              (and_or
-                (pipeline
-                  (command
-                    (simple_command
-                      (word
-                        (literal))))))
-              (separator
-                (separator_op))))
-          (io_redirect
-            (io_file
-              (andgreat)
-              (word
-                (literal)))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (brace_group
+                    (compound_list
+                      (term
+                        (and_or
+                          (pipeline
+                            (pipe_sequence
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal)))))))
+                        (separator
+                          (separator_op))))))
+                (io_redirect
+                  (io_file
+                    (andgreat)
+                    (word
+                      (literal))))))))))
+    (newline_list)))
 
 ==================
 redirect compound descriptor
@@ -134,26 +152,33 @@ redirect compound descriptor
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (brace_group
-            (list
-              (and_or
-                (pipeline
-                  (command
-                    (simple_command
-                      (word
-                        (literal ))))))
-              (separator
-                (separator_op ))))
-          (io_redirect
-            (io_variable
-              (variable_name))
-            (io_file
-              (word
-                (literal )))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (compound_command
+                  (brace_group
+                    (compound_list
+                      (term
+                        (and_or
+                          (pipeline
+                            (pipe_sequence
+                              (command
+                                (simple_command
+                                  (word
+                                    (literal)))))))
+                        (separator
+                          (separator_op))))))
+                (io_redirect
+                  (io_variable
+                    (variable_name))
+                  (io_file
+                    (word
+                      (literal))))))))))
+    (newline_list)))
 
 ==================
 here string source
@@ -165,43 +190,51 @@ cat <<< "$x"; cat 3<<<$(printf x)
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (io_redirect
-              (io_file
-                (here_string_operator )
-                (word
-                  (double_quoted
-                    (parameter_expansion
-                      (variable_name ))))))))))
-    (separator_op )
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal ))
-            (io_redirect
-              (io_number )
-              (io_file
-                (here_string_operator )
-                (word
-                  (command_substitution
-                    (command_substitution_body
-                      (list
-                        (and_or
-                          (pipeline
-                            (command
-                              (simple_command
-                                (word
-                                  (literal ))
-                                (word
-                                  (literal ))))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_file
+                      (here_string_operator)
+                      (word
+                        (double_quoted
+                          (parameter_expansion
+                            (variable_name)))))))))))
+        (separator_op)
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_number)
+                    (io_file
+                      (here_string_operator)
+                      (word
+                        (command_substitution
+                          (command_substitution_body
+                            (complete_commands
+                              (complete_command
+                                (list
+                                  (and_or
+                                    (pipeline
+                                      (pipe_sequence
+                                        (command
+                                          (simple_command
+                                            (word
+                                              (literal))
+                                            (word
+                                              (literal))))))))))))))))))))))
+    (newline_list)))
 
 ==================
 array descriptors retain quoted subscript source and here document ownership
@@ -215,43 +248,47 @@ EOF
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (io_redirect
-              (io_variable
-                (variable_name)
-                (array_subscript
-                  (subscript_source
-                    (arithmetic_candidate_source_expression
-                      (double_quoted
-                        (double_quote_text))))))
-              (io_file
-                (word
-                  (literal))))
-            (io_redirect
-              (io_variable
-                (variable_name)
-                (array_subscript
-                  (subscript_source
-                    (parameter_expansion
-                      (variable_name)))))
-              (io_here
-                (dless)
-                (here_end
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
                   (word
-                    (literal)))))))))
-    (here_document_sequence
-      (here_document_line_end)
-      (here_document
-        (here_document_body
-          (here_document_text))
-        (here_document_end
-          (here_document_end_text))))))
+                    (literal))
+                  (io_redirect
+                    (io_variable
+                      (variable_name)
+                      (array_subscript
+                        (subscript_source
+                          (arithmetic_candidate_source_expression
+                            (double_quoted
+                              (double_quote_text))))))
+                    (io_file
+                      (word
+                        (literal))))
+                  (io_redirect
+                    (io_variable
+                      (variable_name)
+                      (array_subscript
+                        (subscript_source
+                          (parameter_expansion
+                            (variable_name)))))
+                    (io_here
+                      (dless)
+                      (here_end
+                        (word
+                          (literal))))))))))))
+    (newline_list
+      (here_document_sequence
+        (here_document_line_end)
+        (here_document
+          (here_document_body
+            (here_document_text))
+          (here_document_end
+            (here_document_end_text)))))))
 
 ==================
 descriptor spellings before process substitution remain word prefixes
@@ -263,37 +300,47 @@ descriptor spellings before process substitution remain word prefixes
 ------------------
 
 (program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (simple_command
-            (word
-              (literal))
-            (word
-              (literal)
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))
-                            (word
-                              (literal))))))))))
-            (word
-              (literal)
-              (process_substitution
-                (command_substitution_body
-                  (list
-                    (and_or
-                      (pipeline
-                        (command
-                          (simple_command
-                            (word
-                              (literal))))))))))))))))
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (word
+                    (literal)
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))
+                                        (word
+                                          (literal)))))))))))))
+                  (word
+                    (literal)
+                    (process_substitution
+                      (command_substitution_body
+                        (complete_commands
+                          (complete_command
+                            (list
+                              (and_or
+                                (pipeline
+                                  (pipe_sequence
+                                    (command
+                                      (simple_command
+                                        (word
+                                          (literal))))))))))))))))))))
+    (newline_list)))
 
 ==================
 file descriptor duplication and redirection operators
@@ -305,53 +352,57 @@ exec 3<input 4>output 5>>append 6<>both 7>&1 8<&0 9>|force
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word
-              (literal))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                operator: (dgreat)
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                operator: (lessgreat)
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                operator: (greatand)
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                operator: (lessand)
-                filename: (word
-                  (literal))))
-            redirect: (io_redirect
-              number: (io_number)
-              body: (io_file
-                operator: (clobber)
-                filename: (word
-                  (literal))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      operator: (dgreat)
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      operator: (lessgreat)
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      operator: (greatand)
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      operator: (lessand)
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      operator: (clobber)
+                      filename: (word
+                        (literal)))))))))))
+    separator: (newline_list)))
 
 ==================
 redirection descriptors and here string operators retain exact ranges
@@ -363,44 +414,48 @@ redirection descriptors and here string operators retain exact ranges
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:31       and_or: and_or
-0:0  - 0:31         pipeline: pipeline
-0:0  - 0:31           command: command
-0:0  - 0:31             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:10               redirect: io_redirect
-0:2  - 0:6                  number: io_variable
-0:2  - 0:3                    "{"
-0:3  - 0:5                    name: variable_name `fd`
-0:5  - 0:6                    "}"
-0:6  - 0:10                 body: io_file
-0:6  - 0:7                    ">"
-0:7  - 0:10                   filename: word
-0:7  - 0:10                     literal `out`
-0:11 - 0:16               redirect: io_redirect
-0:11 - 0:12                 number: io_number `3`
-0:12 - 0:16                 body: io_file
-0:12 - 0:14                   operator: lessand `<&`
-0:14 - 0:16                   filename: word
-0:14 - 0:16                     literal `4-`
-0:17 - 0:23               redirect: io_redirect
-0:17 - 0:23                 body: io_file
-0:17 - 0:20                   operator: anddgreat `&>>`
-0:20 - 0:23                   filename: word
-0:20 - 0:23                     literal `log`
-0:24 - 0:31               redirect: io_redirect
-0:24 - 0:31                 body: io_file
-0:24 - 0:27                   operator: here_string_operator `<<<`
-0:27 - 0:31                   filename: word
-0:27 - 0:31                     double_quoted
-0:27 - 0:28                       "\""
-0:28 - 0:30                       parameter_expansion
-0:28 - 0:29                         "$"
-0:29 - 0:30                         parameter: variable_name `x`
-0:30 - 0:31                       "\""
-0:31 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:31       command: complete_command
+0:0  - 0:31         body: list
+0:0  - 0:31           and_or: and_or
+0:0  - 0:31             pipeline: pipeline
+0:0  - 0:31               pipe_sequence
+0:0  - 0:31                 command: command
+0:0  - 0:31                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:10                     redirect: io_redirect
+0:2  - 0:6                        number: io_variable
+0:2  - 0:3                          "{"
+0:3  - 0:5                          name: variable_name `fd`
+0:5  - 0:6                          "}"
+0:6  - 0:10                       body: io_file
+0:6  - 0:7                          ">"
+0:7  - 0:10                         filename: word
+0:7  - 0:10                           literal `out`
+0:11 - 0:16                     redirect: io_redirect
+0:11 - 0:12                       number: io_number `3`
+0:12 - 0:16                       body: io_file
+0:12 - 0:14                         operator: lessand `<&`
+0:14 - 0:16                         filename: word
+0:14 - 0:16                           literal `4-`
+0:17 - 0:23                     redirect: io_redirect
+0:17 - 0:23                       body: io_file
+0:17 - 0:20                         operator: anddgreat `&>>`
+0:20 - 0:23                         filename: word
+0:20 - 0:23                           literal `log`
+0:24 - 0:31                     redirect: io_redirect
+0:24 - 0:31                       body: io_file
+0:24 - 0:27                         operator: here_string_operator `<<<`
+0:27 - 0:31                         filename: word
+0:27 - 0:31                           double_quoted
+0:27 - 0:28                             "\""
+0:28 - 0:30                             parameter_expansion
+0:28 - 0:29                               "$"
+0:29 - 0:30                               parameter: variable_name `x`
+0:30 - 0:31                             "\""
+0:31 - 1:0        separator: newline_list
+0:31 - 1:0          "\n"
 
 ==================
 descriptor duplication operators accept an adjacent numeric operand
@@ -413,34 +468,38 @@ descriptor duplication operators accept an adjacent numeric operand
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:17       and_or: and_or
-0:0  - 0:17         pipeline: pipeline
-0:0  - 0:17           command: command
-0:0  - 0:17             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:5                redirect: io_redirect
-0:2  - 0:5                  body: io_file
-0:2  - 0:4                    operator: lessand `<&`
-0:4  - 0:5                    filename: word
-0:4  - 0:5                      literal `2`
-0:5  - 0:9                redirect: io_redirect
-0:5  - 0:9                  body: io_file
-0:5  - 0:6                    ">"
-0:6  - 0:9                    filename: word
-0:6  - 0:9                      literal `out`
-0:10 - 0:13               redirect: io_redirect
-0:10 - 0:13                 body: io_file
-0:10 - 0:12                   operator: greatand `>&`
-0:12 - 0:13                   filename: word
-0:12 - 0:13                     literal `3`
-0:13 - 0:17               redirect: io_redirect
-0:13 - 0:17                 body: io_file
-0:13 - 0:14                   ">"
-0:14 - 0:17                   filename: word
-0:14 - 0:17                     literal `log`
-0:17 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:17       command: complete_command
+0:0  - 0:17         body: list
+0:0  - 0:17           and_or: and_or
+0:0  - 0:17             pipeline: pipeline
+0:0  - 0:17               pipe_sequence
+0:0  - 0:17                 command: command
+0:0  - 0:17                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:5                      redirect: io_redirect
+0:2  - 0:5                        body: io_file
+0:2  - 0:4                          operator: lessand `<&`
+0:4  - 0:5                          filename: word
+0:4  - 0:5                            literal `2`
+0:5  - 0:9                      redirect: io_redirect
+0:5  - 0:9                        body: io_file
+0:5  - 0:6                          ">"
+0:6  - 0:9                          filename: word
+0:6  - 0:9                            literal `out`
+0:10 - 0:13                     redirect: io_redirect
+0:10 - 0:13                       body: io_file
+0:10 - 0:12                         operator: greatand `>&`
+0:12 - 0:13                         filename: word
+0:12 - 0:13                           literal `3`
+0:13 - 0:17                     redirect: io_redirect
+0:13 - 0:17                       body: io_file
+0:13 - 0:14                         ">"
+0:14 - 0:17                         filename: word
+0:14 - 0:17                           literal `log`
+0:17 - 1:0        separator: newline_list
+0:17 - 1:0          "\n"
 
 ==================
 numeric descriptors stop at the signed 32 bit lexical boundary
@@ -452,14 +511,27 @@ numeric descriptors stop at the signed 32 bit lexical boundary
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            redirect: (io_redirect number: (io_number) body: (io_file filename: (word (literal))))
-            redirect: (io_redirect number: (io_number) body: (io_file filename: (word (literal))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      filename: (word
+                        (literal))))
+                  redirect: (io_redirect
+                    number: (io_number)
+                    body: (io_file
+                      filename: (word
+                        (literal)))))))))))
+    separator: (newline_list)))
 
 ==================
 overflowing descriptor digits remain ordinary arguments
@@ -471,16 +543,29 @@ overflowing descriptor digits remain ordinary arguments
 ------------------
 
 (program
-  commands: (list
-    and_or: (and_or
-      pipeline: (pipeline
-        command: (command
-          body: (simple_command
-            name: (word (literal))
-            argument: (word (literal))
-            redirect: (io_redirect body: (io_file filename: (word (literal))))
-            argument: (word (literal))
-            redirect: (io_redirect body: (io_file filename: (word (literal))))))))))
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (literal))
+                  redirect: (io_redirect
+                    body: (io_file
+                      filename: (word
+                        (literal))))
+                  argument: (word
+                    (literal))
+                  redirect: (io_redirect
+                    body: (io_file
+                      filename: (word
+                        (literal)))))))))))
+    separator: (newline_list)))
 
 ==================
 overflowing descriptor digits cannot follow a compound command
@@ -502,81 +587,85 @@ quoted separated and invalid descriptor spellings remain ordinary words
 ------------------
 
 0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:80       and_or: and_or
-0:0  - 0:80         pipeline: pipeline
-0:0  - 0:80           command: command
-0:0  - 0:80             body: simple_command
-0:0  - 0:1                name: word
-0:0  - 0:1                  literal `:`
-0:2  - 0:6                argument: word
-0:2  - 0:6                  literal `{fd}`
-0:7  - 0:11               redirect: io_redirect
-0:7  - 0:11                 body: io_file
-0:7  - 0:8                    ">"
-0:8  - 0:11                   filename: word
-0:8  - 0:11                     literal `out`
-0:12 - 0:18               argument: word
-0:12 - 0:18                 single_quoted
-0:12 - 0:13                   "'"
-0:13 - 0:17                   single_quote_content `{fd}`
-0:17 - 0:18                   "'"
-0:18 - 0:22               redirect: io_redirect
-0:18 - 0:22                 body: io_file
-0:18 - 0:19                   ">"
-0:19 - 0:22                   filename: word
-0:19 - 0:22                     literal `out`
-0:23 - 0:28               argument: word
-0:23 - 0:28                 literal `{1fd}`
-0:28 - 0:32               redirect: io_redirect
-0:28 - 0:32                 body: io_file
-0:28 - 0:29                   ">"
-0:29 - 0:32                   filename: word
-0:29 - 0:32                     literal `out`
-0:33 - 0:36               argument: word
-0:33 - 0:36                 literal `{fd`
-0:36 - 0:40               redirect: io_redirect
-0:36 - 0:40                 body: io_file
-0:36 - 0:37                   ">"
-0:37 - 0:40                   filename: word
-0:37 - 0:40                     literal `out`
-0:41 - 0:47               argument: word
-0:41 - 0:47                 literal `{fd[]}`
-0:47 - 0:51               redirect: io_redirect
-0:47 - 0:51                 body: io_file
-0:47 - 0:48                   ">"
-0:48 - 0:51                   filename: word
-0:48 - 0:51                     literal `out`
-0:52 - 0:56               argument: word
-0:52 - 0:56                 literal `{fd[`
-0:57 - 0:58               argument: word
-0:57 - 0:58                 literal `x`
-0:59 - 0:61               argument: word
-0:59 - 0:61                 literal `]}`
-0:61 - 0:65               redirect: io_redirect
-0:61 - 0:65                 body: io_file
-0:61 - 0:62                   ">"
-0:62 - 0:65                   filename: word
-0:62 - 0:65                     literal `out`
-0:66 - 0:76               argument: word
-0:66 - 0:69                 literal `{fd`
-0:69 - 0:72                 pattern_bracket_source
-0:69 - 0:70                   "["
-0:70 - 0:71                   members: pattern_bracket_members_source
-0:70 - 0:71                     member: pattern_bracket_character_source `x`
-0:71 - 0:72                   "]"
-0:72 - 0:75                 pattern_bracket_source
-0:72 - 0:73                   "["
-0:73 - 0:74                   members: pattern_bracket_members_source
-0:73 - 0:74                     member: pattern_bracket_character_source `y`
-0:74 - 0:75                   "]"
-0:75 - 0:76                 literal `}`
-0:76 - 0:80               redirect: io_redirect
-0:76 - 0:80                 body: io_file
-0:76 - 0:77                   ">"
-0:77 - 0:80                   filename: word
-0:77 - 0:80                     literal `out`
-0:80 - 1:0        "\n"
+0:0  - 1:0      commands: complete_commands
+0:0  - 0:80       command: complete_command
+0:0  - 0:80         body: list
+0:0  - 0:80           and_or: and_or
+0:0  - 0:80             pipeline: pipeline
+0:0  - 0:80               pipe_sequence
+0:0  - 0:80                 command: command
+0:0  - 0:80                   body: simple_command
+0:0  - 0:1                      name: word
+0:0  - 0:1                        literal `:`
+0:2  - 0:6                      argument: word
+0:2  - 0:6                        literal `{fd}`
+0:7  - 0:11                     redirect: io_redirect
+0:7  - 0:11                       body: io_file
+0:7  - 0:8                          ">"
+0:8  - 0:11                         filename: word
+0:8  - 0:11                           literal `out`
+0:12 - 0:18                     argument: word
+0:12 - 0:18                       single_quoted
+0:12 - 0:13                         "'"
+0:13 - 0:17                         single_quote_content `{fd}`
+0:17 - 0:18                         "'"
+0:18 - 0:22                     redirect: io_redirect
+0:18 - 0:22                       body: io_file
+0:18 - 0:19                         ">"
+0:19 - 0:22                         filename: word
+0:19 - 0:22                           literal `out`
+0:23 - 0:28                     argument: word
+0:23 - 0:28                       literal `{1fd}`
+0:28 - 0:32                     redirect: io_redirect
+0:28 - 0:32                       body: io_file
+0:28 - 0:29                         ">"
+0:29 - 0:32                         filename: word
+0:29 - 0:32                           literal `out`
+0:33 - 0:36                     argument: word
+0:33 - 0:36                       literal `{fd`
+0:36 - 0:40                     redirect: io_redirect
+0:36 - 0:40                       body: io_file
+0:36 - 0:37                         ">"
+0:37 - 0:40                         filename: word
+0:37 - 0:40                           literal `out`
+0:41 - 0:47                     argument: word
+0:41 - 0:47                       literal `{fd[]}`
+0:47 - 0:51                     redirect: io_redirect
+0:47 - 0:51                       body: io_file
+0:47 - 0:48                         ">"
+0:48 - 0:51                         filename: word
+0:48 - 0:51                           literal `out`
+0:52 - 0:56                     argument: word
+0:52 - 0:56                       literal `{fd[`
+0:57 - 0:58                     argument: word
+0:57 - 0:58                       literal `x`
+0:59 - 0:61                     argument: word
+0:59 - 0:61                       literal `]}`
+0:61 - 0:65                     redirect: io_redirect
+0:61 - 0:65                       body: io_file
+0:61 - 0:62                         ">"
+0:62 - 0:65                         filename: word
+0:62 - 0:65                           literal `out`
+0:66 - 0:76                     argument: word
+0:66 - 0:69                       literal `{fd`
+0:69 - 0:72                       pattern_bracket_source
+0:69 - 0:70                         "["
+0:70 - 0:71                         members: pattern_bracket_members_source
+0:70 - 0:71                           member: pattern_bracket_character_source `x`
+0:71 - 0:72                         "]"
+0:72 - 0:75                       pattern_bracket_source
+0:72 - 0:73                         "["
+0:73 - 0:74                         members: pattern_bracket_members_source
+0:73 - 0:74                           member: pattern_bracket_character_source `y`
+0:74 - 0:75                         "]"
+0:75 - 0:76                       literal `}`
+0:76 - 0:80                     redirect: io_redirect
+0:76 - 0:80                       body: io_file
+0:76 - 0:77                         ">"
+0:77 - 0:80                         filename: word
+0:77 - 0:80                           literal `out`
+0:80 - 1:0        separator: newline_list
+0:80 - 1:0          "\n"
 
 ==================
 numeric descriptor cannot be a redirect operand ": >2>out\n"

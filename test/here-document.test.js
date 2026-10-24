@@ -1147,6 +1147,57 @@ for (const grammar of grammars) {
       }
     });
 
+    test("removed EOF tails stay inside here documents through completion and undo", () => {
+      for (const body of ["", "x\n"]) {
+        for (const [tail, continuations] of [
+          ["\t", 0],
+          ["\\\n", 1],
+          ["\\\n\t", 1],
+          ["\t\\\n", 1],
+          ["\t\\\n\t\\\n\t", 2],
+        ]) {
+          const seed = `cat <<-E\n${body}${tail}`;
+          const actual = nodes(seed);
+          const document = actual.find(({ type }) => type === "here_document");
+          assert.ok(document, seed);
+          assert.equal(document.text, body + tail, seed);
+          assert.deepEqual(
+            actual
+              .filter(({ type }) =>
+                ["here_document_body", "quoted_here_document_body"].includes(
+                  type,
+                ),
+              )
+              .map(({ field, text }) => [field, text]),
+            body === "" ? [] : [["body", body]],
+            seed,
+          );
+          assert.equal(
+            actual.filter(({ type }) => type === "here_document_end").length,
+            0,
+            seed,
+          );
+          const removed = actual.filter(
+            ({ type }) => type === "line_continuation",
+          );
+          assert.equal(removed.length, continuations, seed);
+          for (const node of removed) {
+            assert.equal(node.text, "\\", seed);
+            assert.ok(
+              node.start >= document.start && node.end <= document.end,
+              seed,
+            );
+          }
+          assertEditRoundTrip(parser, {
+            seed,
+            remove: tail,
+            insert: `${tail}E\necho after\n`,
+            valid: true,
+          });
+        }
+      }
+    });
+
     test("pending here-documents preserve fresh trees through EOF edits and completion", () => {
       for (const [name, header, ending] of [
         ["plain", "cat <<EOF", "\nbody\nEOF"],
