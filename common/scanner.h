@@ -20,10 +20,9 @@
 #define TREE_SITTER_SERIALIZATION_BUFFER_SIZE 1024
 #endif
 
-#define SCANNER_SERIALIZATION_VERSION 42
+#define SCANNER_SERIALIZATION_VERSION 43
 #define SCANNER_STATE_CAPACITY (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - 1)
 #define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
-/* `function` is the longest reserved word; the buffers hold a terminator. */
 #define RESERVED_WORD_LENGTH 8
 
 enum TokenType {
@@ -195,6 +194,7 @@ enum TokenType {
   PARAMETER_OPEN,
   PARAMETER_CLOSE,
   COMMAND_OPEN,
+  COMMAND_CLOSE,
   ARITHMETIC_EXPANSION_OPEN,
   BRACKET_ARITHMETIC_OPEN,
   BRACKET_ARITHMETIC_CLOSE,
@@ -204,6 +204,7 @@ enum TokenType {
   PARAMETER_TILDE_START,
   LOGICAL_NEWLINE_BEGIN,
   LOGICAL_BLANK_BEGIN,
+  CLOSING_BLANK_BEGIN,
   ARITHMETIC_EXPANSION_END,
   PATTERN_INITIAL_RIGHT_BRACKET_BEGIN,
   SOURCE_BEGIN,
@@ -663,11 +664,10 @@ static enum QuoteMode quote_parameter(enum QuoteMode parent) {
   return parent == QUOTE_PLAIN ? QUOTE_PLAIN : QUOTE_PARAMETER;
 }
 
-/* What bracket passes learned about the word being read, as raw positions
-   from the current scan start: one past the next `[` opening a class or
-   collating symbol (or past the bracket end), zero when unknown; the range
-   of `.` markers with no collating closer; and the `]` closing the collating
-   symbols opened from `collating_closer_from` on, zero when unknown. */
+/* Raw offsets from scan start. element_remaining is past the next class or
+   collating opener or bracket end; zero means unknown. collating_absent_* bound
+   markers without closers; collating_closer_end is the shared `]` for openers
+   from collating_closer_from, or zero if unknown. */
 struct BracketCache {
   size_t element_remaining;
   size_t collating_absent_start;
@@ -726,7 +726,6 @@ struct Scanner {
   struct SourceContext *contexts;
   size_t context_count;
   struct LexicalEmission emission;
-  /* For words outside any context; contexts keep their own. */
   struct BracketCache bracket;
   bool assignment_tilde_allowed;
   bool here_document_end_line_consumed;
@@ -2329,8 +2328,6 @@ static bool
 bracket_word_contains(const struct Scanner *scanner, const TSLexer *lexer);
 static bool extglob_context(const struct Scanner *scanner);
 
-/* Bash reads an extglob group up to its closing parenthesis, so token
-   delimiters inside it only split alternatives outside brackets. */
 static bool pattern_boundary(
   const struct Scanner *scanner,
   const TSLexer *lexer,
@@ -3193,7 +3190,6 @@ bracket_word_contains(const struct Scanner *scanner, const TSLexer *lexer) {
   return word_region_contains(word_source_context(scanner, false), lexer);
 }
 
-/* Leading array/command subscripts treat extglob operators as plain text. */
 static bool
 bracket_payload_contains(const struct Scanner *scanner, const TSLexer *lexer) {
   const struct SourceContext *context = word_source_context(scanner, false);
@@ -3295,8 +3291,6 @@ static enum BracketStep bracket_step(
   return BRACKET_STEP_PLAIN;
 }
 
-/* Bash closes `[:` and `[=` at the first `]` when a separate marker directly
-   precedes it. The lexer stands after the opening marker. */
 static bool class_closer_follows(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -3338,8 +3332,6 @@ static bool class_closer_follows(
     scan->closer >= query;
 }
 
-/* Bash closes `[.` at the first separate `.]`, even past `]`. The lexer
-   stands at the opening `.`. */
 static bool collating_closer_follows(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -4120,52 +4112,6 @@ static uint8_t hexadecimal_value(int32_t character) {
   return (uint8_t)(character - 'a' + 10);
 }
 
-static bool defined_control_escape_byte(int32_t character, uint8_t *value) {
-  if (character >= 'a' && character <= 'z') {
-    *value = (uint8_t)(character - 'a' + 1);
-    return true;
-  }
-  if (character >= 'A' && character <= 'Z') {
-    *value = (uint8_t)(character - 'A' + 1);
-    return true;
-  }
-
-  switch (character) {
-    case '[':
-      *value = 0x1b;
-      return true;
-    case '\\':
-      *value = 0x1c;
-      return true;
-    case ']':
-      *value = 0x1d;
-      return true;
-    case '^':
-      *value = 0x1e;
-      return true;
-    case '_':
-      *value = 0x1f;
-      return true;
-    case '?':
-      *value = 0x7f;
-      return true;
-    default:
-      return false;
-  }
-}
-
-static bool control_escape_byte(int32_t character, uint8_t *value) {
-  if (defined_control_escape_byte(character, value)) {
-    return true;
-  }
-  if (character < 0) {
-    return false;
-  }
-
-  *value = (uint8_t)((uint32_t)character & UINT8_C(0x1f));
-  return true;
-}
-
 static bool
 scan_hexadecimal_escape(TSLexer *lexer, struct ByteBuffer *delimiter) {
   lexer->advance(lexer, false);
@@ -4212,7 +4158,6 @@ static bool scan_octal_escape(TSLexer *lexer, struct ByteBuffer *delimiter) {
   return append_byte(delimiter, value);
 }
 
-/* `\\c` followed by a quote is literal; `\\c\\` consumes the escaped character. */
 static bool scan_control_escape(TSLexer *lexer, struct ByteBuffer *delimiter) {
   lexer->advance(lexer, false);
   if (lexer_at_eof(lexer) || lexer->lookahead == SOURCE_BACKQUOTE_BOUNDARY) {
@@ -4223,11 +4168,13 @@ static bool scan_control_escape(TSLexer *lexer, struct ByteBuffer *delimiter) {
   }
   int32_t control_character = lexer->lookahead;
   lexer->advance(lexer, false);
-  uint8_t value;
-  if (
-    !control_escape_byte(control_character, &value) ||
-    !append_byte(delimiter, value)
-  ) {
+  uint8_t bytes[4];
+  size_t length;
+  if (!encode_utf8_scalar(control_character, bytes, &length)) {
+    return false;
+  }
+  bytes[0] = bytes[0] == '?' ? UINT8_C(0x7f) : bytes[0] & UINT8_C(0x1f);
+  if (!append_bytes(delimiter, bytes, length)) {
     return false;
   }
   if (control_character != '\\') {
@@ -4299,8 +4246,6 @@ static bool match_here_document_delimiter_character(
   return true;
 }
 
-/* Bash reads a final line without a newline like any other line; only
-   stripped tabs leave it without logical source. */
 static bool
 stripped_tabs_end_input(const struct LogicalLexer *view, size_t line_start) {
   size_t count = view->cursor.removal_count;
@@ -4479,6 +4424,12 @@ here_document_input_read(void *payload, size_t position) {
 static bool
 newline_starts_pending_document(const struct Scanner *scanner, TSLexer *lexer) {
   return lexer->lookahead == '\n' && has_startable_pending_document(scanner);
+}
+
+static bool
+document_header_newline_follows(const struct Scanner *scanner, TSLexer *lexer) {
+  if (lexer->lookahead == '#') advance_to_comment_end(lexer, NULL);
+  return newline_starts_pending_document(scanner, lexer);
 }
 
 static bool here_document_source_view(
@@ -4997,13 +4948,6 @@ static enum DelimiterReadResult read_delimiter_construct(
   };
   bool accepted = append_delimiter_character(spelling, character) &&
     append_delimiter_character(spelling, opener);
-  if (braced_command) {
-    accepted = accepted &&
-      append_delimiter_character(spelling, lexer->lookahead == '|' ? '|' : ' ');
-    lexer->advance(lexer, false);
-    while (is_horizontal_blank(lexer->lookahead) || lexer->lookahead == '\n')
-      lexer->advance(lexer, false);
-  }
   return accepted ? DELIMITER_READ_WORD : DELIMITER_READ_INVALID;
 }
 
@@ -5439,8 +5383,10 @@ static enum TermContinuation classify_term_start(
   }
   switch (character) {
     case ')':
-      return valid_symbols[PUNCT_RIGHT_PARENTHESIS] ? TERM_SOURCE_CLOSES
-                                                    : TERM_SOURCE_CONTINUES;
+      return (valid_symbols[PUNCT_RIGHT_PARENTHESIS] ||
+               valid_symbols[COMMAND_CLOSE])
+        ? TERM_SOURCE_CLOSES
+        : TERM_SOURCE_CONTINUES;
     case ';':
       return valid_symbols[CASE_ITEM_END] &&
           (start->second_character == ';' || start->second_character == '&')
@@ -5887,8 +5833,6 @@ static struct SeparatorTarget scan_separator_target(
   return target;
 }
 
-/* After a redirection that follows an assignment, Bash reads a subscript
-   only within the word. */
 static bool classify_word_separator(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -6237,8 +6181,6 @@ scan_arithmetic_boundary(TSLexer *lexer, const bool *valid_symbols) {
 
   return false;
 }
-
-// Validate before reuse to preserve fresh-parse arithmetic structure.
 
 enum ValidationTokenKind {
   VALIDATION_TOKEN_NUMBER,
@@ -7387,6 +7329,11 @@ static enum ArithmeticWord read_arithmetic_word(TSLexer *lexer) {
     }
     state = any && valid ? ARITHMETIC_WORD_DECIMAL : ARITHMETIC_WORD_FRAGMENT;
   }
+  if (
+    state == ARITHMETIC_WORD_HEX_PREFIX &&
+    !is_one_of(lexer->lookahead, "$'\"`\\")
+  )
+    return ARITHMETIC_WORD_HEX;
   return state;
 }
 
@@ -7580,7 +7527,6 @@ static bool validate_arithmetic_right_parenthesis(
   return false;
 }
 
-/* Nested subscripts balance parentheses only in parenthesized arithmetic. */
 static bool skip_subscript_text(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -7968,8 +7914,6 @@ static enum ArithmeticValidation structured_operator_step(
     return ARITHMETIC_VALIDATION_INVALID;
   }
   cursor->expecting_operand = true;
-  /* Bash parses the alternative as a conditional expression, so only the
-     consequence may start an assignment without parentheses. */
   cursor->at_expression_start =
     token->category == ARITHMETIC_OPERATOR_CATEGORY_QUESTION;
   cursor->index += 1;
@@ -8388,19 +8332,6 @@ struct FunctionNameShape {
   bool appended;
 };
 
-/* `$@(`, `$?(`, `$*(` and `$!(` open a pattern, not a special parameter. */
-static bool dollar_extglob_follows(TSLexer *lexer) {
-  size_t position = probe_position(lexer);
-  lexer->advance(lexer, false);
-  bool pattern = is_one_of(lexer->lookahead, "?*@!");
-  if (pattern) {
-    lexer->advance(lexer, false);
-    pattern = lexer->lookahead == '(';
-  }
-  probe_seek(lexer, position);
-  return pattern;
-}
-
 static bool accept_function_name(
   TSLexer *lexer,
   const bool *valid,
@@ -8431,6 +8362,7 @@ static bool scan_bash_function_name(
     lexer->lookahead == '#'
   )
     return false;
+  size_t start = probe_position(lexer);
   char word[RESERVED_WORD_LENGTH + 1] = {0};
   size_t length = 0;
   struct FunctionNameShape shape = {
@@ -8438,6 +8370,7 @@ static bool scan_bash_function_name(
     .name_prefix = !explicit_name && is_name_start_character(lexer->lookahead),
   };
   while (!lexer_at_eof(lexer)) {
+    if (is_one_of(lexer->lookahead, "$'\"\\")) return false;
     enum ArithmeticValidation substitution =
       skip_process_substitution(scanner, lexer, false);
     if (substitution == ARITHMETIC_VALIDATION_VALID) {
@@ -8465,13 +8398,6 @@ static bool scan_bash_function_name(
       }
       if (pattern != ARITHMETIC_VALIDATION_INVALID) return false;
     }
-    if (
-      ch == '$' && extglob_enabled(scanner) && dollar_extglob_follows(lexer)
-    ) {
-      lexer->advance(lexer, false);
-      shape = (struct FunctionNameShape){0};
-      continue;
-    }
     shape.appended = ch == '+' && (shape.name_prefix || shape.subscripted);
     shape.subscripted = false;
     shape.name_prefix = shape.name_prefix && is_name_character(ch);
@@ -8487,10 +8413,19 @@ static bool scan_bash_function_name(
     }
   }
   if (length == 0 && shape.plain) return false;
+  /* Nested lookahead can switch views, so cached positions do not order source. */
+  size_t end = probe_position(lexer);
+  size_t end_source = lexer_raw_position(lexer);
+  probe_seek(lexer, start);
+  while (lexer_raw_position(lexer) < end_source) {
+    if (lexer_at_eof(lexer) || is_one_of(lexer->lookahead, "$'\"\\"))
+      return false;
+    lexer->advance(lexer, false);
+  }
+  probe_seek(lexer, end);
   return accept_function_name(lexer, valid, explicit_name, shape.plain, word);
 }
 
-/* SIZE_MAX ends at a token delimiter; oversized/non-ASCII words stay empty. */
 static bool read_ascii_word(
   TSLexer *lexer,
   size_t end,
@@ -8567,7 +8502,6 @@ static bool scan_coproc_word(
     case UNTIL_KEYWORD:
       return true;
     default:
-      /* Bash reads the word after a coproc name as a reserved word. */
       lexer->result_symbol = COPROC_BARE_COMMAND_START;
       return true;
   }
@@ -8618,8 +8552,6 @@ static bool declaration_subscript_braces_nested(
   return depth == 0 && probe_position(lexer) == end;
 }
 
-/* The assignments leading a coproc's declaration command keep Bash's
-   command-position subscript boundary. */
 static enum DispatchResult dispatch_declaration_assignment_start(
   struct Scanner *scanner,
   TSLexer *lexer,
@@ -8977,7 +8909,6 @@ static enum DispatchResult dispatch_arithmetic_command_open(
       lexer->result_symbol = ARITHMETIC_COMMAND_OPEN;
       return DISPATCH_ACCEPTED;
     }
-    // Reject unclosed groups without falling back to another construct.
     if (result == ARITHMETIC_VALIDATION_INCOMPLETE && unclosed_group) {
       lexer->result_symbol = TOKEN_COUNT;
       return DISPATCH_ACCEPTED;
@@ -9156,10 +9087,7 @@ static enum DispatchResult dispatch_here_document_sequence_begin(
   size_t position = probe_position(lexer);
   lexer->mark_end(lexer);
   scan_horizontal_blanks(lexer);
-  if (lexer->lookahead == '#') advance_to_comment_end(lexer, NULL);
-  if (
-    lexer->lookahead == '\n' && newline_starts_pending_document(scanner, lexer)
-  ) {
+  if (document_header_newline_follows(scanner, lexer)) {
     lexer->result_symbol = HERE_DOCUMENT_SEQUENCE_BEGIN;
     return DISPATCH_ACCEPTED;
   }
@@ -9677,15 +9605,36 @@ track_regex_depth(struct SourceContext *context, enum TokenType symbol) {
   return true;
 }
 
-static bool commit_substitution_end(struct Scanner *scanner) {
-  if (
-    scanner->substitution_depth == 0 ||
-    has_startable_pending_document(scanner) ||
-    !source_context_pop(scanner)
-  )
-    return false;
+static const struct SourceContext *
+substitution_context(const struct Scanner *scanner) {
+  for (size_t index = scanner->context_count; index > 0; index--) {
+    const struct SourceContext *context = &scanner->contexts[index - 1];
+    if (
+      context->opener == COMMAND_OPEN ||
+      context->opener == CURRENT_SHELL_OPEN ||
+      context->opener == REPLY_OPEN
+    )
+      return context;
+    if (source_context_has_input(context->opener)) break;
+  }
+  return NULL;
+}
+
+static bool pop_substitution_context(struct Scanner *scanner) {
+  const struct SourceContext *context = substitution_context(scanner);
+  if (scanner->substitution_depth == 0 || context == NULL) return false;
+  size_t count = (size_t)(context - scanner->contexts) + 1;
+  while (scanner->context_count > count) {
+    if (!source_context_pop(scanner)) return false;
+  }
+  if (!source_context_pop(scanner)) return false;
   scanner->substitution_depth--;
   return true;
+}
+
+static bool commit_substitution_end(struct Scanner *scanner) {
+  return !has_startable_pending_document(scanner) &&
+    pop_substitution_context(scanner);
 }
 
 static bool commit_line_end(struct Scanner *scanner, enum TokenType symbol) {
@@ -9890,7 +9839,9 @@ static bool begin_lexical_emission(
   }
   const struct SourceContext *raw = raw_word_context(scanner);
   if (raw != NULL && symbol != SOURCE_BEGIN) {
-    bool start = symbol == LOGICAL_BLANK_BEGIN || symbol == NEWLINE;
+    bool start = symbol == LOGICAL_BLANK_BEGIN ||
+      symbol == CLOSING_BLANK_BEGIN ||
+      symbol == NEWLINE;
     if (
       symbol == LITERAL_BEGIN ||
       symbol == ASSIGNMENT_LITERAL_BEGIN ||
@@ -10506,6 +10457,7 @@ static const struct LexicalPunctuation LEXICAL_PUNCTUATION[] = {
   {'}', PARAMETER_CLOSE},
   {'(', COMMAND_OPEN},
   {'(', PUNCT_LEFT_PARENTHESIS},
+  {')', COMMAND_CLOSE},
   {')', PUNCT_RIGHT_PARENTHESIS},
   {';', PUNCT_SEMICOLON},
   {'&', PUNCT_AMPERSAND},
@@ -10559,7 +10511,6 @@ static bool lexical_punctuation(TSLexer *lexer, const bool *valid) {
   return false;
 }
 
-/* Only a name can carry a subscript: `${##[1]}` strips `[1]` from `$#`. */
 static bool parameter_length_operand_follows(TSLexer *lexer) {
   lexer->advance(lexer, false);
   int32_t character = lexer->lookahead;
@@ -10623,12 +10574,60 @@ static bool lexical_arithmetic_fragment(
   return accept_character(lexer, ARITHMETIC_SOURCE_FRAGMENT_BEGIN);
 }
 
-/* Only compound redirect lists allow another redirection without a
-   separator; Bash reads any other word there literally. */
 static bool after_redirect_target(const bool *valid) {
   return valid[REDIRECT_SEPARATOR_BEGIN] &&
     !valid[WORD_SEPARATOR_BEGIN] &&
     !assignment_separator_is_valid(valid);
+}
+
+/* Only header states may read blanks before a pending here-document;
+   otherwise subtree reuse can retain stale structure. */
+static bool pending_document_header_follows(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  const bool *valid
+) {
+  if (
+    valid[HERE_DOCUMENT_SEQUENCE_BEGIN] ||
+    valid[HERE_DOCUMENT_LINE_END] ||
+    valid[COMMENT_START] ||
+    !has_startable_pending_document(scanner)
+  )
+    return false;
+  struct LookaheadLexer probe;
+  if (!lookahead_init(&probe, lexer)) return true;
+  bool follows =
+    probe.failed || document_header_newline_follows(scanner, &probe.lexer);
+  lookahead_clear(&probe);
+  return follows;
+}
+
+static bool closing_layout_follows(
+  const struct Scanner *scanner,
+  TSLexer *lexer,
+  const bool *valid
+) {
+  if (lexer_at_eof(lexer)) return true;
+  if (lexer->lookahead == ')')
+    return valid[COMMAND_CLOSE] || valid[PUNCT_RIGHT_PARENTHESIS];
+  if (lexer->lookahead == SOURCE_BACKQUOTE_BOUNDARY)
+    return valid[BACKQUOTE_END];
+  struct LookaheadLexer probe;
+  if (!lookahead_init(&probe, lexer)) return false;
+  bool follows = false;
+  if (valid[HERE_DOCUMENT_LINE_END]) {
+    follows = document_header_newline_follows(scanner, &probe.lexer);
+  } else if (lexer->lookahead == '}' && valid[RIGHT_BRACE]) {
+    probe.lexer.advance(&probe.lexer, false);
+    follows = reserved_word_delimiter(&probe.lexer);
+  } else {
+    char word[RESERVED_WORD_LENGTH + 1];
+    follows = read_reserved_word(&probe.lexer, word, NULL) &&
+      closing_reserved_word_ends_term(word, valid);
+  }
+  follows = follows && !probe.failed;
+  lookahead_clear(&probe);
+  return follows;
 }
 
 static enum DispatchResult lexical_blank(
@@ -10636,18 +10635,27 @@ static enum DispatchResult lexical_blank(
   TSLexer *lexer,
   const bool *valid
 ) {
-  if (is_horizontal_blank(lexer->lookahead) && valid[LOGICAL_BLANK_BEGIN]) {
+  if (
+    is_horizontal_blank(lexer->lookahead) &&
+    (valid[LOGICAL_BLANK_BEGIN] || valid[CLOSING_BLANK_BEGIN])
+  ) {
     scan_horizontal_blanks(lexer);
     lexer->mark_end(lexer);
     if (after_redirect_target(valid) && is_word_element_start(lexer))
       return DISPATCH_REJECTED;
+    bool closing = valid[CLOSING_BLANK_BEGIN] &&
+      closing_layout_follows(scanner, lexer, valid);
+    bool ordinary = !closing &&
+      valid[LOGICAL_BLANK_BEGIN] &&
+      !pending_document_header_follows(scanner, lexer, valid);
+    if (!ordinary && !closing) return DISPATCH_REJECTED;
     struct LookaheadLexer lookahead;
     if (!lookahead_init(&lookahead, lexer)) return DISPATCH_REJECTED;
     scan_separator_target(scanner, &lookahead.lexer, false);
     bool failed = lookahead.failed;
     lookahead_clear(&lookahead);
     if (failed) return DISPATCH_REJECTED;
-    lexer->result_symbol = LOGICAL_BLANK_BEGIN;
+    lexer->result_symbol = ordinary ? LOGICAL_BLANK_BEGIN : CLOSING_BLANK_BEGIN;
     return DISPATCH_ACCEPTED;
   }
   if (
@@ -10707,7 +10715,6 @@ lexical_parameter_character(struct LogicalLexer *input, const bool *valid) {
   return false;
 }
 
-/* Doubled signs that cannot update an operand are two single signs. */
 static bool
 lexical_arithmetic_sign(struct LogicalLexer *input, const bool *valid) {
   TSLexer *lexer = &input->lexer;
@@ -10937,7 +10944,6 @@ static bool brace_sequence(TSLexer *lexer) {
   return lexer->lookahead == '}';
 }
 
-/* Brace expansion balances bare braces even past the parameter's syntax end. */
 static bool
 skip_brace_parameter(const struct Scanner *scanner, TSLexer *lexer) {
   size_t start = probe_position(lexer);
@@ -11266,7 +11272,6 @@ extglob_source_nested(struct Scanner *scanner, struct LogicalLexer *input) {
   return nested;
 }
 
-/* Literals accepted here must also advance bracket fallback chains. */
 static bool accept_word_start(
   const struct Scanner *scanner,
   struct LogicalLexer *input,
@@ -11844,7 +11849,6 @@ parameter_names_follow(const struct Scanner *scanner, TSLexer *lexer) {
       if (lexer->lookahead == '}') return prefix;
       probe_seek(lexer, start);
     }
-    /* An operator outside a closed subscript makes this an indirection. */
     if (is_one_of(character, ":-+=?#%/^,@")) return false;
     if (character == '[') {
       lexer->advance(lexer, false);
@@ -13048,10 +13052,11 @@ static bool classify_logical_source(
 static bool recovery_quote_context(const struct Scanner *scanner) {
   for (size_t index = scanner->context_count; index > 0; index -= 1) {
     enum TokenType opener = scanner->contexts[index - 1].opener;
-    if (opener == PARAMETER_OPEN) {
+    if (opener == PARAMETER_OPEN || opener == PARAMETER_INDIRECTION_BEGIN) {
       continue;
     }
     return opener == DQ_OPEN ||
+      opener == HERE_DOCUMENT_BODY_START ||
       (index == scanner->context_count && opener == SQ_OPEN);
   }
   return false;
@@ -13099,6 +13104,7 @@ select_quoted_recovery_symbols(const struct Scanner *scanner, bool *valid) {
   }
   enum TokenType opener = top_context_opener(scanner);
   if (opener == SQ_OPEN) {
+    valid[WORD_START] = false;
     valid[SQ_CLOSE] = true;
     valid[SINGLE_QUOTE_CONTENT_BEGIN] = true;
     return;
@@ -13111,6 +13117,8 @@ select_quoted_recovery_symbols(const struct Scanner *scanner, bool *valid) {
     valid[DOUBLE_QUOTE_ESCAPE_BEGIN] = true;
     return;
   }
+  valid[WORD_START] = false;
+  valid[SQ_OPEN] = true;
   valid[BACKQUOTE_START] = true;
   valid[PARAMETER_CLOSE] = true;
   valid[VARIABLE_NAME_BEGIN] = true;
@@ -13158,6 +13166,7 @@ select_recovery_symbols(const struct Scanner *scanner, bool *valid) {
     [DSEMI_BEGIN] = true,
     [SEMI_AND_BEGIN] = true,
     [LOGICAL_NEWLINE_BEGIN] = true,
+    [LOGICAL_BLANK_BEGIN] = true,
 #define LEXICAL_RECOVERY_SYMBOL(begin, piece) [piece] = true,
     BASH_LEXICAL_SOURCE_TOKENS(LEXICAL_RECOVERY_SYMBOL)
 #undef LEXICAL_RECOVERY_SYMBOL
@@ -13190,6 +13199,8 @@ select_recovery_symbols(const struct Scanner *scanner, bool *valid) {
   };
   memcpy(valid, base_symbols, sizeof(base_symbols));
 
+  valid[COMMAND_CLOSE] =
+    scanner->substitution_depth > 0 && !has_startable_pending_document(scanner);
   valid[HERE_DOCUMENT_SEQUENCE_END] = scanner->sequence_end_pending;
   if (scanner->emission.active || scanner->sequence_end_pending) return;
   if (scanner->active.documents.count > 0) {
@@ -13206,6 +13217,14 @@ select_recovery_symbols(const struct Scanner *scanner, bool *valid) {
       return;
     }
   }
+  enum TokenType opener = top_context_opener(scanner);
+  if (
+    opener == PARAMETER_SUBSTRING_BEGIN || opener == SUBSTRING_SEPARATOR_BEGIN
+  ) {
+    valid[LOGICAL_NEWLINE_BEGIN] = false;
+    valid[NEWLINE] = true;
+    valid[ARITHMETIC_BLANK_BEGIN] = true;
+  }
   if (recovery_quote_context(scanner))
     select_quoted_recovery_symbols(scanner, valid);
 }
@@ -13215,6 +13234,12 @@ static bool classify_recovery_source(
   struct LogicalLexer *input,
   const bool *valid
 ) {
+  if (top_context_opener(scanner) == DQ_OPEN && input->lexer.lookahead == '"') {
+    bool closing[TOKEN_COUNT];
+    memcpy(closing, valid, sizeof(closing));
+    closing[WORD_START] = false;
+    return classify_logical_source(scanner, input, closing);
+  }
   if (
     scanner->sequence_end_pending ||
     recovery_quote_context(scanner) ||
@@ -13224,6 +13249,12 @@ static bool classify_recovery_source(
   }
   if (input->lexer.lookahead == '(' && logical_peek(input) == '(')
     return classify_logical_source(scanner, input, valid);
+  if (is_horizontal_blank(input->lexer.lookahead)) {
+    scan_horizontal_blanks(&input->lexer);
+    bool separator = is_one_of(input->lexer.lookahead, ";|&\n");
+    logical_rewind(input);
+    if (!separator) return false;
+  }
   const struct LexicalPunctuation reserved_punctuation[] = {
     {'{', LEFT_BRACE},
     {'}', RIGHT_BRACE},
@@ -13358,6 +13389,20 @@ static bool finish_classified_source(
   enum TokenType symbol = (enum TokenType)input->lexer.result_symbol;
   lexer->result_symbol = (TSSymbol)symbol;
   bool accepted = true;
+  if (symbol == DQ_OPEN && top_context_opener(scanner) == DQ_OPEN) return false;
+  if (symbol == COMMAND_CLOSE && has_startable_pending_document(scanner))
+    return false;
+  if (
+    recovering &&
+    symbol == PUNCT_RIGHT_PARENTHESIS &&
+    has_startable_pending_document(scanner)
+  ) {
+    const struct SourceContext *context = substitution_context(scanner);
+    if (context != NULL && context->opener == COMMAND_OPEN) {
+      if (!pop_substitution_context(scanner)) return false;
+      discard_enclosed_pending_documents(scanner);
+    }
+  }
   if (symbol == PARAMETER_OPEN) {
     const struct SourceContext *word = word_source_context(scanner, true);
     if (word != NULL && word->brace_suppressed_remaining == 0) {

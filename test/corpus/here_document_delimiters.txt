@@ -715,16 +715,15 @@ $w
           (here_document_end_text))))))
 
 ==================
-brace substitution delimiter prefixes normalize layout before quote removal
+brace substitution delimiter prefixes preserve layout through quote removal
 :language(bash)
 :language(bash_default)
 ==================
-cat << ${	:; } << ""${|
-	printf "x"; }
+cat << ${	:; } << ""${| 	printf "x"; }
 $v
-${ :; }
+${	:; }
 $w
-${|printf x; }
+${| 	printf x; }
 
 ------------------
 
@@ -949,13 +948,14 @@ printf after
 3:12 - 4:0        "\n"
 
 ==================
-here document delimiter: current shell prefix normalizes horizontal blanks
+here document delimiter: current shell prefix preserves horizontal blanks
 :language(bash)
+:language(bash_default)
 :cst
 ==================
 cat << ${  	printf "x"; }
 $body
-${ printf "x"; }
+${  	printf "x"; }
 printf after
 
 ------------------
@@ -1001,7 +1001,7 @@ printf after
 1:0  - 1:1                "$"
 1:1  - 1:5                parameter: variable_name `body`
 2:0  - 3:0            end: here_document_end
-2:0  - 2:16             here_document_end_text `${ printf \"x\"; }`
+2:0  - 2:18             here_document_end_text `${  \tprintf \"x\"; }`
 3:0  - 3:12       and_or: and_or
 3:0  - 3:12         pipeline: pipeline
 3:0  - 3:12           command: command
@@ -1013,8 +1013,9 @@ printf after
 3:12 - 4:0        "\n"
 
 ==================
-here document delimiter: current shell prefix normalizes its newline
+a current shell delimiter containing a newline cannot match a single line
 :language(bash)
+:language(bash_default)
 :cst
 ==================
 cat << ${
@@ -1053,29 +1054,34 @@ printf after
 1:3  - 1:4                              operator: separator_op
 1:3  - 1:4                                ";"
 1:5  - 1:6                          "}"
-1:6  - 4:0        separator: here_document_sequence
+1:6  - 5:0        separator: here_document_sequence
 1:6  - 2:0          line_end: here_document_line_end
 1:6  - 1:7            `\n`
-2:0  - 4:0          document: here_document
-2:0  - 3:0            body: here_document_body
+2:0  - 5:0          document: here_document
+2:0  - 5:0            body: here_document_body
 2:0  - 2:5              parameter_expansion
 2:0  - 2:1                "$"
 2:1  - 2:5                parameter: variable_name `body`
-3:0  - 4:0            end: here_document_end
-3:0  - 3:7              here_document_end_text `${ :; }`
-4:0  - 4:12       and_or: and_or
-4:0  - 4:12         pipeline: pipeline
-4:0  - 4:12           command: command
-4:0  - 4:12             body: simple_command
-4:0  - 4:6                name: word
-4:0  - 4:6                  literal `printf`
-4:7  - 4:12               argument: word
-4:7  - 4:12                 literal `after`
-4:12 - 5:0        "\n"
+3:0  - 3:7              current_shell_substitution
+3:0  - 3:1                "$"
+3:1  - 3:2                "{"
+3:2  - 3:6                body: list
+3:3  - 3:4                  and_or: and_or
+3:3  - 3:4                    pipeline: pipeline
+3:3  - 3:4                      command: command
+3:3  - 3:4                        body: simple_command
+3:3  - 3:4                          name: word
+3:3  - 3:4                            literal `:`
+3:4  - 3:5                  separator: separator
+3:4  - 3:5                    operator: separator_op
+3:4  - 3:5                      ";"
+3:6  - 3:7                "}"
+4:0  - 4:12             here_document_text `printf after`
 
 ==================
-here document delimiter: reply prefix removes leading command layout
+a reply delimiter containing a newline cannot match a single line
 :language(bash)
+:language(bash_default)
 :cst
 ==================
 cat << ${| 	
@@ -1115,34 +1121,40 @@ printf after
 1:2  - 1:3                              operator: separator_op
 1:2  - 1:3                                ";"
 1:4  - 1:5                          "}"
-1:5  - 4:0        separator: here_document_sequence
+1:5  - 5:0        separator: here_document_sequence
 1:5  - 2:0          line_end: here_document_line_end
 1:5  - 1:6            `\n`
-2:0  - 4:0          document: here_document
-2:0  - 3:0            body: here_document_body
+2:0  - 5:0          document: here_document
+2:0  - 5:0            body: here_document_body
 2:0  - 2:5              parameter_expansion
 2:0  - 2:1                "$"
 2:1  - 2:5                parameter: variable_name `body`
-3:0  - 4:0            end: here_document_end
-3:0  - 3:7              here_document_end_text `${|:; }`
-4:0  - 4:12       and_or: and_or
-4:0  - 4:12         pipeline: pipeline
-4:0  - 4:12           command: command
-4:0  - 4:12             body: simple_command
-4:0  - 4:6                name: word
-4:0  - 4:6                  literal `printf`
-4:7  - 4:12               argument: word
-4:7  - 4:12                 literal `after`
-4:12 - 5:0        "\n"
+3:0  - 3:7              reply_substitution
+3:0  - 3:1                "$"
+3:1  - 3:2                "{"
+3:2  - 3:3                "|"
+3:3  - 3:6                body: list
+3:3  - 3:4                  and_or: and_or
+3:3  - 3:4                    pipeline: pipeline
+3:3  - 3:4                      command: command
+3:3  - 3:4                        body: simple_command
+3:3  - 3:4                          name: word
+3:3  - 3:4                            literal `:`
+3:4  - 3:5                  separator: separator
+3:4  - 3:5                    operator: separator_op
+3:4  - 3:5                      ";"
+3:6  - 3:7                "}"
+4:0  - 4:12             here_document_text `printf after`
 
 ==================
-here document delimiter: reply prefix normalization precedes quote removal
+here document delimiter: reply prefix layout survives quote removal
 :language(bash)
+:language(bash_default)
 :cst
 ==================
 cat << ""${| 	printf "x"; }
 $body
-${|printf x; }
+${| 	printf x; }
 printf after
 
 ------------------
@@ -1190,7 +1202,7 @@ printf after
 1:0  - 2:0            body: quoted_here_document_body
 1:0  - 1:5              quoted_here_document_text `$body`
 2:0  - 3:0            end: here_document_end
-2:0  - 2:14             here_document_end_text `${|printf x; }`
+2:0  - 2:16             here_document_end_text `${| \tprintf x; }`
 3:0  - 3:12       and_or: and_or
 3:0  - 3:12         pipeline: pipeline
 3:0  - 3:12           command: command
@@ -1202,13 +1214,14 @@ printf after
 3:12 - 4:0        "\n"
 
 ==================
-here document delimiter: double quoted brace prefix preserves nested ANSI-C quotes
+here document delimiter: double quoted brace prefix preserves layout and nested ANSI-C quotes
 :language(bash)
+:language(bash_default)
 :cst
 ==================
 cat << "${	printf $'x'; }"
 $body
-${ printf 'x'; }
+${	printf 'x'; }
 printf after
 
 ------------------
@@ -1256,7 +1269,7 @@ printf after
 1:0  - 2:0            body: quoted_here_document_body
 1:0  - 1:5              quoted_here_document_text `$body`
 2:0  - 3:0            end: here_document_end
-2:0  - 2:16             here_document_end_text `${ printf 'x'; }`
+2:0  - 2:16             here_document_end_text `${\tprintf 'x'; }`
 3:0  - 3:12       and_or: and_or
 3:0  - 3:12         pipeline: pipeline
 3:0  - 3:12           command: command
@@ -2615,3 +2628,143 @@ ${v:-'x'}
 5:0  - 5:1                      ")"
 5:1  - 5:2                    "\""
 5:2  - 6:0        "\n"
+
+==================
+here document delimiter retains an isolated decoded continuation byte
+:language(bash)
+:language(bash_default)
+==================
+cat <<$'\x80'
+body
+�
+echo AFTER
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text)
+          (quoted_here_document_text)
+          (quoted_here_document_text))))))
+
+==================
+here document delimiter retains a decoded octal byte outside UTF-8
+:language(bash)
+:language(bash_default)
+==================
+cat <<$'\777'
+body
+�
+echo AFTER
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text)
+          (quoted_here_document_text)
+          (quoted_here_document_text))))))
+
+==================
+here document delimiter retains an incomplete decoded UTF-8 sequence
+:language(bash)
+:language(bash_default)
+==================
+cat <<$'\xc3'
+body
+�
+echo AFTER
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text)
+          (quoted_here_document_text)
+          (quoted_here_document_text))))))
+
+==================
+here document control escape masks the leading UTF-8 byte
+:language(bash)
+:language(bash_default)
+==================
+cat <<$'\cé'
+body
+	
+echo AFTER
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            redirect: (io_redirect
+              body: (io_here
+                operator: (dless)
+                end: (here_end
+                  word: (word
+                    (dollar_single_quoted
+                      (dollar_single_quote_escape))))))))))
+    separator: (here_document_sequence
+      line_end: (here_document_line_end)
+      document: (here_document
+        body: (quoted_here_document_body
+          (quoted_here_document_text)
+          (quoted_here_document_text)
+          (quoted_here_document_text))))))

@@ -347,8 +347,7 @@ test_here_document_input_stops_before_nested_source_can_cross_its_end(void) {
   }
 }
 
-static void
-test_recovery_consumes_words_without_downgrading_reserved_tokens(void) {
+static void test_recovery_preserves_reserved_tokens_and_separator_layout(void) {
   const struct {
     const char *source;
     enum TokenType begin;
@@ -378,6 +377,10 @@ test_recovery_consumes_words_without_downgrading_reserved_tokens(void) {
     {"]]\n", CONDITIONAL_CLOSE_BEGIN, CONDITIONAL_CLOSE_BEGIN_PIECE, 2},
     {"]]tail\n", LITERAL_BEGIN, LITERAL_BEGIN_PIECE, 6},
     {"finish\n", LITERAL_BEGIN, LITERAL_BEGIN_PIECE, 6},
+    {" ;", LOGICAL_BLANK_BEGIN, LOGICAL_BLANK_BEGIN_PIECE, 1},
+    {" \t|", LOGICAL_BLANK_BEGIN, LOGICAL_BLANK_BEGIN_PIECE, 2},
+    {"\t&", LOGICAL_BLANK_BEGIN, LOGICAL_BLANK_BEGIN_PIECE, 1},
+    {" \n", LOGICAL_BLANK_BEGIN, LOGICAL_BLANK_BEGIN_PIECE, 1},
   };
   bool valid[TOKEN_COUNT];
   for (size_t index = 0; index < TOKEN_COUNT; index += 1) valid[index] = true;
@@ -522,11 +525,17 @@ static void test_delimiter_quote_removal_retains_quoted_newlines(void) {
 }
 
 static void
-test_delimiter_read_distinguishes_input_and_resource_failures(void) {
+test_delimiter_read_preserves_bytes_and_distinguishes_failures(void) {
   char oversized[SCANNER_STATE_CAPACITY + 3];
   memset(oversized, 'a', SCANNER_STATE_CAPACITY + 1);
   oversized[SCANNER_STATE_CAPACITY + 1] = '\n';
   oversized[SCANNER_STATE_CAPACITY + 2] = 0;
+  char controls[SCANNER_STATE_CAPACITY / 2 + 2] = {0};
+  memset(controls, 0x01, sizeof(controls) - 1);
+  char quoted_controls[sizeof(controls) + 3];
+  quoted_controls[0] = '\'';
+  memcpy(quoted_controls + 1, controls, sizeof(controls) - 1);
+  memcpy(quoted_controls + sizeof(controls), "'\n", 3);
   const struct {
     const char *source;
     int32_t character;
@@ -539,16 +548,57 @@ test_delimiter_read_distinguishes_input_and_resource_failures(void) {
     {"\"@\"\n", -1, DELIMITER_READ_INVALID, NULL},
     {"\\@\n", -1, DELIMITER_READ_INVALID, NULL},
     {"$'@'\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"$'\\c@'\n", -1, DELIMITER_READ_INVALID, NULL},
     {"$'\\0@'\n", -1, DELIMITER_READ_INVALID, NULL},
     {"\"${x:-$'@'}\"\n", -1, DELIMITER_READ_INVALID, NULL},
     {"$(echo @)\n", -1, DELIMITER_READ_INVALID, NULL},
     {"`echo @`\n", -1, DELIMITER_READ_INVALID, NULL},
+    {"$'\\ud800'\n", 0, DELIMITER_READ_INVALID, NULL},
+    {"$'\\U00110000'\n", 0, DELIMITER_READ_INVALID, NULL},
+    {"$'\\x80'\n", 0, DELIMITER_READ_WORD, "\x80"},
+    {"$'\\777'\n", 0, DELIMITER_READ_WORD, "\xff"},
+    {"$'\\xc3'\n", 0, DELIMITER_READ_WORD, "\xc3"},
+    {"$'\\xe3\\x81'\n", 0, DELIMITER_READ_WORD, "\xe3\x81"},
+    {"$'\\xc0\\xaf'\n", 0, DELIMITER_READ_WORD, "\xc0\xaf"},
+    {"$'\\xed\\xa0\\x80'\n", 0, DELIMITER_READ_WORD, "\xed\xa0\x80"},
+    {"$'\\xf4\\x90\\x80\\x80'\n", 0, DELIMITER_READ_WORD, "\xf4\x90\x80\x80"},
+    {"$'\\xc3A'\n",
+      0,
+      DELIMITER_READ_WORD,
+      "\xc3"
+      "A"},
+    {"$'\\xc3\\0\\xa9'\n", 0, DELIMITER_READ_WORD, "\xc3"},
+    {"$'\\0'\n", 0, DELIMITER_READ_WORD, ""},
+    {"$'E\\0\\x80'\n", 0, DELIMITER_READ_WORD, "E"},
+    {"$'\\xc3\\xa9'\n", 0, DELIMITER_READ_WORD, "\xc3\xa9"},
+    {"$'\\xc3'$'\\xa9'\n", 0, DELIMITER_READ_WORD, "\xc3\xa9"},
+    {"$'\\xc3\\0'$'\\xa9'\n", 0, DELIMITER_READ_WORD, "\xc3\xa9"},
+    {"\"${x:-$'\\x80'}\"\n", 0, DELIMITER_READ_WORD, "${x:-\x80}"},
+    {"$'\\cA\\cz\\c[\\c]\\c^\\c_\\c?\\c9'\n",
+      0,
+      DELIMITER_READ_WORD,
+      "\x01\x1a\x1b\x1d\x1e\x1f\x7f\x19"},
+    {"$'\\c@'\n", '@', DELIMITER_READ_WORD, ""},
+    {"$'\\c@'\n", 0x00e9, DELIMITER_READ_WORD, "\x03\xa9"},
+    {"$'\\c@'\n", 0x3042, DELIMITER_READ_WORD, "\x03\x81\x82"},
+    {"$'\\c@'\n", 0x1f600, DELIMITER_READ_WORD, "\x10\x9f\x98\x80"},
+    {"$'E\\c@tail'\n", 0x0800, DELIMITER_READ_WORD, "E"},
+    {"$'\\c@'tail\n", 0x0800, DELIMITER_READ_WORD, "tail"},
+    {"\"${x:-$'\\c@'}\"\n", 0x00e9, DELIMITER_READ_WORD, "${x:-\x03\xa9}"},
+    {"$'\\c\\@'\n", 0x00e9, DELIMITER_READ_WORD, "\x1c\xc3\xa9"},
+    {"$'\\c\\\\'\n", 0, DELIMITER_READ_WORD, "\x1c"},
+    {"$'E\\c'\n", 0, DELIMITER_READ_WORD, "E\\c"},
     {"@\n", 0xfffd, DELIMITER_READ_WORD, "\xef\xbf\xbd"},
     {"E\\", -1, DELIMITER_READ_WORD, "E\\"},
     {"\\", -1, DELIMITER_READ_WORD, "\\"},
     {"'E'\\", -1, DELIMITER_READ_WORD, "E\\"},
     {"E\\@", 'F', DELIMITER_READ_WORD, "EF"},
+    {"${\t :; }\n", 0, DELIMITER_READ_WORD, "${\t :; }"},
+    {"${| \t:; }\n", 0, DELIMITER_READ_WORD, "${| \t:; }"},
+    {"${\n\t:; }\n", 0, DELIMITER_READ_WORD, "${\n\t:; }"},
+    {"${| \t\n:; }\n", 0, DELIMITER_READ_WORD, "${| \t\n:; }"},
     {oversized, 'a', DELIMITER_READ_RESOURCE_FAILURE, NULL},
+    {quoted_controls, 0, DELIMITER_READ_WORD, controls},
   };
   for (size_t index = 0; index < ARRAY_LENGTH(cases); index++) {
     struct Scanner scanner = {0};
@@ -592,6 +642,19 @@ test_delimiter_read_distinguishes_input_and_resource_failures(void) {
       scan_here_document_delimiter(&scanner, &probe.lexer, false) == accepted
     );
     assert(scanner.pending.count == (accepted ? 1 : 0));
+    if (accepted) {
+      char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+      unsigned state_length = snapshot(&scanner, state);
+      struct Scanner restored = {0};
+      bash_scanner_deserialize(&restored, state, state_length);
+      assert_scanner_matches_snapshot(&restored, state, state_length);
+      assert(restored.pending.count == 1);
+      const struct HereDocument *document = &restored.pending.data[0];
+      const char *delimiter = cases[index].delimiter;
+      assert(document->delimiter_length == strlen(delimiter));
+      assert(memcmp(document->delimiter, delimiter, strlen(delimiter)) == 0);
+      clear_scanner(&restored);
+    }
     bool resource_failure =
       cases[index].expected == DELIMITER_READ_RESOURCE_FAILURE;
     assert(native.failed == resource_failure);
@@ -805,6 +868,77 @@ static void test_nested_context_round_trip_and_reset(void) {
   assert(copy->context_count == 0 && copy->source.stage_count == 0);
   bash_scanner_destroy(copy);
   bash_scanner_destroy(scanner);
+}
+
+static void
+test_substitution_end_closes_its_owner_and_retains_outer_documents(void) {
+  const enum TokenType openers[] =
+    {COMMAND_OPEN, CURRENT_SHELL_OPEN, REPLY_OPEN};
+  bool valid[TOKEN_COUNT] = {0};
+  valid[COMMAND_SUBSTITUTION_END] = true;
+  for (size_t index = 0; index < ARRAY_LENGTH(openers); index++) {
+    struct Scanner scanner = {0};
+    assert(scanner_source_ready(&scanner));
+    assert(
+      append_pending_document(&scanner, make_document("OUT", false, false))
+    );
+    assert(source_context_push(&scanner, DQ_OPEN));
+    assert(source_context_push(&scanner, openers[index]));
+    assert(source_context_push(&scanner, openers[index]));
+    scanner.substitution_depth = 2;
+    assert(source_context_push(&scanner, BRACE_WORD_START));
+    assert(source_context_push(&scanner, PARAMETER_OPEN));
+    struct MockLexer lexer;
+    init_mock_lexer(&lexer, NULL, 0);
+    assert(bash_scanner_scan(&scanner, &lexer.lexer, valid));
+    assert(lexer.lexer.result_symbol == COMMAND_SUBSTITUTION_END);
+    assert(scanner.substitution_depth == 1);
+    assert(scanner.context_count == 2);
+    assert(top_context_opener(&scanner) == openers[index]);
+    assert(top_context(&scanner)->count == 1);
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned length = snapshot(&scanner, state);
+    bash_scanner_deserialize(&scanner, state, length);
+    assert_scanner_matches_snapshot(&scanner, state, length);
+    init_mock_lexer(&lexer, NULL, 0);
+    assert(bash_scanner_scan(&scanner, &lexer.lexer, valid));
+    assert(scanner.substitution_depth == 0);
+    assert(scanner.context_count == 1);
+    assert(top_context_opener(&scanner) == DQ_OPEN);
+    assert(source_quote(&scanner) == QUOTE_DOUBLE);
+    assert(scanner.pending.count == 1);
+    assert(scanner.pending.data[0].delimiter_length == 3);
+    assert(memcmp(scanner.pending.data[0].delimiter, "OUT", 3) == 0);
+    clear_scanner(&scanner);
+  }
+}
+
+static void test_substitution_end_does_not_cross_input_boundaries(void) {
+  const enum TokenType barriers[] = {BACKQUOTE_START, HERE_DOCUMENT_BODY_START};
+  bool valid[TOKEN_COUNT] = {0};
+  valid[COMMAND_SUBSTITUTION_END] = true;
+  for (size_t index = 0; index < ARRAY_LENGTH(barriers); index++) {
+    struct Scanner scanner = {0};
+    assert(scanner_source_ready(&scanner));
+    assert(source_context_push(&scanner, COMMAND_OPEN));
+    scanner.substitution_depth = 1;
+    if (barriers[index] == HERE_DOCUMENT_BODY_START) {
+      assert(
+        append_pending_document(&scanner, make_document("OUT", false, false))
+      );
+      assert(activate_startable_pending_documents(&scanner));
+    }
+    assert(source_context_push(&scanner, barriers[index]));
+    assert(source_context_push(&scanner, BRACE_WORD_START));
+    assert(source_context_push(&scanner, PARAMETER_OPEN));
+    char state[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
+    unsigned length = snapshot(&scanner, state);
+    struct MockLexer lexer;
+    init_mock_lexer(&lexer, NULL, 0);
+    assert(!bash_scanner_scan(&scanner, &lexer.lexer, valid));
+    assert_scanner_matches_snapshot(&scanner, state, length);
+    clear_scanner(&scanner);
+  }
 }
 
 static void test_pattern_range_state_round_trip(void) {
@@ -2158,7 +2292,7 @@ test_recovery_finishes_unterminated_documents_without_end_text(void) {
 static void test_local_lookahead_failures_leave_no_state_or_allocations(void) {
   const char *sources[] = {
     "foo\\\nbar",
-    "$(cat <<E\nbody\nE\n)name()",
+    "<(cat <<E\nbody\nE\n)name()",
     "x[$(printf 0)]=~",
   };
   const enum TokenType tokens[] =
@@ -2220,16 +2354,18 @@ int main(void) {
   test_logical_forks_preserve_ancestor_pending_units();
   test_logical_resume_does_not_repeat_already_emitted_source();
 
-  test_recovery_consumes_words_without_downgrading_reserved_tokens();
+  test_recovery_preserves_reserved_tokens_and_separator_layout();
   test_here_document_activation_preserves_queues_and_suspended_frames();
   test_pending_documents_preserve_state_up_to_serialization_capacity();
   test_pending_here_document_sequence_preserves_state();
   test_delimiter_quote_removal_retains_quoted_newlines();
-  test_delimiter_read_distinguishes_input_and_resource_failures();
+  test_delimiter_read_preserves_bytes_and_distinguishes_failures();
   test_here_document_input_stops_before_nested_source_can_cross_its_end();
   test_here_document_end_restores_its_source_and_serialized_depth();
   test_scanner_copy_owns_nested_state_and_preserves_source_on_failure();
   test_nested_context_round_trip_and_reset();
+  test_substitution_end_closes_its_owner_and_retains_outer_documents();
+  test_substitution_end_does_not_cross_input_boundaries();
   test_parameter_quote_changes_preserve_compressed_parents();
   test_pattern_range_state_round_trip();
   test_bracket_cache_round_trips_and_stays_in_context();

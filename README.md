@@ -7,18 +7,18 @@
 [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammars for
 GNU Bourne Again SHell 5.3.
 
-## Installation
-
-```sh
-npm install @konomanoasa/tree-sitter-bash
-```
-
 ## Parsing Option
 
 For Bash's default parsing behavior, where `extglob` is disabled, use
 `bash_default`.
 
 [Parsing Policy](PARSING_POLICY.md)
+
+## Installation
+
+```sh
+npm install @konomanoasa/tree-sitter-bash
+```
 
 ## Development
 

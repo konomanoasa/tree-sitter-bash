@@ -217,8 +217,8 @@ const PHYSICAL_RULES = {
   _left_brace: "{",
   _right_brace: "}",
   _parameter_open: "{",
-  _parameter_close: "}",
   _command_open: "(",
+  _command_close: ")",
   _arithmetic_expansion_open: "(",
   _bracket_arithmetic_open: "[",
   _bracket_arithmetic_close: "]",
@@ -234,6 +234,12 @@ const PHYSICAL_RULES = {
   _backquote_end: "`",
   _double_quoted_backquote_start: "`",
   _punct_pipe: "|",
+  _punct_ampersand: "&",
+  _punct_semicolon: ";",
+  _word_tilde_start: "~",
+  _assignment_tilde_start: "~",
+  _parameter_tilde_start: "~",
+  _for_semicolon: ";",
 };
 const physicalSource = ($, token, decorate = (character) => character) =>
   seq(
@@ -343,8 +349,9 @@ const sourceWord = ($, prefix, braces = false) =>
   choice(
     seq(prefix, ...(braces ? [$._brace_word_end] : [])),
     seq(
-      $._assignment_argument_start,
-      ...(braces ? [$._brace_word_start] : []),
+      braces
+        ? $._assignment_argument_start_prefix
+        : $._assignment_argument_start,
       $._assignment_source_word,
       braces ? $._brace_word_end : $._assignment_argument_end,
     ),
@@ -557,20 +564,22 @@ const arithmeticExpansionStart = (
   marker,
   start = $._arithmetic_dollar_start,
 ) => seq(start, marker, physical($, $._punct_left_parenthesis, "("));
-const arithmeticExpansion = ($, start, sourceStart) =>
-  seq(
-    choice(
-      seq(
-        start,
-        optional($._arithmetic_layout),
-        field("expression", $._arithmetic_expression),
-      ),
-      seq(
-        sourceStart,
-        optional($._arithmetic_layout),
-        optional(field("expression", $.arithmetic_source_expression)),
-      ),
+const arithmeticExpansionBody = ($, start, sourceStart) =>
+  choice(
+    seq(
+      start,
+      optional($._arithmetic_layout),
+      field("expression", $._arithmetic_expression),
     ),
+    seq(
+      sourceStart,
+      optional($._arithmetic_layout),
+      optional(field("expression", $.arithmetic_source_expression)),
+    ),
+  );
+const arithmeticExpansion = ($, body) =>
+  seq(
+    body,
     arithmeticClosingLayout($),
     physical($, $._punct_right_parenthesis, ")"),
     physical($, $._punct_right_parenthesis, ")"),
@@ -630,7 +639,6 @@ const quotedDollarExpansionParts = ($) => [
   $.command_substitution,
   $.arithmetic_expansion,
 ];
-// Only a backquote placed directly in a double-quoted string decodes `\"`.
 const quotedExpansionParts = ($) => [
   ...quotedDollarExpansionParts($),
   $.backquote_substitution,
@@ -709,12 +717,7 @@ const dollarExpansionStart = (
 ) => seq(dollarExpansionPrefix($, start), physical($, token, spelling));
 const backquoteDelimiter = ($, token) => physical($, token, "`");
 const commandSubstitution = ($, prefix) =>
-  seq(
-    prefix,
-    optional(field("body", $.command_substitution_body)),
-    physical($, $._punct_right_parenthesis, ")"),
-    $._command_substitution_end,
-  );
+  seq(prefix, $._command_substitution_tail);
 const processSubstitution = ($, input, output) =>
   commandSubstitution(
     $,
@@ -733,9 +736,7 @@ const braceSubstitution = ($, dollar, open) =>
     physical($, open, "{"),
     ...(open.name === "_reply_open" ? [physical($, $._punct_pipe, "|")] : []),
     $._command_substitution_body_begin,
-    choice(closedCompoundList($), optional($._linebreak_layout)),
-    physical($, $._substitution_brace_close, "}"),
-    $._command_substitution_end,
+    $._brace_substitution_tail,
   );
 const extglobAlternatives = ($) => [
   physical($, $._extglob_open, "("),
@@ -750,23 +751,6 @@ const extglobAlternatives = ($) => [
 ];
 const extglobPattern = ($) =>
   seq(field("operator", $.extglob_operator), ...extglobAlternatives($));
-const braceExpansion = ($, open) =>
-  seq(
-    physical($, open, "{"),
-    choice(
-      $.brace_sequence,
-      seq(
-        optional(field("alternative", $.brace_alternative)),
-        repeat1(
-          seq(
-            physical($, $._brace_comma, ","),
-            optional(field("alternative", $.brace_alternative)),
-          ),
-        ),
-      ),
-    ),
-    physical($, $._brace_close, "}"),
-  );
 
 const patternSpecialStart = ($, marker) =>
   seq(physical($, $._pattern_special_left_bracket, "["), marker);
@@ -812,12 +796,12 @@ const patternCharacterClassSource = ($, content) =>
     ),
   );
 
-const parameterExpansion = ($, word) =>
+const parameterExpansion = ($, body) =>
   prec(
     1,
     choice(
       seq(dollarExpansionPrefix($), field("parameter", $._unbraced_parameter)),
-      bracedParameterExpansion($, word),
+      seq(body, physical($, $._parameter_close, "}")),
     ),
   );
 
@@ -827,7 +811,7 @@ const bracedParameterSource = ($, classifiedParameter) =>
     $._unclassified_numeric_parameter_source,
   );
 
-const bracedParameterExpansion = ($, word) =>
+const bracedParameterBody = ($, word) =>
   choice(
     seq(
       $._braced_parameter_header,
@@ -839,7 +823,6 @@ const bracedParameterExpansion = ($, word) =>
           $.parameter_transformation,
         ),
       ),
-      physical($, $._parameter_close, "}"),
     ),
     seq(
       $._braced_parameter_start,
@@ -852,22 +835,13 @@ const bracedParameterExpansion = ($, word) =>
       ),
       field("prefix", $.parameter_name_prefix),
       field("operator", $.parameter_names_operator),
-      physical($, $._parameter_close, "}"),
     ),
-    seq(
-      $._braced_parameter_value_header,
-      optional(field("word", word)),
-      physical($, $._parameter_close, "}"),
-    ),
+    seq($._braced_parameter_value_header, optional(field("word", word))),
     seq(
       $._braced_parameter_pattern_header,
       optional(field("pattern", $.parameter_pattern)),
-      physical($, $._parameter_close, "}"),
     ),
-    seq(
-      $._braced_parameter_length_header,
-      physical($, $._parameter_close, "}"),
-    ),
+    $._braced_parameter_length_header,
   );
 
 const parameterPatternSource = ($) =>
@@ -929,7 +903,6 @@ const conditionalNegation = ($, operand) =>
     ),
   );
 
-// Layout before fi lets elif reduce its empty alternative before else.
 const ifClause = ($) =>
   conditionalThenBranch(
     $,
@@ -941,6 +914,12 @@ const ifClause = ($) =>
   );
 
 const loopClause = ($, header) => seq(header, field("body", $.do_group));
+
+const wordLoopClause = ($, doHeader, separatedHeader) =>
+  choice(
+    seq(doHeader, field("body", $.do_group)),
+    seq(separatedHeader, field("body", choice($.do_group, $.brace_group))),
+  );
 
 const separatedForHeader = ($) =>
   seq(
@@ -1018,18 +997,16 @@ const redirectableCompoundCommand = ($) =>
   );
 const assignmentPlainChunk = ($) => lexical($, $._assignment_literal_begin);
 const parameterPlainChunk = ($) => lexical($, $._parameter_literal_begin);
-const patternBracketExpression = ($, _list, opener) =>
+const patternBracketPrefix = ($, members, opener) =>
+  seq(
+    physical($, opener, "["),
+    optional(field("negation", $.pattern_bracket_negation_source)),
+    field("members", members),
+  );
+const patternBracketExpression = ($, prefix) =>
   prec.dynamic(
     PATTERN_PRECEDENCE.expression,
-    prec.right(
-      2,
-      seq(
-        physical($, opener, "["),
-        optional(field("negation", $.pattern_bracket_negation_source)),
-        field("members", _list),
-        physical($, $._punct_right_bracket, "]"),
-      ),
-    ),
+    prec.right(2, seq(prefix, physical($, $._punct_right_bracket, "]"))),
   );
 const patternBracketList = ($, member, initialRange) =>
   prec.right(
@@ -1071,7 +1048,9 @@ const patternBracketFamily = (kind, specials, opener, collating) => {
     alias($[name("bracket_character")], $.pattern_bracket_character_source);
   return {
     [name("bracket_expression")]: ($) =>
-      patternBracketExpression(
+      patternBracketExpression($, $[name("bracket_prefix")]),
+    [name("bracket_prefix")]: ($) =>
+      patternBracketPrefix(
         $,
         alias($[name("bracket_list")], $.pattern_bracket_members_source),
         opener($),
@@ -1281,6 +1260,7 @@ export default function defineGrammar(name) {
         $._parameter_open,
         $._parameter_close,
         $._command_open,
+        $._command_close,
         $._arithmetic_expansion_open,
         $._bracket_arithmetic_open,
         $._bracket_arithmetic_close,
@@ -1290,6 +1270,7 @@ export default function defineGrammar(name) {
         $._parameter_tilde_start,
         $._logical_newline_begin,
         $._logical_blank_begin,
+        $._closing_blank_begin,
         $._arithmetic_expansion_end,
         $._pattern_initial_right_bracket_begin,
         $._source_begin,
@@ -1478,7 +1459,6 @@ export default function defineGrammar(name) {
 
     conflicts: ($) => [
       [$._list],
-      [$._term],
       [$._conditional_expression, $.conditional_binary_expression],
       [$._sequential_newline_separator, $._linebreak],
       [$._complete_command],
@@ -1575,7 +1555,7 @@ export default function defineGrammar(name) {
         prec.right(
           seq(
             field("separator", commandListNewlines($)),
-            optional($._horizontal_layout),
+            optional($._separator_layout),
             optional(
               seq(
                 field("command", $._complete_command),
@@ -1847,7 +1827,7 @@ export default function defineGrammar(name) {
               ),
               field("separator", alias($._newline_separator, $.separator)),
             ),
-            optional($._horizontal_layout),
+            optional($._separator_layout),
           ),
         ),
 
@@ -1865,33 +1845,32 @@ export default function defineGrammar(name) {
       _empty_bang: ($) =>
         wholeSource($, $._empty_bang_begin, $._empty_bang_lexeme, $.bang),
       function_definition: ($) =>
-        seq(
-          $._function_definition_header,
-          $._function_body_continuation_boundary,
-          optional(field("linebreak", $._linebreak)),
-          optional($._horizontal_layout),
-          field("body", $.function_body),
-        ),
+        seq($._function_definition_header, field("body", $.function_body)),
 
       _function_definition_header: ($) =>
-        choice(
-          seq(
-            field("name", $.function_name),
-            optional($._horizontal_layout),
-            $._function_parentheses,
-          ),
-          seq(
-            $._function_keyword_source,
-            $._word_separator,
-            field("name", alias($._explicit_function_name, $.function_name)),
-            optional(
-              seq(
-                $._function_parentheses_start,
-                optional($._horizontal_layout),
-                $._function_parentheses,
+        seq(
+          choice(
+            seq(
+              field("name", $.function_name),
+              optional($._horizontal_layout),
+              $._function_parentheses,
+            ),
+            seq(
+              $._function_keyword_source,
+              $._word_separator,
+              field("name", alias($._explicit_function_name, $.function_name)),
+              optional(
+                seq(
+                  $._function_parentheses_start,
+                  optional($._horizontal_layout),
+                  $._function_parentheses,
+                ),
               ),
             ),
           ),
+          $._function_body_continuation_boundary,
+          optional(field("linebreak", $._linebreak)),
+          optional($._horizontal_layout),
         ),
       _function_parentheses: ($) =>
         seq(
@@ -1937,18 +1916,18 @@ export default function defineGrammar(name) {
           optional($._closing_layout),
           physical($, $._punct_right_parenthesis, ")"),
         ),
-      for_clause: ($) => seq($._for_keyword_source, $._word_loop_clause),
+      for_clause: ($) =>
+        wordLoopClause($, $._for_do_header, $._for_separated_header),
+      select_clause: ($) =>
+        wordLoopClause($, $._select_do_header, $._select_separated_header),
 
-      select_clause: ($) => seq($._select_keyword_source, $._word_loop_clause),
-
-      _word_loop_clause: ($) =>
-        choice(
-          seq($._word_loop_do_header, field("body", $.do_group)),
-          seq(
-            $._word_loop_separated_header,
-            field("body", choice($.do_group, $.brace_group)),
-          ),
-        ),
+      _for_do_header: ($) => seq($._for_keyword_source, $._word_loop_do_header),
+      _for_separated_header: ($) =>
+        seq($._for_keyword_source, $._word_loop_separated_header),
+      _select_do_header: ($) =>
+        seq($._select_keyword_source, $._word_loop_do_header),
+      _select_separated_header: ($) =>
+        seq($._select_keyword_source, $._word_loop_separated_header),
 
       _word_loop_do_header: ($) =>
         seq($._word_separator, field("name", $.name), $._horizontal_layout),
@@ -2286,8 +2265,7 @@ export default function defineGrammar(name) {
 
       _here_end_source_word: ($) =>
         seq(
-          $._word_start,
-          $._brace_word_start,
+          $._word_start_prefix,
           repeat1($._pattern_word_part),
           $._brace_word_end,
         ),
@@ -2429,12 +2407,14 @@ export default function defineGrammar(name) {
           physical($, $._array_assignment_close, ")"),
         ),
       _array_word: ($) => seq($._array_word_prefix, $._brace_word_end),
+      _array_word_start_prefix: ($) =>
+        seq($._array_word_start, $._brace_word_start),
       _array_word_prefix: ($) =>
         startedWord(
           $._array_word_prefix,
           $._pattern_word_part,
           $.tilde_expansion,
-          seq($._array_word_start, $._brace_word_start),
+          $._array_word_start_prefix,
         ),
       array_element_assignment: ($) =>
         prec.right(
@@ -2477,29 +2457,36 @@ export default function defineGrammar(name) {
 
       _source_word: ($) =>
         choice($._plain_word, sourceWord($, $._word_prefix, true)),
+      _word_start_prefix: ($) => seq($._word_start, $._brace_word_start),
+      _assignment_argument_start_prefix: ($) =>
+        seq($._assignment_argument_start, $._brace_word_start),
       _word_prefix: ($) =>
         startedWord(
           $._word_prefix,
           $._pattern_word_part,
           $.tilde_expansion,
-          seq($._word_start, $._brace_word_start),
+          $._word_start_prefix,
         ),
       _coproc_name_word: ($) => seq($._coproc_name_prefix, $._brace_word_end),
+      _coproc_name_start_prefix: ($) =>
+        seq($._coproc_name_start, $._brace_word_start),
       _coproc_name_prefix: ($) =>
         startedWord(
           $._coproc_name_prefix,
           $._pattern_word_part,
           $.tilde_expansion,
-          seq($._coproc_name_start, $._brace_word_start),
+          $._coproc_name_start_prefix,
         ),
       _command_word: ($) =>
         choice($._plain_word, sourceWord($, $._command_word_prefix, true)),
+      _command_word_start_prefix: ($) =>
+        seq($._command_word_start, $._brace_word_start),
       _command_word_prefix: ($) =>
         startedWord(
           $._command_word_prefix,
           $._pattern_word_part,
           $.tilde_expansion,
-          seq($._command_word_start, $._brace_word_start),
+          $._command_word_start_prefix,
         ),
       _case_word: ($) => prec.right(sourceWord($, $._case_word_prefix)),
       _case_word_prefix: ($) =>
@@ -2601,7 +2588,9 @@ export default function defineGrammar(name) {
       pattern_star_source: lexeme("_pattern_star_begin"),
       pattern_question_source: lexeme("_pattern_question_begin"),
       pattern_bracket_source: ($) =>
-        patternBracketExpression(
+        patternBracketExpression($, $._pattern_bracket_prefix),
+      _pattern_bracket_prefix: ($) =>
+        patternBracketPrefix(
           $,
           $.pattern_bracket_members_source,
           $._word_pattern_bracket_open,
@@ -2749,6 +2738,12 @@ export default function defineGrammar(name) {
         braceSubstitution($, $._dollar_expansion_start, $._current_shell_open),
       reply_substitution: ($) =>
         braceSubstitution($, $._dollar_expansion_start, $._reply_open),
+      _brace_substitution_tail: ($) =>
+        seq(
+          choice(closedCompoundList($), optional($._linebreak_layout)),
+          physical($, $._substitution_brace_close, "}"),
+          $._command_substitution_end,
+        ),
       extglob_operator: lexeme("_extglob_operator_begin"),
       extglob_pattern: ($) => extglobPattern($),
       extglob_group: ($) => seq(...extglobAlternatives($)),
@@ -2800,7 +2795,25 @@ export default function defineGrammar(name) {
           field("name", $.variable_name),
           field("subscript", $.array_subscript),
         ),
-      brace_expansion: ($) => braceExpansion($, $._brace_open),
+      brace_expansion: ($) =>
+        seq(
+          physical($, $._brace_open, "{"),
+          $._brace_expansion_body,
+          physical($, $._brace_close, "}"),
+        ),
+      _brace_expansion_body: ($) =>
+        choice(
+          $.brace_sequence,
+          seq(
+            optional(field("alternative", $.brace_alternative)),
+            repeat1(
+              seq(
+                physical($, $._brace_comma, ","),
+                optional(field("alternative", $.brace_alternative)),
+              ),
+            ),
+          ),
+        ),
       brace_alternative: ($) => $._brace_parts,
       _brace_parts: ($) =>
         repeat1(
@@ -2876,10 +2889,15 @@ export default function defineGrammar(name) {
           field("operator", $.parameter_length_operator),
           bracedParameterSource($, $._length_parameter),
         ),
-      parameter_expansion: ($) => parameterExpansion($, $.parameter_word),
+      parameter_expansion: ($) =>
+        parameterExpansion($, $._parameter_expansion_body),
+      _parameter_expansion_body: ($) =>
+        bracedParameterBody($, $.parameter_word),
 
       _double_quoted_parameter_expansion: ($) =>
-        parameterExpansion(
+        parameterExpansion($, $._double_quoted_parameter_expansion_body),
+      _double_quoted_parameter_expansion_body: ($) =>
+        bracedParameterBody(
           $,
           alias($._double_quoted_parameter_word, $.parameter_word),
         ),
@@ -3054,13 +3072,19 @@ export default function defineGrammar(name) {
         seq($._command_substitution_start, $._command_substitution_body_begin),
       command_substitution: ($) =>
         commandSubstitution($, $._command_substitution_prefix),
+      _command_substitution_tail: ($) =>
+        seq(
+          optional(field("body", $.command_substitution_body)),
+          physical($, $._command_close, ")"),
+          $._command_substitution_end,
+        ),
 
       _command_substitution_start: ($) =>
         dollarExpansionStart($, $._command_open, "("),
       _arithmetic_dollar_start: ($) =>
         dollarExpansionStart($, $._arithmetic_expansion_open, "("),
       command_substitution_body: ($) =>
-        prec.left(substitutionCommandsBody($, $._closing_layout)),
+        prec.left(substitutionCommandsBody($, $._horizontal_layout)),
 
       backquote_substitution: ($) =>
         backquoteSubstitution($, $._backquote_start),
@@ -3438,18 +3462,26 @@ export default function defineGrammar(name) {
       arithmetic_command: ($) =>
         arithmeticExpansion(
           $,
-          arithmeticExpansionStart(
+          arithmeticExpansionBody(
             $,
-            $._arithmetic_left_parenthesis,
-            physical($, $._arithmetic_command_open, "("),
-          ),
-          arithmeticExpansionStart(
-            $,
-            $._arithmetic_source_left_parenthesis,
-            physical($, $._arithmetic_command_open, "("),
+            arithmeticExpansionStart(
+              $,
+              $._arithmetic_left_parenthesis,
+              physical($, $._arithmetic_command_open, "("),
+            ),
+            arithmeticExpansionStart(
+              $,
+              $._arithmetic_source_left_parenthesis,
+              physical($, $._arithmetic_command_open, "("),
+            ),
           ),
         ),
       arithmetic_for_clause: ($) =>
+        seq(
+          $._arithmetic_for_body_prefix,
+          field("body", choice($.do_group, $.brace_group)),
+        ),
+      _arithmetic_for_header: ($) =>
         seq(
           $._for_keyword_source,
           optional($._horizontal_layout),
@@ -3462,6 +3494,10 @@ export default function defineGrammar(name) {
           physical($, $._punct_right_parenthesis, ")"),
           physical($, $._punct_right_parenthesis, ")"),
           $._arithmetic_expansion_end,
+        ),
+      _arithmetic_for_body_prefix: ($) =>
+        seq(
+          $._arithmetic_for_header,
           optional($._horizontal_layout),
           optional(
             choice(
@@ -3470,7 +3506,6 @@ export default function defineGrammar(name) {
             ),
           ),
           optional($._horizontal_layout),
-          field("body", choice($.do_group, $.brace_group)),
         ),
       _for_arithmetic_open_lexeme: lexeme("_for_arithmetic_open"),
       _for_expression: ($) =>
@@ -3503,16 +3538,18 @@ export default function defineGrammar(name) {
 
       arithmetic_expansion: ($) =>
         choice(
-          arithmeticExpansion(
-            $,
-            $._arithmetic_expansion_start,
-            $._arithmetic_source_expansion_start,
-          ),
+          arithmeticExpansion($, $._arithmetic_expansion_body),
           seq(
             dollarExpansionStart($, $._bracket_arithmetic_open, "["),
             optional($._bracket_arithmetic_field),
             physical($, $._bracket_arithmetic_close, "]"),
           ),
+        ),
+      _arithmetic_expansion_body: ($) =>
+        arithmeticExpansionBody(
+          $,
+          $._arithmetic_expansion_start,
+          $._arithmetic_source_expansion_start,
         ),
       _arithmetic_subscript: ($) =>
         arraySubscript($, $._arithmetic_subscript_open),
@@ -3556,7 +3593,8 @@ export default function defineGrammar(name) {
         ),
 
       _horizontal_layout: ($) => $._blank,
-      _closing_layout: ($) => $._blank,
+      _closing_layout: lexeme("_closing_blank_begin"),
+      _separator_layout: ($) => choice($._horizontal_layout, $._closing_layout),
       _word_separator: ($) => wordSeparator($, $._word_separator_begin),
 
       _assignment_separator: ($) =>

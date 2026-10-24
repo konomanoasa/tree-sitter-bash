@@ -245,7 +245,6 @@ static inline bool logical_fork(
     if (!stage->has_pending) {
       continue;
     }
-    /* Do not reemit characters already emitted by the parent. */
     for (
       size_t logical = 0; logical < parent->cursor.logical_count; logical += 1
     ) {

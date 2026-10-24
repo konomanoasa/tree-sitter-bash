@@ -25,6 +25,16 @@ export function nestedHereDocuments(
 
 export const workloads = [
   {
+    name: "function definitions",
+    sizes: localCommandRows,
+    source: (n) => "f() { echo x; }\n".repeat(n),
+  },
+  {
+    name: "arithmetic for commands",
+    sizes: [128, 512, 2048],
+    source: (n) => "for ((x=0;x<1;x++)); do :; done\n".repeat(n),
+  },
+  {
     name: "ERE concatenation",
     sizes: conditionElementCounts,
     source: (n) => `[[ s =~ x${"a".repeat(n)} ]]\n`,
@@ -454,6 +464,46 @@ export function* editingWorkloads() {
             ];
             check(`here document boundary repair/${name}`, source, edits);
           }
+        }
+      }
+    },
+  };
+
+  yield {
+    name: "quote recovery and repair",
+    run: (check) => {
+      const fixtures = [
+        ...hereDocumentBodyCharacters.map((size) => ({
+          name: `body/${size}`,
+          word: `x${"a".repeat(size)}`,
+          following: "echo AFTER\n",
+          target: "x",
+        })),
+        ...localCommandRows.map((count) => ({
+          name: `commands/${count}`,
+          word: "word",
+          following: "echo aaaa\n".repeat(count),
+          target: "aaaa",
+        })),
+      ];
+      for (const [context, prefix, suffix, remove, insert] of [
+        ["single quote", ": ) '", "'\n", ") ", ""],
+        ["parameter", "cat <<END\n${v!'", "'}\nEND\n", "!", ":-"],
+        ["substring", "cat <<END\n${v:1+'", "'\nEND\n", "'\n", "'}\n"],
+      ]) {
+        for (const { name, word, following, target } of fixtures) {
+          const source = `${prefix}${word}${suffix}${following}`;
+          check(
+            `quote recovery/${context}/${name}`,
+            source,
+            { byte: source.indexOf(target), deleteBytes: 1, insert: "y" },
+            1,
+          );
+          check(`quote repair/${context}/${name}`, source, {
+            byte: source.indexOf(remove),
+            deleteBytes: remove.length,
+            insert,
+          });
         }
       }
     },

@@ -508,6 +508,20 @@ const cases = [
     ],
   },
   {
+    name: "hexadecimal prefixes without digits retain number captures",
+    parts: [
+      ["echo", "function.call"],
+      [" ", ""],
+      ["$", "punctuation.special"],
+      ["((", "punctuation.bracket"],
+      ["0x", "number"],
+      ["+", "operator"],
+      ["0X", "number"],
+      ["))", "punctuation.bracket"],
+      ["\n", ""],
+    ],
+  },
+  {
     name: "continued arithmetic numbers and variables retain their complete classification",
     parts: [
       ["echo", "function.call"],

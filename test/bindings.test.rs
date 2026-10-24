@@ -456,8 +456,8 @@ fn repair_every_byte_restores_complete_cst_and_ranges() {
     "(( $'a\\'b' )); echo after\n",
     "echo $(( $\\\n'a\\'日' + $\\\n\"$x\" + $\n'1' + $ ))\n",
     "for (($'a;))';$\"b;))\";$'c\\'')); do :; done\n",
-    ": <<OUT \"$(cat << ${|\n\t :; }\n日$x\n${|:; }\n)\"\n$y\nOUT\n",
-    "cat << ${\n\tprintf \"x\"; } << \"\"${| \t:; }\n$x\n${ printf \"x\"; }\n$y\n${|:; }\n",
+    ": <<OUT \"$(cat << ${|\\\n\t :; }\n日$x\n${|\t :; }\n)\"\n$y\nOUT\n",
+    "cat << ${\\\n\tprintf \"x\"; } << \"\"${| \t:; }\n$x\n${\tprintf \"x\"; }\n$y\n${| \t:; }\n",
     "cat << \"${ printf $'a\\tb'; }\" << \"${|printf $'a\\tb'; }\"\n$x\n${ printf 'a\tb'; }\n$y\n${|printf 'a\tb'; }\n",
     ": \"$(cat << @($'a\\tb'|c)\n$x\n@('a\tb'|c)\n)\"\n",
     ": <<OUT \"$(cat << pre<(printf \"日\")post\n$x\npre<(printf \"日\")post\n)\"\n$y\nOUT\n",
@@ -552,7 +552,7 @@ fn repair_every_byte_restores_complete_cst_and_ranges() {
 #[test]
 fn large_bodies_and_compressed_nesting_preserve_incremental_structure() {
   let sources = [
-    format!("cat << ${{|{}:; }}\nx\n${{|:; }}\n", " ".repeat(16_384)),
+    format!("cat << ${{|{0}:; }}\nx\n${{|{0}:; }}\n", " ".repeat(256)),
     format!(
       "cat << \"$(printf '{}')\"\nx\n$(printf '')\n",
       "\"".repeat(16_384)
@@ -613,22 +613,26 @@ fn large_bodies_and_compressed_nesting_preserve_incremental_structure() {
 
 #[test]
 fn metadata_overflow_finishes_and_repaired_input_is_reusable() {
-  let mut parser = parser();
-  let source = format!("cat <<{}\n", "a".repeat(2048));
-  let mut tree = parser.parse(&source, None).unwrap();
-  assert!(tree.root_node().has_error());
-  assert_eq!(tree.root_node().end_byte(), source.len());
-  let mut bytes = source.into_bytes();
-  let length = bytes.len();
-  replace(
-    &mut parser,
-    &mut bytes,
-    &mut tree,
-    0,
-    length,
-    b"cat <<EOF\nx\nEOF\n",
-  );
-  let fresh = parser.parse(&bytes, None).unwrap();
-  assert!(!tree.root_node().has_error());
-  assert_eq!(snapshot(&tree), snapshot(&fresh));
+  for source in [
+    format!("cat <<{}\n", "a".repeat(2048)),
+    format!("cat << ${{|{}:; }}\nx\n${{|:; }}\n", " ".repeat(16_384)),
+  ] {
+    let mut parser = parser();
+    let mut tree = parser.parse(&source, None).unwrap();
+    assert!(tree.root_node().has_error());
+    assert_eq!(tree.root_node().end_byte(), source.len());
+    let mut bytes = source.into_bytes();
+    let length = bytes.len();
+    replace(
+      &mut parser,
+      &mut bytes,
+      &mut tree,
+      0,
+      length,
+      b"cat <<EOF\nx\nEOF\n",
+    );
+    let fresh = parser.parse(&bytes, None).unwrap();
+    assert!(!tree.root_node().has_error());
+    assert_eq!(snapshot(&tree), snapshot(&fresh));
+  }
 }

@@ -627,14 +627,43 @@ for (const grammar of grammars) {
       }
     });
 
-    test("undecodable bytes after dollar quote escapes keep words scannable", () => {
+    test("undecodable bytes after dollar quote escapes retain lexical structure", () => {
       const invalid = Buffer.from([0xff]);
-      for (const [prefix, suffix, type] of [
-        [": $'a\\", "b'\n", "dollar_single_quote_escape"],
-        ["f$'\\", "'() { :; }\n", "function_name"],
-        ["[[ $'\\", "' == x ]]\n", "conditional_binary_expression"],
-        [": ${x:-$'\\", "'}\n", "parameter_expansion"],
-        ...(extglob ? [[": @($'\\", "')\n", "extglob_pattern"]] : []),
+      for (const { prefix, suffix, type, status } of [
+        {
+          prefix: ": $'a\\",
+          suffix: "b'\n",
+          type: "dollar_single_quote_escape",
+          status: 0,
+        },
+        {
+          prefix: "f$'\\",
+          suffix: "'() { :; }\n",
+          type: "dollar_single_quote_escape",
+          status: 1,
+        },
+        {
+          prefix: "[[ $'\\",
+          suffix: "' == x ]]\n",
+          type: "conditional_binary_expression",
+          status: 0,
+        },
+        {
+          prefix: ": ${x:-$'\\",
+          suffix: "'}\n",
+          type: "parameter_expansion",
+          status: 0,
+        },
+        ...(extglob
+          ? [
+              {
+                prefix: ": @($'\\",
+                suffix: "')\n",
+                type: "extglob_pattern",
+                status: 0,
+              },
+            ]
+          : []),
       ]) {
         const source = Buffer.concat([
           Buffer.from(prefix),
@@ -642,7 +671,7 @@ for (const grammar of grammars) {
           Buffer.from(suffix),
         ]);
         const parsed = parser.parse(source, { arguments: ["-c"] });
-        assert.equal(parsed.status, 0, parsed.output);
+        assert.equal(parsed.status, status, parsed.output);
         assert.ok(parsed.output.includes(type), parsed.output);
       }
     });
@@ -701,6 +730,91 @@ for (const grammar of grammars) {
         insert: "c",
         valid: false,
       });
+    });
+
+    test("hexadecimal prefixes are numbers across arithmetic contexts", () => {
+      for (const [prefix, suffix, kind] of [
+        [": $((", "))\n", "arithmetic"],
+        [": $[", "]\n", "arithmetic"],
+        ["((", "))\n", "arithmetic"],
+        ["for ((", "; 0; )); do :; done\n", "arithmetic"],
+        [": ${s:", "}\n", "arithmetic"],
+        [": ${s:1:", "}\n", "arithmetic"],
+        [": ${a[", "]}\n", "arithmetic_candidate"],
+        ["a[", "]=value\n", "arithmetic_candidate"],
+        [": $((a[", "]))\n", "arithmetic_candidate"],
+      ]) {
+        for (const { expression, expected } of [
+          { expression: "0x+0X", expected: ["0x", "0X"] },
+          {
+            expression: "0\\\nx+0\\\nX",
+            expected: ["0\\\nx", "0\\\nX"],
+          },
+        ]) {
+          const seed = prefix + expression + suffix;
+          const actual = nodes(seed).filter(
+            ({ start, end }) =>
+              start >= Buffer.byteLength(prefix) &&
+              end <= Buffer.byteLength(prefix + expression),
+          );
+          assert.deepEqual(
+            actual
+              .filter(({ type }) => type === `${kind}_number`)
+              .map(({ text }) => text),
+            expected,
+            seed,
+          );
+          assert.deepEqual(
+            actual
+              .filter(({ type }) => type === `${kind}_binary_expression`)
+              .map(({ text }) => text),
+            [expression],
+            seed,
+          );
+          assertEditRoundTrip(parser, {
+            seed,
+            remove: expression,
+            insert: "0x$y+0Xg",
+            valid: true,
+          });
+        }
+      }
+    });
+
+    test("hexadecimal prefixes retain fragments beside quotes escapes and expansions", () => {
+      for (const [expression, fragment] of [
+        ["0xg", "0xg"],
+        ["0XG", "0XG"],
+        ["0x$y", "0x"],
+        ["0X$y", "0X"],
+        ["0x$(printf f)", "0x"],
+        ["0x`printf f`", "0x"],
+        ['0x"f"', "0x"],
+        ["0x'f'", "0x"],
+        ["0x\\f", "0x"],
+        ["0x\\\n$y", "0x"],
+      ]) {
+        for (const [prefix, suffix, type] of [
+          [": $((", "))\n", "arithmetic_source_fragment"],
+          [": ${a[", "]}\n", "subscript_text"],
+        ]) {
+          const source = prefix + expression + suffix;
+          const actual = nodes(source);
+          assert.deepEqual(
+            actual.filter((node) => node.type === type).map(({ text }) => text),
+            [fragment],
+            source,
+          );
+          assert.ok(
+            !actual.some(({ type }) =>
+              ["arithmetic_number", "arithmetic_candidate_number"].includes(
+                type,
+              ),
+            ),
+            source,
+          );
+        }
+      }
     });
 
     if (grammar.name === "bash") {
@@ -2036,7 +2150,7 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "substring incomplete number becomes a structured hexadecimal operand",
+          name: "substring hexadecimal number gains a digit",
           seed: `: \${s:0x:2+3}\n`,
           remove: "0x",
           insert: "0x1",

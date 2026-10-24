@@ -37,6 +37,36 @@ echo $((x = 1 + 2 * 3)) $((x ? y : z))
                   alternative: (arithmetic_variable))))))))))
 
 ==================
+hexadecimal prefixes without digits are numbers
+:language(bash)
+:language(bash_default)
+==================
+echo $((0x)) $((0X+1)) $[0x]
+
+------------------
+
+(program
+  commands: (list
+    and_or: (and_or
+      pipeline: (pipeline
+        command: (command
+          body: (simple_command
+            name: (word
+              (literal))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_number)))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_binary_expression
+                  left: (arithmetic_number)
+                  operator: (arithmetic_operator)
+                  right: (arithmetic_number))))
+            argument: (word
+              (arithmetic_expansion
+                expression: (arithmetic_number)))))))))
+
+==================
 arithmetic source fragments stay together before expansion
 :language(bash)
 :language(bash_default)

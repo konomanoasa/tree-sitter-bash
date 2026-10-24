@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
 import { grammars } from "../scripts/tree-sitter.js";
-import { cstFingerprint } from "./support/cst.js";
+import { cstFingerprint, sourceNodes } from "./support/cst.js";
 import {
   applyEdit,
   assertEditRoundTrip,
@@ -346,7 +346,7 @@ for (const grammar of grammars) {
         ["function <(:)z() { :; }\n", "<(:)z"],
         ["a<(:)>(:)=b() { :; }\n", "a<(:)>(:)=b"],
         ["if<(:)() { :; }\n", "if<(:)"],
-        ["<(printf '%s' ')')() { :; }\n", "<(printf '%s' ')')"],
+        ["<(case x in x) :;; esac)() { :; }\n", "<(case x in x) :;; esac)"],
         ["<(cat <(echo x))() { :; }\n", "<(cat <(echo x))"],
         ["<(cat <<E\n)\nE\n)() { :; }\n", "<(cat <<E\n)\nE\n)"],
         ["<\\\n(:)() { :; }\n", "<\\\n(:)"],
@@ -368,7 +368,7 @@ for (const grammar of grammars) {
     });
 
     test("embedded lookahead keeps process substitution function names whole", () => {
-      const name = "<(printf '%s' ')')";
+      const name = "<(case x in x) :;; esac)";
       const definition = `${name}() { :; }`;
       for (const source of [
         `if false; then ${definition}; fi\n`,
@@ -439,12 +439,71 @@ for (const grammar of grammars) {
         ["<(:)() { :; }\n", "<", ">", true],
         ["<(:)() { :; }\n", ":)", ":", false],
         ["function <(:) { :; }\n", "<(:)", "run", true],
-        ["<(printf '%s' ')')() { :; }\n", "')'", "')", false],
+        ["<(case x in x) :;; esac)() { :; }\n", "x)", "x", false],
         ["<\\\n(:)() { :; }\n", "\\\n", " ", false],
         ["<(:)() { :; }\n", "() { :; }", "argument", true],
         ["<(:)() { :; }\n", "<(:)", "<(:)@(a)", extglob],
       ]) {
         assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("function name quotation and dollar edits reject and repair", () => {
+      for (const seed of [
+        "print() { :; }\necho AFTER\n",
+        "function print { :; }\necho AFTER\n",
+        ': "$(print() { :; }; :)"\n',
+        ": <(function print() { :; }; :)\n",
+      ]) {
+        for (const [insert, valid] of [
+          ["pri\\nt", false],
+          ["pr'int'", false],
+          ['pr"int"', false],
+          ["pr$int", false],
+          ["print$", false],
+          ["pri\\\nnt", true],
+          ["foo-bar", true],
+        ]) {
+          assertEditRoundTrip(parser, { seed, remove: "print", insert, valid });
+        }
+      }
+      for (const [seed, remove, insert] of [
+        ["pri\0nt() { :; }\n", "nt", "\\nt"],
+        ["a[1]() { :; }\n", "1", '"1"'],
+        ["a[1]() { :; }\n", "1", "$x"],
+        ["<(echo x)() { :; }\n", "x", '"x"'],
+        ["<(echo x)() { :; }\n", "x", "$x"],
+        ...(extglob
+          ? [
+              ["@(a)() { :; }\n", "a", '"a"'],
+              ["function @(a) { :; }\n", "a", "$x"],
+            ]
+          : []),
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
+      }
+    });
+
+    test("rejected implicit function names retain source escapes", () => {
+      for (const [source, escaped] of [
+        ["pri\\nt() { :; }\n", "\\n"],
+        ["\\! () { :; }\n", "\\!"],
+      ]) {
+        const parsed = parser.parse(source, { arguments: ["-c"] });
+        assert.equal(parsed.status, 1, parsed.output);
+        const actual = sourceNodes(parsed.tree, source);
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "escaped_character")
+            .map(({ text }) => text),
+          [escaped],
+          parsed.output,
+        );
+        assert.equal(
+          actual.some(({ type }) => type === "function_definition"),
+          false,
+          parsed.output,
+        );
       }
     });
 

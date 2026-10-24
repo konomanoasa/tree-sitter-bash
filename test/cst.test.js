@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
-import { grammars } from "../scripts/tree-sitter.js";
+import { grammars, root } from "../scripts/tree-sitter.js";
 import { corpusCases } from "./support/corpus.js";
 import {
   cstFingerprint,
@@ -128,6 +130,17 @@ for (const grammar of grammars) {
       parser?.close();
     });
     const nodes = (source) => parseNodes(parser, source);
+    test("arithmetic for metadata requires its header children", () => {
+      const definitions = JSON.parse(
+        readFileSync(join(root, grammar.path, "src/node-types.json"), "utf8"),
+      );
+      assert.equal(
+        definitions.find(
+          ({ type, named }) => type === "arithmetic_for_clause" && named,
+        )?.children?.required,
+        true,
+      );
+    });
     for (const { name, source, languages, status } of examples) {
       if (languages.length && !languages.includes(grammar.name)) continue;
       test(`${name}: source ranges and fresh determinism`, () => {

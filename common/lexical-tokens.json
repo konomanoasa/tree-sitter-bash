@@ -669,6 +669,10 @@
     {
       "begin": "_raw_command_name_begin",
       "scanner": "RAW_COMMAND_NAME_BEGIN"
+    },
+    {
+      "begin": "_closing_blank_begin",
+      "scanner": "CLOSING_BLANK_BEGIN"
     }
   ],
   "physical": [
@@ -799,6 +803,10 @@
     {
       "begin": "_command_open",
       "scanner": "COMMAND_OPEN"
+    },
+    {
+      "begin": "_command_close",
+      "scanner": "COMMAND_CLOSE"
     },
     {
       "begin": "_arithmetic_expansion_open",

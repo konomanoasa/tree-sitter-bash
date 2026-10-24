@@ -269,36 +269,19 @@ f() [[ -n "$x" ]]
                 (conditional_close)))))))))
 
 ==================
-function name validity deferred
+explicit function names reject double quotation
 :language(bash)
 :language(bash_default)
+:error
 ==================
 function "f" { :; }
 
 ------------------
 
-(program
-  (list
-    (and_or
-      (pipeline
-        (command
-          (function_definition
-            (function_keyword )
-            (function_name )
-            (function_body
-              (brace_group
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (word
-                            (literal ))))))
-                  (separator
-                    (separator_op )))))))))))
+
 
 ==================
-process substitution function name defers identifier validity
+unquoted process substitution function names preserve source
 :language(bash)
 :language(bash_default)
 ==================
@@ -486,172 +469,83 @@ Disabled extglob permits an adjacent punctuation function name
                     operator: (separator_op)))))))))))
 
 ==================
-escaped command and function names advance through each source escape
+escaped command names retain source escapes
 :language(bash)
+:language(bash_default)
 :cst
 ==================
-\if arg; \! () { :; }; function f\ name { :; }
+\if arg
+
+------------------
+
+0:0 - 1:0   program
+0:0 - 1:0     commands: list
+0:0 - 0:7       and_or: and_or
+0:0 - 0:7         pipeline: pipeline
+0:0 - 0:7           command: command
+0:0 - 0:7             body: simple_command
+0:0 - 0:3               name: word
+0:0 - 0:2                 escaped_character `\\i`
+0:2 - 0:3                 literal `f`
+0:4 - 0:7               argument: word
+0:4 - 0:7                 literal `arg`
+0:7 - 1:0       "\n"
+
+==================
+explicit unquoted function names retain reserved spellings
+:language(bash)
+:language(bash_default)
+:cst
+==================
+function } { :; }; function then { :; }
 
 ------------------
 
 0:0  - 1:0    program
 0:0  - 1:0      commands: list
-0:0  - 0:7        and_or: and_or
-0:0  - 0:7          pipeline: pipeline
-0:0  - 0:7            command: command
-0:0  - 0:7              body: simple_command
-0:0  - 0:3                name: word
-0:0  - 0:2                  escaped_character `\\i`
-0:2  - 0:3                  literal `f`
-0:4  - 0:7                argument: word
-0:4  - 0:7                  literal `arg`
-0:7  - 0:8        separator: separator_op
-0:7  - 0:8          ";"
-0:9  - 0:21       and_or: and_or
-0:9  - 0:21         pipeline: pipeline
-0:9  - 0:21           command: command
-0:9  - 0:21             body: function_definition
-0:9  - 0:11               name: function_name `\\!`
-0:12 - 0:13               "("
-0:13 - 0:14               ")"
-0:15 - 0:21               body: function_body
-0:15 - 0:21                 body: brace_group
-0:15 - 0:16                   "{"
-0:16 - 0:20                   body: list
-0:17 - 0:18                     and_or: and_or
-0:17 - 0:18                       pipeline: pipeline
-0:17 - 0:18                         command: command
-0:17 - 0:18                           body: simple_command
-0:17 - 0:18                             name: word
-0:17 - 0:18                               literal `:`
-0:18 - 0:19                     separator: separator
-0:18 - 0:19                       operator: separator_op
-0:18 - 0:19                         ";"
-0:20 - 0:21                   "}"
-0:21 - 0:22       separator: separator_op
-0:21 - 0:22         ";"
-0:23 - 0:46       and_or: and_or
-0:23 - 0:46         pipeline: pipeline
-0:23 - 0:46           command: command
-0:23 - 0:46             body: function_definition
-0:23 - 0:31               function_keyword `function`
-0:32 - 0:39               name: function_name `f\\ name`
-0:40 - 0:46               body: function_body
-0:40 - 0:46                 body: brace_group
-0:40 - 0:41                   "{"
-0:41 - 0:45                   body: list
-0:42 - 0:43                     and_or: and_or
-0:42 - 0:43                       pipeline: pipeline
-0:42 - 0:43                         command: command
-0:42 - 0:43                           body: simple_command
-0:42 - 0:43                             name: word
-0:42 - 0:43                               literal `:`
-0:43 - 0:44                     separator: separator
-0:43 - 0:44                       operator: separator_op
-0:43 - 0:44                         ";"
-0:45 - 0:46                   "}"
-0:46 - 1:0        "\n"
-
-==================
-quoted and explicit function names retain reserved spellings
-:language(bash)
-:cst
-==================
-"[[" () { :; }; "!" () { :; }; function } { :; }; function then { :; }
-
-------------------
-
-0:0  - 1:0    program
-0:0  - 1:0      commands: list
-0:0  - 0:14       and_or: and_or
-0:0  - 0:14         pipeline: pipeline
-0:0  - 0:14           command: command
-0:0  - 0:14             body: function_definition
-0:0  - 0:4                name: function_name `\"[[\"`
-0:5  - 0:6                "("
-0:6  - 0:7                ")"
-0:8  - 0:14               body: function_body
-0:8  - 0:14                 body: brace_group
-0:8  - 0:9                    "{"
-0:9  - 0:13                   body: list
-0:10 - 0:11                     and_or: and_or
-0:10 - 0:11                       pipeline: pipeline
-0:10 - 0:11                         command: command
-0:10 - 0:11                           body: simple_command
-0:10 - 0:11                             name: word
-0:10 - 0:11                               literal `:`
-0:11 - 0:12                     separator: separator
-0:11 - 0:12                       operator: separator_op
-0:11 - 0:12                         ";"
-0:13 - 0:14                   "}"
-0:14 - 0:15       separator: separator_op
-0:14 - 0:15         ";"
-0:16 - 0:29       and_or: and_or
-0:16 - 0:29         pipeline: pipeline
-0:16 - 0:29           command: command
-0:16 - 0:29             body: function_definition
-0:16 - 0:19               name: function_name `\"!\"`
-0:20 - 0:21               "("
-0:21 - 0:22               ")"
-0:23 - 0:29               body: function_body
-0:23 - 0:29                 body: brace_group
-0:23 - 0:24                   "{"
-0:24 - 0:28                   body: list
-0:25 - 0:26                     and_or: and_or
-0:25 - 0:26                       pipeline: pipeline
-0:25 - 0:26                         command: command
-0:25 - 0:26                           body: simple_command
-0:25 - 0:26                             name: word
-0:25 - 0:26                               literal `:`
-0:26 - 0:27                     separator: separator
-0:26 - 0:27                       operator: separator_op
-0:26 - 0:27                         ";"
-0:28 - 0:29                   "}"
-0:29 - 0:30       separator: separator_op
-0:29 - 0:30         ";"
-0:31 - 0:48       and_or: and_or
-0:31 - 0:48         pipeline: pipeline
-0:31 - 0:48           command: command
-0:31 - 0:48             body: function_definition
-0:31 - 0:39               function_keyword `function`
-0:40 - 0:41               name: function_name `}`
-0:42 - 0:48               body: function_body
-0:42 - 0:48                 body: brace_group
-0:42 - 0:43                   "{"
-0:43 - 0:47                   body: list
-0:44 - 0:45                     and_or: and_or
-0:44 - 0:45                       pipeline: pipeline
-0:44 - 0:45                         command: command
-0:44 - 0:45                           body: simple_command
-0:44 - 0:45                             name: word
-0:44 - 0:45                               literal `:`
-0:45 - 0:46                     separator: separator
-0:45 - 0:46                       operator: separator_op
-0:45 - 0:46                         ";"
-0:47 - 0:48                   "}"
-0:48 - 0:49       separator: separator_op
-0:48 - 0:49         ";"
-0:50 - 0:70       and_or: and_or
-0:50 - 0:70         pipeline: pipeline
-0:50 - 0:70           command: command
-0:50 - 0:70             body: function_definition
-0:50 - 0:58               function_keyword `function`
-0:59 - 0:63               name: function_name `then`
-0:64 - 0:70               body: function_body
-0:64 - 0:70                 body: brace_group
-0:64 - 0:65                   "{"
-0:65 - 0:69                   body: list
-0:66 - 0:67                     and_or: and_or
-0:66 - 0:67                       pipeline: pipeline
-0:66 - 0:67                         command: command
-0:66 - 0:67                           body: simple_command
-0:66 - 0:67                             name: word
-0:66 - 0:67                               literal `:`
-0:67 - 0:68                     separator: separator
-0:67 - 0:68                       operator: separator_op
-0:67 - 0:68                         ";"
-0:69 - 0:70                   "}"
-0:70 - 1:0        "\n"
+0:0  - 0:17       and_or: and_or
+0:0  - 0:17         pipeline: pipeline
+0:0  - 0:17           command: command
+0:0  - 0:17             body: function_definition
+0:0  - 0:8                function_keyword `function`
+0:9  - 0:10               name: function_name `}`
+0:11 - 0:17               body: function_body
+0:11 - 0:17                 body: brace_group
+0:11 - 0:12                   "{"
+0:12 - 0:16                   body: list
+0:13 - 0:14                     and_or: and_or
+0:13 - 0:14                       pipeline: pipeline
+0:13 - 0:14                         command: command
+0:13 - 0:14                           body: simple_command
+0:13 - 0:14                             name: word
+0:13 - 0:14                               literal `:`
+0:14 - 0:15                     separator: separator
+0:14 - 0:15                       operator: separator_op
+0:14 - 0:15                         ";"
+0:16 - 0:17                   "}"
+0:17 - 0:18       separator: separator_op
+0:17 - 0:18         ";"
+0:19 - 0:39       and_or: and_or
+0:19 - 0:39         pipeline: pipeline
+0:19 - 0:39           command: command
+0:19 - 0:39             body: function_definition
+0:19 - 0:27               function_keyword `function`
+0:28 - 0:32               name: function_name `then`
+0:33 - 0:39               body: function_body
+0:33 - 0:39                 body: brace_group
+0:33 - 0:34                   "{"
+0:34 - 0:38                   body: list
+0:35 - 0:36                     and_or: and_or
+0:35 - 0:36                       pipeline: pipeline
+0:35 - 0:36                         command: command
+0:35 - 0:36                           body: simple_command
+0:35 - 0:36                             name: word
+0:35 - 0:36                               literal `:`
+0:36 - 0:37                     separator: separator
+0:36 - 0:37                       operator: separator_op
+0:36 - 0:37                         ";"
+0:38 - 0:39                   "}"
+0:39 - 1:0        "\n"
 
 ==================
 function names accept non-assignment equals signs and extglob patterns
@@ -1026,5 +920,288 @@ function absent body "function f()\n"
 :error
 ==================
 function f()
+
+------------------
+==================
+function names retain line continuations without quoting the name
+:language(bash)
+:language(bash_default)
+:cst
+==================
+pri\
+nt() { :; }
+function pri\
+nt { :; }
+
+------------------
+
+0:0  - 4:0    program
+0:0  - 4:0      commands: list
+0:0  - 1:11       and_or: and_or
+0:0  - 1:11         pipeline: pipeline
+0:0  - 1:11           command: command
+0:0  - 1:11             body: function_definition
+0:0  - 1:2                name: function_name
+0:3  - 0:4                  line_continuation `\\`
+1:2  - 1:3                "("
+1:3  - 1:4                ")"
+1:5  - 1:11               body: function_body
+1:5  - 1:11                 body: brace_group
+1:5  - 1:6                    "{"
+1:6  - 1:10                   body: list
+1:7  - 1:8                      and_or: and_or
+1:7  - 1:8                        pipeline: pipeline
+1:7  - 1:8                          command: command
+1:7  - 1:8                            body: simple_command
+1:7  - 1:8                              name: word
+1:7  - 1:8                                literal `:`
+1:8  - 1:9                      separator: separator
+1:8  - 1:9                        operator: separator_op
+1:8  - 1:9                          ";"
+1:10 - 1:11                   "}"
+1:11 - 2:0        "\n"
+2:0  - 3:9        and_or: and_or
+2:0  - 3:9          pipeline: pipeline
+2:0  - 3:9            command: command
+2:0  - 3:9              body: function_definition
+2:0  - 2:8                function_keyword `function`
+2:9  - 3:2                name: function_name
+2:12 - 2:13                 line_continuation `\\`
+3:3  - 3:9                body: function_body
+3:3  - 3:9                  body: brace_group
+3:3  - 3:4                    "{"
+3:4  - 3:8                    body: list
+3:5  - 3:6                      and_or: and_or
+3:5  - 3:6                        pipeline: pipeline
+3:5  - 3:6                          command: command
+3:5  - 3:6                            body: simple_command
+3:5  - 3:6                              name: word
+3:5  - 3:6                                literal `:`
+3:6  - 3:7                      separator: separator
+3:6  - 3:7                        operator: separator_op
+3:6  - 3:7                          ";"
+3:8  - 3:9                    "}"
+3:9  - 4:0        "\n"
+
+==================
+function names reject backslash quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+pri\nt() { :; }
+
+------------------
+
+
+
+==================
+explicit function names reject backslash quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+function pri\nt { :; }
+
+------------------
+
+
+
+==================
+an escaped separator cannot form an explicit function name
+:language(bash)
+:language(bash_default)
+:error
+==================
+function f\ name { :; }
+
+------------------
+
+
+
+==================
+function names reject quoted reserved punctuation
+:language(bash)
+:language(bash_default)
+:error
+==================
+"[[" () { :; }
+
+------------------
+
+
+
+==================
+function names reject escaped reserved punctuation
+:language(bash)
+:language(bash_default)
+:error
+==================
+\! () { :; }
+
+------------------
+
+
+
+==================
+function names reject single quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+'f@'() { :; }
+
+------------------
+
+
+
+==================
+function names reject partial quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+pr"int"() { :; }
+
+------------------
+
+
+
+==================
+function names reject ANSI-C quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+$'print'() { :; }
+
+------------------
+
+
+
+==================
+function names reject locale quotation
+:language(bash)
+:language(bash_default)
+:error
+==================
+$"print"() { :; }
+
+------------------
+
+
+
+==================
+function names reject parameter expansions
+:language(bash)
+:language(bash_default)
+:error
+==================
+$print() { :; }
+
+------------------
+
+
+
+==================
+function names reject literal dollars
+:language(bash)
+:language(bash_default)
+:error
+==================
+print$() { :; }
+
+------------------
+
+
+
+==================
+explicit function names reject command substitutions
+:language(bash)
+:language(bash_default)
+:error
+==================
+function $(echo print) { :; }
+
+------------------
+
+
+
+==================
+function names reject dollars inside subscript spellings
+:language(bash)
+:language(bash_default)
+:error
+==================
+a[$x]() { :; }
+
+------------------
+
+
+
+==================
+function names reject quotes inside subscript spellings
+:language(bash)
+:language(bash_default)
+:error
+==================
+a["x"]() { :; }
+
+------------------
+
+
+
+==================
+function names reject quotes inside process substitutions
+:language(bash)
+:language(bash_default)
+:error
+==================
+<(printf '%s' ')')() { :; }
+
+------------------
+
+
+
+==================
+function names reject dollars inside process substitutions
+:language(bash)
+:language(bash_default)
+:error
+==================
+<(echo $x)() { :; }
+
+------------------
+
+
+
+==================
+function names reject literal dollars before extglob patterns
+:language(bash)
+:error
+==================
+$?(d)() { :; }
+
+------------------
+
+
+
+==================
+function names reject quotes inside extglob patterns
+:language(bash)
+:error
+==================
+@(pr"int")() { :; }
+
+------------------
+
+
+
+==================
+function names reject dollars inside extglob patterns
+:language(bash)
+:error
+==================
+@(a$x)() { :; }
 
 ------------------

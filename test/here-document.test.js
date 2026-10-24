@@ -200,6 +200,42 @@ for (const grammar of grammars) {
         }
       }
     });
+    test("breaking a here document terminator after trailing blanks or a comment restores the sequence", () => {
+      for (const seed of [
+        "cat <<`cat` # c\nx\n`cat`\n",
+        "cat <<`cat`  \nx\n`cat`\n",
+        "cat <<-`cat` # c\n\tx\n\t`cat`\n",
+        "cat <<`cat` | cat # c\nx\n`cat`\n",
+        "cat <<`cat` # c\nx\n`cat`\necho after\n",
+      ]) {
+        assertEditRoundTrip(parser, {
+          seed,
+          remove: "`cat`\n",
+          insert: "`c[at`\n",
+          valid: false,
+        });
+      }
+    });
+    test("breaking a here document terminator inside a quoted substitution restores the command", () => {
+      for (const [open, close] of [
+        ['"$(', ')"'],
+        ['"`', '`"'],
+        ['"${ ', '}"'],
+      ]) {
+        assertEditRoundTrip(parser, {
+          seed: `echo ${open}cat <<\${x:-E} \nx\n\${x:-E}\n${close}\n`,
+          remove: `\${x:-E}\n`,
+          insert: `\${x:"-E}\n`,
+          valid: false,
+        });
+      }
+      assertEditRoundTrip(parser, {
+        seed: `echo "$(cat <<\${x:-E}\n\\$x\n\${x:-E}\n)"\n`,
+        remove: `\${x:-E}\n)`,
+        insert: `\${x:"-E}\n)`,
+        valid: false,
+      });
+    });
     const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
     test("stripped tabs on a final line without a newline end an empty delimiter", () => {
@@ -345,7 +381,7 @@ for (const grammar of grammars) {
 
       test("here document delimiter: continued reply prefix preserves the source word", () => {
         const word = `\${|\\\n \tprintf x; }`;
-        const delimiter = `\${|printf x; }`;
+        const delimiter = `\${| \tprintf x; }`;
         const source = `cat << ${word}\n$body\n${delimiter}\nprintf after\n`;
         const actual = nodes(source);
         assert.equal(
@@ -378,11 +414,11 @@ for (const grammar of grammars) {
       for (const source of [
         'cat << @("a b"|c)\n$body\n@(a b|c)\n',
         'cat << ""$(printf "a b")\n$body\n$(printf "a b")\n',
-        `cat << \${  :; }\n$body\n\${  :; }\n`,
-        `cat << \${| :; }\n$body\n\${| :; }\n`,
+        `cat << \${  :; }\n$body\n\${ :; }\n`,
+        `cat << \${| :; }\n$body\n\${|:; }\n`,
         `cat << '\${| :; }'\n$body\n\${|:; }\n`,
       ]) {
-        test(`a delimiter with incorrect normalization remains unterminated: ${JSON.stringify(source)}`, () => {
+        test(`an altered delimiter spelling remains unterminated: ${JSON.stringify(source)}`, () => {
           const actual = nodes(source);
           assert.ok(!actual.some(({ type }) => type === "here_document_end"));
         });
@@ -453,15 +489,15 @@ for (const grammar of grammars) {
           valid: false,
         },
         {
-          name: "a brace delimiter prefix gains layout without changing its value",
+          name: "a brace delimiter gains a newline and becomes unterminated",
           seed: `cat << \${ :; }\n$x\n\${ :; }\n`,
           remove: `<< \${ `,
           insert: `<< \${\n\t `,
           valid: true,
         },
         {
-          name: "a reply delimiter prefix loses layout without changing its value",
-          seed: `cat << \${| \t:; }\n$x\n\${|:; }\n`,
+          name: "a reply delimiter loses layout and no longer matches its terminator",
+          seed: `cat << \${| \t:; }\n$x\n\${| \t:; }\n`,
           remove: `<< \${| \t`,
           insert: `<< \${|`,
           valid: true,
@@ -474,11 +510,11 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "an inner reply delimiter prefix changes while an outer document is pending",
+          name: "an inner reply delimiter gains a newline while an outer document is pending",
           seed: `: <<OUT "$(cat << \${|:; }\n日$x\n\${|:; }\n)"\n$y\nOUT\n`,
           remove: `<< \${|`,
           insert: `<< \${|\n\t`,
-          valid: true,
+          valid: false,
         },
         {
           name: "a process substitution delimiter becomes quoted",
@@ -784,6 +820,158 @@ for (const grammar of grammars) {
       }
       const source = "cat <<OUT $(:) `:`\nbody\nOUT\n";
       assert.equal(parser.parse(source, {}).status, 0);
+    });
+
+    test("delimiter spelling preserves control bytes and layout through edits", () => {
+      for (const [word, end, nonEnd] of [
+        ["\x01", "\x01", "\x01\x01"],
+        ["\x7f", "\x7f", "\x01\x7f"],
+        ["'\x01'", "\x01", "\x01\x01"],
+        ['"\x7f"', "\x7f", "\x01\x7f"],
+        ['""\x01', "\x01", "\x01\x01"],
+        ["\x7f''", "\x7f", "\x01\x7f"],
+        ["\\\x01''", "\x01", "\x01\x01"],
+        ['"\\\x7f"', "\\\x7f", "\\\x01\x7f"],
+        ["\\\x01\x7f''", "\x01\x7f", "\x01\x01\x7f"],
+        ["'\\\x01'", "\\\x01", "\\\x01\x01"],
+        ["$'\x01'", "\x01", "\x01\x01"],
+        ["$'\\x01'", "\x01", "\x01\x01"],
+        ["$'\\177'", "\x7f", "\x01\x7f"],
+        ["$'\\u0001'", "\x01", "\x01\x01"],
+        ["$'\\c?'", "\x7f", "\x01\x7f"],
+        ["A$'\\x01'B", "A\x01B", "A\x01\x01B"],
+        ["$'\\x01\\x7f\\x01'", "\x01\x7f\x01", "\x01\x01\x01\x7f\x01\x01"],
+        ["$'A\\0\\x01'$'\\x7f'", "A\x7f", "A\x01\x7f"],
+        [`"\${x:-$'\\x01'}"`, `\${x:-\x01}`, `\${x:-\x01\x01}`],
+        [`\${x:-$'\\x01'}`, `\${x:-'\x01'}`, `\${x:-'\x01\x01'}`],
+        [`"$(printf $'\\x7f')"`, `$(printf '\x7f')`, `$(printf '\x01\x7f')`],
+        [`\${\t :; }`, `\${\t :; }`, `\${ :; }`],
+        [`\${| \t:; }`, `\${| \t:; }`, `\${|:; }`],
+        [`\${|\\\n \t:; }`, `\${| \t:; }`, `\${|:; }`],
+        [`""\${| \tprintf "x"; }`, `\${| \tprintf x; }`, `\${|printf x; }`],
+        [`"\${\tprintf $'x'; }"`, `\${\tprintf 'x'; }`, `\${ printf 'x'; }`],
+      ]) {
+        const body = `body\n${nonEnd}\n`;
+        const seed = `cat <<${word}\n${body}${end}\necho AFTER\n`;
+        const actual = nodes(seed);
+        const delimiter = actual.find(({ type }) => type === "here_end");
+        assert.equal(delimiter?.text, word);
+        assert.equal(delimiter?.start, 6);
+        assert.equal(delimiter?.end, 6 + Buffer.byteLength(word));
+        assert.deepEqual(
+          actual
+            .filter(({ type }) =>
+              ["here_document_body", "quoted_here_document_body"].includes(
+                type,
+              ),
+            )
+            .map(({ text }) => text),
+          [body],
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text, start, end: endByte }) => [text, start, endByte]),
+          [
+            [
+              end,
+              Buffer.byteLength(`cat <<${word}\n${body}`),
+              Buffer.byteLength(`cat <<${word}\n${body}${end}`),
+            ],
+          ],
+        );
+        assert.ok(
+          actual.some(
+            ({ type, text }) =>
+              type === "simple_command" && text === "echo AFTER",
+          ),
+        );
+        assertEditRoundTrip(parser, {
+          seed,
+          remove: word,
+          insert: "E",
+          valid: true,
+        });
+      }
+    });
+
+    test("decoded delimiter byte edits retain incomplete UTF-8 and restore matching", () => {
+      for (const [word, end, remove] of [
+        ["$'\\xc3\\xa9'", "é", "\\xa9"],
+        ["$'\\303\\251'", "é", "\\251"],
+        ["$'\\xc3'$'\\xa9'", "é", "\\xa9"],
+        ["$'\\xc3'\"\"$'\\xa9'", "é", "\\xa9"],
+        ["$'\\xc3\\0'$'\\xa9'", "é", "\\xa9"],
+        ["$'\\xe3\\x81\\x82'", "あ", "\\x82"],
+        ["$'\\xf0\\x9f\\x98\\x80'", "😀", "\\x80"],
+        [`"\${x:-$'\\xc3\\xa9'}"`, `\${x:-é}`, "\\xa9"],
+      ]) {
+        const seed = `cat <<${word}\nbody\n${end}\necho AFTER\n`;
+        const actual = nodes(seed);
+        assert.equal(
+          actual.find(({ type }) => type === "here_end")?.text,
+          word,
+        );
+        assert.deepEqual(
+          actual
+            .filter(({ type }) => type === "here_document_end_text")
+            .map(({ text }) => text),
+          [end],
+        );
+        assert.ok(
+          actual.some(
+            ({ type, text }) =>
+              type === "simple_command" && text === "echo AFTER",
+          ),
+        );
+        const incomplete = nodes(seed.replace(remove, ""));
+        assert.equal(
+          incomplete.find(({ type }) => type === "here_end")?.text,
+          word.replace(remove, ""),
+        );
+        assert.ok(!incomplete.some(({ type }) => type === "here_document_end"));
+        assert.equal(
+          incomplete.find(({ type }) => type === "quoted_here_document_body")
+            ?.text,
+          `body\n${end}\necho AFTER\n`,
+        );
+        assertEditRoundTrip(parser, { seed, remove, insert: "", valid: true });
+      }
+    });
+
+    test("multibyte control escapes preserve source and do not invent terminators", () => {
+      for (const [word, asciiWord, end] of [
+        ["$'\\cé'", "$'\\cI'", "\t"],
+        ["$'\\cあ'", "$'\\cB'", "\u0002"],
+        ["$'\\c😀'", "$'\\c@'", ""],
+        [`"\${x:-$'\\cé'}"`, `"\${x:-$'\\cI'}"`, `\${x:-\t}`],
+      ]) {
+        const body = `body\n${end}\n�\necho AFTER\n`;
+        const source = `cat <<${word}\n${body}`;
+        const actual = nodes(source);
+        const delimiter = actual.find(({ type }) => type === "here_end");
+        assert.equal(delimiter?.text, word);
+        assert.equal(delimiter?.start, 6);
+        assert.equal(delimiter?.end, 6 + Buffer.byteLength(word));
+        assert.ok(!actual.some(({ type }) => type === "here_document_end"));
+        assert.equal(
+          actual.find(({ type }) => type === "quoted_here_document_body")?.text,
+          body,
+        );
+        const seed = `cat <<${asciiWord}\n${body}`;
+        assert.deepEqual(
+          nodes(seed)
+            .filter(({ type }) => type === "here_document_end")
+            .map(({ text }) => text),
+          [`${end}\n`],
+        );
+        assertEditRoundTrip(parser, {
+          seed,
+          remove: asciiWord,
+          insert: word,
+          valid: true,
+        });
+      }
     });
 
     test("undecodable delimiter bytes are rejected and repaired without losing body bytes", () => {

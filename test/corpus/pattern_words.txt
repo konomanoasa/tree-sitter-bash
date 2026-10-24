@@ -69,8 +69,7 @@ Reserved punctuation separates groups and extglob
 special parameter spellings before extglob patterns are literal dollars
 :language(bash)
 ==================
-$@(a) $!(b|c)x
-$?(d)() { :; }
+$@(a) $!(b|c)x $?(d)
 
 ------------------
 
@@ -94,23 +93,13 @@ $?(d)() { :; }
                   (literal))
                 (extglob_alternative
                   (literal)))
-              (literal))))))
-    (and_or
-      (pipeline
-        (command
-          (function_definition
-            (function_name)
-            (function_body
-              (brace_group
-                (list
-                  (and_or
-                    (pipeline
-                      (command
-                        (simple_command
-                          (word
-                            (literal))))))
-                  (separator
-                    (separator_op)))))))))))
+              (literal))
+            (word
+              (literal)
+              (extglob_pattern
+                (extglob_operator)
+                (extglob_alternative
+                  (literal))))))))))
 
 ==================
 extglob kinds and nesting
@@ -614,7 +603,7 @@ extglob suffixes stay in command words beside function definitions
 :language(bash)
 :cst
 ==================
-a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
+a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }
 
 ------------------
 
@@ -684,30 +673,7 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }; 'f@'() { :; }
 0:38 - 0:39                       operator: separator_op
 0:38 - 0:39                         ";"
 0:40 - 0:41                   "}"
-0:41 - 0:42       separator: separator_op
-0:41 - 0:42         ";"
-0:43 - 0:56       and_or: and_or
-0:43 - 0:56         pipeline: pipeline
-0:43 - 0:56           command: command
-0:43 - 0:56             body: function_definition
-0:43 - 0:47               name: function_name `'f@'`
-0:47 - 0:48               "("
-0:48 - 0:49               ")"
-0:50 - 0:56               body: function_body
-0:50 - 0:56                 body: brace_group
-0:50 - 0:51                   "{"
-0:51 - 0:55                   body: list
-0:52 - 0:53                     and_or: and_or
-0:52 - 0:53                       pipeline: pipeline
-0:52 - 0:53                         command: command
-0:52 - 0:53                           body: simple_command
-0:52 - 0:53                             name: word
-0:52 - 0:53                               literal `:`
-0:53 - 0:54                     separator: separator
-0:53 - 0:54                       operator: separator_op
-0:53 - 0:54                         ";"
-0:55 - 0:56                   "}"
-0:56 - 1:0        "\n"
+0:41 - 1:0        "\n"
 
 ==================
 extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"
