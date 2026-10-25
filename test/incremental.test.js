@@ -67,11 +67,11 @@ for (const grammar of grammars) {
       for (const { source, reuse } of [
         {
           source: "declare x=value\n".repeat(partCount),
-          reuse: /reuse_node symbol:_complete_command/,
+          reuse: /^reuse_node symbol:complete_command$/m,
         },
         {
           source: `declare x="value${"$y-x".repeat(partCount)}"\n`,
-          reuse: /reuse_node symbol:parameter_expansion/,
+          reuse: /^reuse_node symbol:parameter_expansion$/m,
         },
       ]) {
         const edit = {

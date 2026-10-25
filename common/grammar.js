@@ -1539,23 +1539,23 @@ export default function defineGrammar(name) {
       ),
 
       complete_commands: ($) =>
-        seq(
-          field("command", $.complete_command),
-          optional($._complete_commands_tail),
-          optional($._term_boundary),
-        ),
-
-      _complete_commands_tail: ($) =>
         prec.right(
           seq(
-            field("separator", commandListNewlines($)),
-            optional($._separator_layout),
-            optional(
+            field("command", $.complete_command),
+            repeat(
               seq(
+                field("separator", commandListNewlines($)),
+                optional($._separator_layout),
                 field("command", $.complete_command),
-                optional($._complete_commands_tail),
               ),
             ),
+            optional(
+              seq(
+                field("separator", commandListNewlines($)),
+                optional($._separator_layout),
+              ),
+            ),
+            optional($._term_boundary),
           ),
         ),
 
