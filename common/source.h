@@ -34,7 +34,7 @@ struct SourceCharacter {
   int32_t value;
   struct SourceOrigin origin;
   size_t boundary_stage;
-  /* Pending units track whether intervening physical source was only NUL. */
+  /* Only NULs follow the pending unit in physical source. */
   bool physical_tail;
 };
 

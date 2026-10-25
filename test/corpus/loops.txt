@@ -20,10 +20,11 @@ select choice in a b; do break; done
                     (select_keyword)
                     (name)
                     (in_keyword)
-                    (word
-                      (literal))
-                    (word
-                      (literal))
+                    (word_list
+                      (word
+                        (literal))
+                      (word
+                        (literal)))
                     (sequential_sep)
                     (do_group
                       (do_keyword)
@@ -101,10 +102,11 @@ for x in a b; { :; }
                     (for_keyword)
                     (name)
                     (in_keyword)
-                    (word
-                      (literal))
-                    (word
-                      (literal))
+                    (word_list
+                      (word
+                        (literal))
+                      (word
+                        (literal)))
                     (sequential_sep)
                     (brace_group
                       (compound_list
@@ -142,10 +144,11 @@ select x in a b; { break; }
                     (select_keyword)
                     (name)
                     (in_keyword)
-                    (word
-                      (literal))
-                    (word
-                      (literal))
+                    (word_list
+                      (word
+                        (literal))
+                      (word
+                        (literal)))
                     (sequential_sep)
                     (brace_group
                       (compound_list
@@ -261,10 +264,11 @@ select x in a b; { :; }
                     (select_keyword)
                     (name)
                     (in_keyword)
-                    (word
-                      (literal))
-                    (word
-                      (literal))
+                    (word_list
+                      (word
+                        (literal))
+                      (word
+                        (literal)))
                     (sequential_sep)
                     (brace_group
                       (compound_list
@@ -304,10 +308,11 @@ until test "$y"; do :; done
                     (for_keyword)
                     name: (name)
                     in: (in_keyword)
-                    word: (word
-                      (literal))
-                    word: (word
-                      (literal))
+                    words: (word_list
+                      word: (word
+                        (literal))
+                      word: (word
+                        (literal)))
                     separator: (sequential_sep)
                     body: (do_group
                       (do_keyword)
@@ -562,3 +567,80 @@ select word list missing separator "select x in a { :; }\n"
 select x in a { :; }
 
 ------------------
+
+==================
+single and empty iteration word lists retain their boundaries
+:language(bash)
+:language(bash_default)
+:cst
+==================
+for x in a; do :; done
+select y in; do :; done
+
+------------------
+
+0:0  - 2:0    program
+0:0  - 2:0      commands: complete_commands
+0:0  - 0:22       command: complete_command
+0:0  - 0:22         body: list
+0:0  - 0:22           and_or: and_or
+0:0  - 0:22             pipeline: pipeline
+0:0  - 0:22               pipe_sequence
+0:0  - 0:22                 command: command
+0:0  - 0:22                   body: compound_command
+0:0  - 0:22                     for_clause
+0:0  - 0:3                        for_keyword `for`
+0:4  - 0:5                        name: name `x`
+0:6  - 0:8                        in: in_keyword `in`
+0:9  - 0:10                       words: word_list
+0:9  - 0:10                         word: word
+0:9  - 0:10                           literal `a`
+0:10 - 0:11                       separator: sequential_sep
+0:10 - 0:11                         ";"
+0:12 - 0:22                       body: do_group
+0:12 - 0:14                         do_keyword `do`
+0:14 - 0:18                         body: compound_list
+0:15 - 0:18                           body: term
+0:15 - 0:16                             and_or: and_or
+0:15 - 0:16                               pipeline: pipeline
+0:15 - 0:16                                 pipe_sequence
+0:15 - 0:16                                   command: command
+0:15 - 0:16                                     body: simple_command
+0:15 - 0:16                                       name: word
+0:15 - 0:16                                         literal `:`
+0:16 - 0:17                             separator: separator
+0:16 - 0:17                               operator: separator_op
+0:16 - 0:17                                 ";"
+0:18 - 0:22                         done_keyword `done`
+0:22 - 1:0        separator: newline_list
+0:22 - 1:0          "\n"
+1:0  - 1:23       command: complete_command
+1:0  - 1:23         body: list
+1:0  - 1:23           and_or: and_or
+1:0  - 1:23             pipeline: pipeline
+1:0  - 1:23               pipe_sequence
+1:0  - 1:23                 command: command
+1:0  - 1:23                   body: compound_command
+1:0  - 1:23                     select_clause
+1:0  - 1:6                        select_keyword `select`
+1:7  - 1:8                        name: name `y`
+1:9  - 1:11                       in: in_keyword `in`
+1:11 - 1:12                       separator: sequential_sep
+1:11 - 1:12                         ";"
+1:13 - 1:23                       body: do_group
+1:13 - 1:15                         do_keyword `do`
+1:15 - 1:19                         body: compound_list
+1:16 - 1:19                           body: term
+1:16 - 1:17                             and_or: and_or
+1:16 - 1:17                               pipeline: pipeline
+1:16 - 1:17                                 pipe_sequence
+1:16 - 1:17                                   command: command
+1:16 - 1:17                                     body: simple_command
+1:16 - 1:17                                       name: word
+1:16 - 1:17                                         literal `:`
+1:17 - 1:18                             separator: separator
+1:17 - 1:18                               operator: separator_op
+1:17 - 1:18                                 ";"
+1:19 - 1:23                         done_keyword `done`
+1:23 - 2:0        separator: newline_list
+1:23 - 2:0          "\n"

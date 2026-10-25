@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { grammars, root } from "../scripts/tree-sitter.js";
-import { corpusCases } from "./support/corpus.js";
 import {
   cstFingerprint,
   namedStructure,
@@ -11,11 +10,7 @@ import {
   parseCst,
   sourceNodes,
 } from "./support/cst.js";
-import {
-  assertEditRoundTrip,
-  createParser,
-  parseNodes,
-} from "./support/parser.js";
+import { createParser, parseNodes } from "./support/parser.js";
 
 test("CST parsing ignores multiline source display fragments", () => {
   const output = [
@@ -118,6 +113,38 @@ test("CST comparisons preserve structure and fields independently of continuatio
   );
 });
 
+function corpusCases() {
+  const directory = join(root, "test", "corpus");
+  const header = "==================\n";
+  const separator = "\n------------------\n";
+  return readdirSync(directory)
+    .sort()
+    .flatMap((file) => {
+      const parts = readFileSync(join(directory, file), "utf8").split(header);
+      assert.equal(parts.shift(), "", file);
+      assert.equal(parts.length % 2, 0, file);
+      const cases = [];
+      for (let index = 0; index < parts.length; index += 2) {
+        const [name, ...attributes] = parts[index].trimEnd().split("\n");
+        const languages = [];
+        for (const attribute of attributes) {
+          const language = attribute.match(/^:language\(([a-z_]+)\)$/)?.[1];
+          if (language) languages.push(language);
+          else assert.ok(attribute === ":cst" || attribute === ":error", name);
+        }
+        const end = parts[index + 1].indexOf(separator);
+        assert.notEqual(end, -1, name);
+        cases.push({
+          name: `${file}: ${name}`,
+          source: parts[index + 1].slice(0, end),
+          languages,
+          status: attributes.includes(":error") ? 1 : 0,
+        });
+      }
+      return cases;
+    });
+}
+
 const examples = corpusCases();
 
 for (const grammar of grammars) {
@@ -130,6 +157,62 @@ for (const grammar of grammars) {
       parser?.close();
     });
     const nodes = (source) => parseNodes(parser, source);
+    test("syntax lists expose one owner field and required repeated elements", () => {
+      const definitions = JSON.parse(
+        readFileSync(join(root, grammar.path, "src/node-types.json"), "utf8"),
+      );
+      for (const { type, field, element, owners } of [
+        {
+          type: "word_list",
+          field: "word",
+          element: "word",
+          owners: [
+            ["for_clause", "words"],
+            ["select_clause", "words"],
+          ],
+        },
+        {
+          type: "case_list",
+          field: "item",
+          element: "case_item",
+          owners: [["case_clause", "items"]],
+        },
+        {
+          type: "redirect_list",
+          field: "redirect",
+          element: "io_redirect",
+          owners: [
+            ["command", "redirects"],
+            ["function_body", "redirects"],
+            ["coproc", "redirects"],
+          ],
+        },
+      ]) {
+        const definition = definitions.find(
+          (node) => node.type === type && node.named,
+        );
+        assert.deepEqual(definition?.fields, {
+          [field]: {
+            multiple: true,
+            required: true,
+            types: [{ type: element, named: true }],
+          },
+        });
+        assert.equal(definition?.children, undefined);
+        for (const [owner, ownerField] of owners) {
+          const parent = definitions.find(
+            (node) => node.type === owner && node.named,
+          );
+          assert.deepEqual(parent?.fields[ownerField], {
+            multiple: false,
+            required: false,
+            types: [{ type, named: true }],
+          });
+          assert.equal(parent?.fields[field], undefined);
+          assert.equal(parent?.fields.terminated, undefined);
+        }
+      }
+    });
     test("arithmetic for metadata requires its header children", () => {
       const definitions = JSON.parse(
         readFileSync(join(root, grammar.path, "src/node-types.json"), "utf8"),
@@ -280,15 +363,6 @@ for (const grammar of grammars) {
       });
     }
     if (grammar.name === "bash") {
-      test("Unicode edits use byte offsets", () => {
-        assertEditRoundTrip(parser, {
-          seed: "echo 日本語\n",
-          remove: "本",
-          insert: "本é",
-          valid: true,
-        });
-      });
-
       test("continued names use original byte ranges and retain each backslash once", () => {
         const source = "ec\\\nho $\\\n{name}\n";
         const actual = nodes(source);

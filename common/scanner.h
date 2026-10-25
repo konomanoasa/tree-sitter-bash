@@ -257,6 +257,7 @@ enum TokenType {
   SUBSTRING_SEPARATOR_BEGIN,
   PARAMETER_REPLACE_BEGIN,
   REPLACEMENT_SEPARATOR_BEGIN,
+  PARAMETER_REPLACEMENT_REFERENCE_BEGIN,
   PARAMETER_CASE_BEGIN,
   PARAMETER_TRANSFORM_BEGIN,
   PARAMETER_TRANSFORM_CODE_BEGIN,
@@ -2561,13 +2562,16 @@ static void lookahead_advance(TSLexer *lexer, bool skip) {
   lookahead_seek(lookahead, next);
 }
 
+static size_t lookahead_raw_cut(const struct LookaheadLexer *lookahead) {
+  return lookahead->length == 0
+    ? lookahead->views[0].input->consumed
+    : lookahead->characters[lookahead->position].raw_cut;
+}
+
 static void lookahead_mark_end(TSLexer *lexer) {
   struct LookaheadLexer *lookahead = (struct LookaheadLexer *)lexer;
   if (!lookahead->failed) {
-    struct LogicalLexer *input = lookahead->views[0].input;
-    input->mark = lookahead->length == 0
-      ? input->consumed
-      : lookahead->characters[lookahead->position].raw_cut;
+    lookahead->views[0].input->mark = lookahead_raw_cut(lookahead);
   }
 }
 
@@ -3017,8 +3021,7 @@ static size_t lexer_raw_position(const TSLexer *lexer) {
   if (lexer->advance == logical_advance)
     return ((const struct LogicalLexer *)lexer)->consumed;
   if (lexer->advance == lookahead_advance) {
-    const struct LookaheadLexer *probe = (const struct LookaheadLexer *)lexer;
-    return probe->characters[probe->position].raw_cut;
+    return lookahead_raw_cut((const struct LookaheadLexer *)lexer);
   }
   return 0;
 }
@@ -3178,9 +3181,8 @@ static bool word_region_contains(
     return ((const struct LogicalLexer *)lexer)->consumed <
       context->word_remaining;
   if (lexer->advance == lookahead_advance) {
-    const struct LookaheadLexer *probe = (const struct LookaheadLexer *)lexer;
-    return probe->length > 0 &&
-      probe->characters[probe->position].raw_cut < context->word_remaining;
+    return lookahead_raw_cut((const struct LookaheadLexer *)lexer) <
+      context->word_remaining;
   }
   return false;
 }
@@ -3217,6 +3219,12 @@ static bool parameter_pattern_context(const struct Scanner *scanner) {
     context == PARAMETER_REPLACE_BEGIN ||
     context == REPLACEMENT_SEPARATOR_BEGIN ||
     context == PARAMETER_TILDE_START;
+}
+
+static bool
+replacement_reference(const struct Scanner *scanner, const TSLexer *lexer) {
+  return lexer->lookahead == '&' &&
+    pattern_context(scanner) == REPLACEMENT_SEPARATOR_BEGIN;
 }
 
 static size_t bracket_context_index(const struct Scanner *scanner) {
@@ -3264,8 +3272,6 @@ static struct BracketScan bracket_scan(enum PatternMode mode) {
   };
 }
 
-/* Quoted atoms and brace expansions are opaque members and get consumed;
-   plain characters stay at the lexer. */
 static enum BracketStep bracket_step(
   const struct Scanner *scanner,
   TSLexer *lexer,
@@ -3487,7 +3493,6 @@ pattern_mode(const struct Scanner *scanner, bool parameter, bool assignment) {
   }
 }
 
-/* Cache omission affects performance only. */
 static void record_bracket_scan(
   struct Scanner *scanner,
   const struct BracketScan *scan,
@@ -5100,7 +5105,9 @@ static enum DelimiterReadResult read_here_document_delimiter(
       ? DELIMITER_READ_INCOMPLETE
       : DELIMITER_READ_INVALID;
   }
-  size_t end = lookahead_input(lexer)->consumed;
+  struct LogicalLexer *input = lookahead_input(lexer);
+  if (input == NULL) return DELIMITER_READ_RESOURCE_FAILURE;
+  size_t end = input->consumed;
   if (probe_position(lexer) == start) return DELIMITER_READ_INVALID;
   probe_seek(lexer, start);
   struct DelimiterSpelling spelling = {
@@ -7403,11 +7410,8 @@ static bool begin_embedded_skip(struct ArithmeticScan *scan, char closer) {
 }
 
 static bool arithmetic_limit_reached(const TSLexer *lexer, size_t limit) {
-  const struct LookaheadLexer *probe = (const struct LookaheadLexer *)lexer;
-  size_t consumed = probe->length == 0
-    ? probe->views[0].input->consumed
-    : probe->characters[probe->position].raw_cut;
-  return limit > 0 && consumed >= limit;
+  return limit > 0 &&
+    lookahead_raw_cut((const struct LookaheadLexer *)lexer) >= limit;
 }
 
 static bool skip_arithmetic_subscript(
@@ -10887,6 +10891,7 @@ static bool lexical_pattern_content(
   while (
     !pattern_boundary(scanner, lexer, parameter) &&
     !pattern_structured_start(input) &&
+    !replacement_reference(scanner, lexer) &&
     !bash_word_boundary(scanner, input, valid)
   ) {
     int32_t character = lexer->lookahead;
@@ -11227,7 +11232,6 @@ extglob_source_nested(struct Scanner *scanner, struct LogicalLexer *input) {
   const struct SourceContext *word = word_source_context(scanner, true);
   if (word == NULL) return true;
   enum TokenType context = pattern_context(scanner);
-  /* Extglob lookahead already checked patterns outside brace alternatives. */
   if (
     word->word_remaining > 0 &&
     (word->brace_free ||
@@ -11827,12 +11831,11 @@ static bool lexical_regex_classify(
   return result == DISPATCH_ACCEPTED;
 }
 
-/* A subscript shields operators only when it closes before the parameter's
-   closing brace; `pending` is the lowest depth holding an unshielded one. */
 static bool
 parameter_names_follow(const struct Scanner *scanner, TSLexer *lexer) {
   bool prefix = false;
   size_t depth = 0;
+  /* Lowest depth with an operator not shielded by a closed subscript. */
   size_t pending = 0;
   lexer->advance(lexer, false);
   while (!lexer_at_eof(lexer) && !lookahead_is_pending(lexer)) {
@@ -11939,6 +11942,11 @@ static bool lexical_parameter_operator(
     return accept_character(lexer, PARAMETER_NAMES_BEGIN);
   if (valid[PARAMETER_NAMES_TEXT_BEGIN] && lexical_parameter_names_text(input))
     return true;
+  if (
+    valid[PARAMETER_REPLACEMENT_REFERENCE_BEGIN] &&
+    replacement_reference(scanner, lexer)
+  )
+    return accept_character(lexer, PARAMETER_REPLACEMENT_REFERENCE_BEGIN);
   if (
     ch == '/' &&
     context == PARAMETER_REPLACE_BEGIN &&
@@ -12074,7 +12082,8 @@ static bool lexical_pattern_literal(
     (extglob_context(scanner)
         ? !lexer_at_eof(lexer) && lexer->lookahead != SOURCE_BACKQUOTE_BOUNDARY
         : !pattern_boundary(scanner, lexer, parameter_boundary)) &&
-    !pattern_structured_start(input)
+    !pattern_structured_start(input) &&
+    !replacement_reference(scanner, lexer)
   ) {
     int32_t character = lexer->lookahead;
     if (
@@ -13434,8 +13443,6 @@ static bool finish_classified_source(
   return accepted;
 }
 
-/* Zero-width closers and here-document body starts precede any reading
-   of logical source. */
 static enum DispatchResult scan_structural_token(
   struct Scanner *scanner,
   TSLexer *lexer,

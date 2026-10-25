@@ -100,10 +100,11 @@ groups own nested lists and following redirects
                                     (literal)))))))
                         separator: (separator
                           operator: (separator_op))))))
-                redirect: (io_redirect
-                  body: (io_file
-                    filename: (word
-                      (literal))))))))
+                redirects: (redirect_list
+                  redirect: (io_redirect
+                    body: (io_file
+                      filename: (word
+                        (literal)))))))))
         separator: (separator_op)
         and_or: (and_or
           pipeline: (pipeline
@@ -122,10 +123,11 @@ groups own nested lists and following redirects
                                     (literal))
                                   argument: (word
                                     (literal)))))))))))
-                redirect: (io_redirect
-                  body: (io_file
-                    filename: (word
-                      (literal))))))))))
+                redirects: (redirect_list
+                  redirect: (io_redirect
+                    body: (io_file
+                      filename: (word
+                        (literal)))))))))))
     separator: (newline_list)))
 
 ==================

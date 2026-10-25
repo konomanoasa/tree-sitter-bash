@@ -102,10 +102,11 @@ coproc worker { printf x; } >out
                                       (literal)))))))
                           (separator
                             (separator_op))))))
-                  (io_redirect
-                    (io_file
-                      (word
-                        (literal)))))))))))
+                  (redirect_list
+                    (io_redirect
+                      (io_file
+                        (word
+                          (literal))))))))))))
     (newline_list)))
 
 ==================

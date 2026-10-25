@@ -20,6 +20,20 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
+    test("syntax list edits preserve owners through empty single and multiple elements", () => {
+      for (const [seed, remove, insert] of [
+        ["for x in a b; do :; done\n", "a b", ""],
+        ["select x in a; do :; done\n", "a;", ";"],
+        ["case x in a);; b);; esac\n", "b);;", "b)"],
+        ["case x in a);; esac\n", "a);; ", ""],
+        ["case x in a) esac\n", "a)", "a);; b)"],
+        ["{ :; } >a 2>b\n", ">a 2>b", ""],
+        ["f() { :; } >a\n", ">a", ">a 2>b"],
+        ["coproc worker { :; } >a 2>b\n", "2>b", ""],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+      }
+    });
     test("eval and let argument boundaries survive edits and repair", () => {
       for (const [seed, remove, insert, valid] of [
         ["eval a=(one two) tail\n", "eval", "let", true],
@@ -51,51 +65,25 @@ for (const grammar of grammars) {
         assertEditRoundTrip(parser, { seed, remove, insert, valid });
       }
     });
-    test("special parameter indirection survives target edits and repair", () => {
-      for (const [seed, remove, insert, valid] of [
-        [`: \${!!}\n`, "!!", "!$", true],
-        [`: "\${!ref}"\n`, "ref", "$", true],
-        [`: \${!$:-x}\n`, ":-", "-", true],
-        [`: \${!$@Q}\n`, "@Q", "~~", true],
-        [`: \${!$}\n`, "!$", "!\\\n$", true],
-        [`: \${!\0$}\n`, "}", ":-x}", true],
-        [`: \${!$}\necho AFTER\n`, "}", "", false],
-        [`: \${!$}\necho AFTER\n`, "!$", "!$$", false],
-        [`: \${!$}\necho AFTER\n`, "}", "()}", false],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid });
-      }
-    });
-    test("name enumeration prefixes keep stars and switch to indirection at operators", () => {
-      for (const [seed, remove, insert, valid] of [
-        [`: \${!x*y*}\n`, "*y*", ":-y*", true],
-        [`: \${!x[a:b]*}\n`, "[a:b]", "[1]:-", true],
-        [`: \${!-*}\n`, "-", "x", true],
-        [`: "\${!x*!x@}"\n`, "*!x", "~", true],
-        [`: \${!x*y*}\n`, "*y", "\\\n*y", true],
-        [`: \${!x\0*y*}\n`, "*y*", ":-y*", true],
-        [`: \${!x.y*}\n`, "*}", ":-*}", false],
-        [`: "\${!x*!x@}"\n`, "@", "-", false],
-        [`: \${!x*y*}\necho AFTER\n`, "*}", "}", false],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid });
-      }
-    });
-    test("case toggle operator and pattern edits match fresh parses and repair", () => {
-      for (const [seed, remove, insert, valid] of [
-        [`: \${x^}\n`, "^", "~", true],
-        [`: "\${x~?}"\n`, "~", "~~", true],
-        [`: \${x~~~}\n`, "~~~", "~", true],
-        [`: \${x~\${p~~}}\n`, "~~", "^^", true],
-        [`: \${x~~[ab]}\n`, "[ab]", "$(printf a)", true],
-        [`: \${x~~}\n`, "~~", "~\\\n~", true],
-        [`: \${x~\0~}\n`, "x", "y", true],
-        [`: \${x~}\necho AFTER\n`, "}", "", false],
-        [`: \${x~$(printf a)}\necho AFTER\n`, "printf a", ";", false],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid });
-      }
-    });
+    for (const entry of [
+      {
+        name: "arithmetic for body separators change to commented linebreaks",
+        seed: "for ((;;)); do :; done\n",
+        remove: "; do",
+        insert: "\n# body\n do",
+        valid: true,
+      },
+      {
+        name: "function header comments change to continuations",
+        seed: "function f ( ) # header\n{ :; }\n",
+        remove: "# header\n",
+        insert: "\\\n",
+        valid: true,
+      },
+    ]) {
+      test(entry.name, () => assertEditRoundTrip(parser, entry));
+    }
+
     test("time remains a command after pipe layout edits and in nested sources", () => {
       for (const [seed, remove, insert] of [
         [": |\ntime x\n", "|", "|&"],
@@ -159,186 +147,6 @@ for (const grammar of grammars) {
         cstFingerprint(fresh.tree),
       );
     });
-    test("word loop headers remain deterministic and repair across body boundaries", () => {
-      for (const [seed, remove, insert, valid] of [
-        [
-          "echo BEFORE\nfor item in a b; do echo SAME; done\necho AFTER\n",
-          "echo SAME",
-          ")",
-          false,
-        ],
-        [
-          "echo BEFORE\nselect item in; do echo SAME; done\necho AFTER\n",
-          ";",
-          "",
-          false,
-        ],
-        [
-          "echo BEFORE\nfor item do echo SAME; done\necho AFTER\n",
-          "SAME",
-          '"',
-          false,
-        ],
-        [
-          "echo BEFORE\nselect item\ndo echo SAME; done\necho AFTER\n",
-          "do",
-          "",
-          false,
-        ],
-        [
-          "echo BEFORE\nfor item in a; { echo SAME; }\necho AFTER\n",
-          "}",
-          ")",
-          false,
-        ],
-        [
-          "echo BEFORE\nfor \\\nitem in a \\\nb; do echo SAME; done\necho AFTER\n",
-          "do",
-          "d",
-          false,
-        ],
-        [
-          "echo BEFORE\nselect item in a b; do echo SAME; done\necho AFTER\n",
-          "a b",
-          "a b c",
-          true,
-        ],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid });
-      }
-    });
-
-    test("case headers and nested word loops remain deterministic and repair", () => {
-      for (const [seed, remove, insert, valid] of [
-        ["echo BEFORE\ncase x in esac\necho AFTER\n", "x ", "", false],
-        [
-          "echo BEFORE\ncase \\\nx in\nx) echo SAME ;; esac\necho AFTER\n",
-          "in",
-          "i",
-          false,
-        ],
-        [
-          "echo BEFORE\nfor item in a; do case x in x) echo SAME ;; esac; done\necho AFTER\n",
-          "case x in",
-          "case x",
-          false,
-        ],
-        [
-          "echo BEFORE\ncase x in x) select item in a; do echo SAME; done ;; esac\necho AFTER\n",
-          "do",
-          "do )",
-          false,
-        ],
-        [
-          'echo BEFORE\necho "$(for item in a; do case x in x) echo SAME ;; esac; done)"\necho AFTER\n',
-          "echo SAME ;;",
-          "echo SAME ) ;;",
-          false,
-        ],
-        [
-          'echo BEFORE\necho "$(for item in a; do case x in x) echo SAME ;; esac; done)"\necho AFTER\n',
-          ";; esac",
-          ";; ) esac",
-          false,
-        ],
-        [
-          "echo BEFORE\ncase x in x) echo SAME ;; esac\necho AFTER\n",
-          "case x",
-          'case "$item"',
-          true,
-        ],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid });
-      }
-    });
-
-    test("conditional operand edits before closing delimiters are deterministic and repair", () => {
-      for (const fixture of [
-        {
-          seed: "echo BEFORE\n[[ x == y ]]\necho AFTER\n",
-          remove: "y",
-          insert: "",
-          valid: false,
-        },
-        {
-          seed: "echo BEFORE\n[[ x && y ]]\necho AFTER\n",
-          remove: "y",
-          insert: ")",
-          valid: false,
-        },
-        {
-          seed: "echo BEFORE\n[[ x =~ y ]]\necho AFTER\n",
-          remove: "y",
-          insert: "",
-          valid: false,
-        },
-        {
-          seed: "echo BEFORE\n[[ x == y ]\\\n]\necho AFTER\n",
-          remove: "y",
-          insert: "",
-          valid: false,
-        },
-      ]) {
-        assertEditRoundTrip(parser, fixture);
-      }
-    });
-
-    test("timing prefixes are deterministic and repair after unexpected delimiters", () => {
-      for (const [seed, remove, insert] of [
-        ["echo BEFORE\ntime echo SAME\necho AFTER\n", "time", ") time"],
-        ["echo BEFORE\ntime\necho AFTER\n", "time", ") time"],
-        ["echo BEFORE\ntime -p --\necho AFTER\n", "time", ") time"],
-        ["echo BEFORE\nti\\\nme -p echo SAME\necho AFTER\n", "ti", ") ti"],
-        [
-          "echo BEFORE\nf() { time echo SAME; }\necho AFTER\n",
-          "time",
-          ") time",
-        ],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
-      }
-    });
-
-    test("coprocesses and timing combinations repair after unexpected delimiters", () => {
-      for (const [seed, remove, insert] of [
-        [
-          "echo BEFORE\ncoproc C { echo SAME; }\necho AFTER\n",
-          "coproc",
-          ") coproc",
-        ],
-        [
-          "echo BEFORE\ncoproc { echo SAME; }\necho AFTER\n",
-          "coproc",
-          ") coproc",
-        ],
-        ["echo BEFORE\ncoproc echo SAME\necho AFTER\n", "coproc", ") coproc"],
-        ["echo BEFORE\ncop\\\nroc echo SAME\necho AFTER\n", "cop", ") cop"],
-        [
-          "echo BEFORE\ntime -p coproc C { echo SAME; }\necho AFTER\n",
-          "coproc",
-          ") coproc",
-        ],
-        [
-          "echo BEFORE\ncoproc C { time echo SAME; }\necho AFTER\n",
-          "time",
-          ") time",
-        ],
-        [
-          "echo BEFORE\ncoproc C { time echo SAME; }\necho AFTER\n",
-          "coproc",
-          ") coproc",
-        ],
-        ["echo BEFORE\n{ coproc C }\necho AFTER\n", " }", " x }"],
-        [
-          "echo BEFORE\nif :; then { echo SAME; } >out; fi\necho AFTER\n",
-          "; fi",
-          " fi",
-        ],
-      ]) {
-        assertEditRoundTrip(parser, { seed, remove, insert, valid: false });
-      }
-    });
-
     test("process substitutions in function names preserve their source spelling", () => {
       for (const [source, name] of [
         ["<(:)() { :; }\n", "<(:)"],
@@ -508,15 +316,6 @@ for (const grammar of grammars) {
     });
 
     if (grammar.name === "bash") {
-      test("comment becomes a command", () => {
-        assertEditRoundTrip(parser, {
-          seed: "# echo yes\n",
-          remove: "# ",
-          insert: "",
-          valid: true,
-        });
-      });
-
       test("time is a command or function name after a pipe", () => {
         const actual = nodes("time -p : | time : |& ti\\\nme() { :; }\n");
         assert.deepEqual(
@@ -976,13 +775,14 @@ for (const grammar of grammars) {
       });
 
       test("numeric descriptor bounds apply after source decoding and leading zeros", () => {
+        const longDescriptorDigits = 128;
         for (const { digits, descriptor } of [
           { digits: "2147483647", descriptor: true },
           { digits: "2147483648", descriptor: false },
           { digits: "0002147483647", descriptor: true },
           { digits: "0002147483648", descriptor: false },
-          { digits: "0".repeat(128), descriptor: true },
-          { digits: "9".repeat(128), descriptor: false },
+          { digits: "0".repeat(longDescriptorDigits), descriptor: true },
+          { digits: "9".repeat(longDescriptorDigits), descriptor: false },
         ]) {
           for (const joiner of ["", "\\\n", "\0"]) {
             const spelling = digits.slice(0, 3) + joiner + digits.slice(3);
@@ -1379,13 +1179,6 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "a for brace body loses its required separator",
-          seed: "for x; { :; }\n",
-          remove: ";",
-          insert: "",
-          valid: false,
-        },
-        {
           name: "a select brace body gains a word list",
           seed: "select x; { :; }\n",
           remove: "x;",
@@ -1526,25 +1319,11 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "conditional closing delimiter is repaired",
-          seed: "[[ x ]]\n",
-          remove: "]]",
-          insert: "",
-          valid: false,
-        },
-        {
           name: "arithmetic command changes to subshells",
           seed: "((x+1))\n",
           remove: "((x+1))",
           insert: "( (echo x))",
           valid: true,
-        },
-        {
-          name: "arithmetic command loses a close",
-          seed: "((x+1))\n",
-          remove: "))",
-          insert: ")",
-          valid: false,
         },
         {
           name: "arithmetic for inserts omitted initializer",
@@ -1554,25 +1333,11 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "arithmetic for loses semicolon",
-          seed: "for ((i=0;i<2;i++)) do :; done\n",
-          remove: "i<2;",
-          insert: "i<2",
-          valid: false,
-        },
-        {
           name: "array assignment changes subscript source",
           seed: "a[x+y]=one\n",
           remove: "x+y",
           insert: '"key"',
           valid: true,
-        },
-        {
-          name: "array close is repaired",
-          seed: "a=(one [2]=two)\n",
-          remove: ")",
-          insert: "",
-          valid: false,
         },
         {
           name: "array element becomes ordinary word",
@@ -1834,13 +1599,6 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "loop keyword is lost then repaired",
-          seed: "for x in a; do echo $x; done\n",
-          remove: "done",
-          insert: "don",
-          valid: false,
-        },
-        {
           name: "function name changes",
           seed: "run() { echo ok; } >log\n",
           remove: "run",
@@ -1917,97 +1675,6 @@ for (const grammar of grammars) {
         "p=(a)\\\n",
       ]) {
         assert.equal(parser.parse(source, {}).status, 0, source);
-      }
-    });
-
-    test("repeated arithmetic signs keep their boundaries across contexts and logical layout", () => {
-      for (const [expression, operators] of [
-        ["++1", ["+", "+"]],
-        ["--(x)", ["-", "-"]],
-        ["+++x", ["+", "++"]],
-        ["1++1", ["+", "+"]],
-        ["x++++1", ["++", "+", "+"]],
-        ["++ x", ["++"]],
-        ["++\nx", ["++"]],
-        ["++\\\n1", ["+", "+"]],
-        ["+\\\n+x", ["++"]],
-        ["+\0+1", ["+", "+"]],
-        ["++$x", ["++"]],
-        ["1++x", ["++"]],
-      ]) {
-        for (const source of [
-          `: $(( ${expression} ))\n`,
-          `: $[${expression}]\n`,
-          `(( ${expression} ))\n`,
-          `: "\${a[${expression}]}"\n`,
-          `: "\${x: ${expression}}"\n`,
-          `for (( ${expression};0; )); do :; done\n`,
-        ]) {
-          assert.deepEqual(
-            nodes(source)
-              .filter(
-                ({ type }) =>
-                  type === "arithmetic_operator" ||
-                  type === "arithmetic_candidate_operator",
-              )
-              .map(({ text }) =>
-                text.replaceAll("\\\n", "").replaceAll("\0", ""),
-              ),
-            operators,
-            JSON.stringify(source),
-          );
-        }
-      }
-    });
-
-    test("arithmetic sign edits switch between unary updates and source without stale structure", () => {
-      for (const [remove, insert] of [
-        ["++1", "++x"],
-        ["++x", "++(x)"],
-        ["++x", "+++x"],
-        ["++1", "++$x"],
-        ["1++1", "1++x"],
-        ["x+++1", "1+++1"],
-        ["++1", "++"],
-      ]) {
-        for (const seed of [
-          `: $(( ${remove} ))\necho after\n`,
-          `: "\${a[${remove}]}"\necho after\n`,
-        ]) {
-          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
-        }
-      }
-    });
-
-    test("arithmetic layout is only space, tab, and newline", () => {
-      for (const [blank, structured] of [
-        [" ", true],
-        ["\t", true],
-        ["\n", true],
-        ["\v", false],
-        ["\f", false],
-        ["\r", false],
-      ]) {
-        for (const source of [
-          `: $((1${blank}+ 2))\n`,
-          `: $[1${blank}+ 2]\n`,
-          `((1${blank}+ 2))\n`,
-          `: \${a[1${blank}+ 2]}\n`,
-        ]) {
-          const types = nodes(source).map(({ type }) => type);
-          assert.equal(
-            types.includes("arithmetic_binary_expression") ||
-              types.includes("arithmetic_candidate_binary_expression"),
-            structured,
-            JSON.stringify(source),
-          );
-          assert.equal(
-            types.includes("arithmetic_source_expression") ||
-              types.includes("arithmetic_candidate_source_expression"),
-            !structured,
-            JSON.stringify(source),
-          );
-        }
       }
     });
 

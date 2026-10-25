@@ -928,12 +928,13 @@ E
                                                       body: (simple_command
                                                         name: (word
                                                           (literal)))))))))))
-                                      redirect: (io_redirect
-                                        body: (io_here
-                                          operator: (dless)
-                                          end: (here_end
-                                            word: (word
-                                              (literal)))))))))))
+                                      redirects: (redirect_list
+                                        redirect: (io_redirect
+                                          body: (io_here
+                                            operator: (dless)
+                                            end: (here_end
+                                              word: (word
+                                                (literal))))))))))))
                           separator: (newline_list
                             (here_document_sequence
                               line_end: (here_document_line_end)

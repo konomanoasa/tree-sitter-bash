@@ -510,15 +510,16 @@ case x in [a[:alpha:]]) ;; esac; x=[a[.b.]]
                     word: (word
                       (literal))
                     in: (in_keyword)
-                    item: (case_item
-                      patterns: (pattern_list
-                        word: (word
-                          (pattern_bracket_source
-                            members: (pattern_bracket_members_source
-                              member: (pattern_bracket_character_source)
-                              member: (pattern_character_class_source
-                                content: (pattern_character_class_content_source))))))
-                      terminator: (dsemi))
+                    items: (case_list
+                      item: (case_item
+                        patterns: (pattern_list
+                          word: (word
+                            (pattern_bracket_source
+                              members: (pattern_bracket_members_source
+                                member: (pattern_bracket_character_source)
+                                member: (pattern_character_class_source
+                                  content: (pattern_character_class_content_source))))))
+                        terminator: (dsemi)))
                     (esac_keyword)))))))
         separator: (separator_op)
         and_or: (and_or
@@ -821,29 +822,30 @@ x=@([;]|c)
                       (parameter_expansion
                         (variable_name)))
                     (in_keyword)
-                    (case_item
-                      (pattern_list
-                        (word
-                          (extglob_pattern
-                            (extglob_operator)
-                            (extglob_alternative
-                              (pattern_bracket_source
-                                (pattern_bracket_members_source
-                                  (pattern_bracket_character_source)
-                                  (pattern_bracket_character_source)
-                                  (pattern_bracket_character_source))))
-                            (extglob_alternative
-                              (literal)))))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal)))))))))
-                      (dsemi))
+                    (case_list
+                      (case_item
+                        (pattern_list
+                          (word
+                            (extglob_pattern
+                              (extglob_operator)
+                              (extglob_alternative
+                                (pattern_bracket_source
+                                  (pattern_bracket_members_source
+                                    (pattern_bracket_character_source)
+                                    (pattern_bracket_character_source)
+                                    (pattern_bracket_character_source))))
+                              (extglob_alternative
+                                (literal)))))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)))))))))
+                        (dsemi)))
                     (esac_keyword)))))))))
     (newline_list)
     (complete_command

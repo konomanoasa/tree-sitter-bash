@@ -135,11 +135,12 @@ redirect compound output
                                     (literal)))))))
                         (separator
                           (separator_op))))))
-                (io_redirect
-                  (io_file
-                    (andgreat)
-                    (word
-                      (literal))))))))))
+                (redirect_list
+                  (io_redirect
+                    (io_file
+                      (andgreat)
+                      (word
+                        (literal)))))))))))
     (newline_list)))
 
 ==================
@@ -172,12 +173,13 @@ redirect compound descriptor
                                     (literal)))))))
                         (separator
                           (separator_op))))))
-                (io_redirect
-                  (io_variable
-                    (variable_name))
-                  (io_file
-                    (word
-                      (literal))))))))))
+                (redirect_list
+                  (io_redirect
+                    (io_variable
+                      (variable_name))
+                    (io_file
+                      (word
+                        (literal)))))))))))
     (newline_list)))
 
 ==================

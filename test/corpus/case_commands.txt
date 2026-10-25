@@ -21,48 +21,49 @@ case x in a) : ;;& b) : ;& c) : ;; esac
                     (word
                       (literal))
                     (in_keyword)
-                    (case_item
-                      (pattern_list
-                        (word
-                          (literal)))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal)))))))))
-                      (dsemi_and))
-                    (case_item
-                      (pattern_list
-                        (word
-                          (literal)))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal)))))))))
-                      (semi_and))
-                    (case_item
-                      (pattern_list
-                        (word
-                          (literal)))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal)))))))))
-                      (dsemi))
+                    (case_list
+                      (case_item
+                        (pattern_list
+                          (word
+                            (literal)))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)))))))))
+                        (dsemi_and))
+                      (case_item
+                        (pattern_list
+                          (word
+                            (literal)))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)))))))))
+                        (semi_and))
+                      (case_item
+                        (pattern_list
+                          (word
+                            (literal)))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal)))))))))
+                        (dsemi)))
                     (esac_keyword)))))))))
     (newline_list)))
 
@@ -91,54 +92,55 @@ case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
                         (parameter_expansion
                           parameter: (variable_name))))
                     in: (in_keyword)
-                    item: (case_item
-                      patterns: (pattern_list
-                        word: (word
-                          (literal))
-                        word: (word
-                          (literal)))
-                      body: (compound_list
-                        body: (term
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              (pipe_sequence
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (literal)))))))))
-                      terminator: (dsemi))
-                    item: (case_item
-                      patterns: (pattern_list
-                        word: (word
-                          (literal)))
-                      body: (compound_list
-                        body: (term
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              (pipe_sequence
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal)))))))))
-                      terminator: (semi_and))
-                    item: (case_item
-                      patterns: (pattern_list
-                        word: (word
-                          (pattern_star_source)))
-                      body: (compound_list
-                        body: (term
-                          and_or: (and_or
-                            pipeline: (pipeline
-                              (pipe_sequence
-                                command: (command
-                                  body: (simple_command
-                                    name: (word
-                                      (literal))
-                                    argument: (word
-                                      (literal)))))))))
-                      terminator: (dsemi))
+                    items: (case_list
+                      item: (case_item
+                        patterns: (pattern_list
+                          word: (word
+                            (literal))
+                          word: (word
+                            (literal)))
+                        body: (compound_list
+                          body: (term
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                (pipe_sequence
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal)))))))))
+                        terminator: (dsemi))
+                      item: (case_item
+                        patterns: (pattern_list
+                          word: (word
+                            (literal)))
+                        body: (compound_list
+                          body: (term
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                (pipe_sequence
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal)))))))))
+                        terminator: (semi_and))
+                      item: (case_item
+                        patterns: (pattern_list
+                          word: (word
+                            (pattern_star_source)))
+                        body: (compound_list
+                          body: (term
+                            and_or: (and_or
+                              pipeline: (pipeline
+                                (pipe_sequence
+                                  command: (command
+                                    body: (simple_command
+                                      name: (word
+                                        (literal))
+                                      argument: (word
+                                        (literal)))))))))
+                        terminator: (dsemi)))
                     (esac_keyword)))))))))
     separator: (newline_list)))
 
@@ -164,32 +166,33 @@ case x in @(a|b)|!(c)) echo yes;; esac
                     (word
                       (literal))
                     (in_keyword)
-                    (case_item
-                      (pattern_list
-                        (word
-                          (extglob_pattern
-                            (extglob_operator)
-                            (extglob_alternative
-                              (literal))
-                            (extglob_alternative
-                              (literal))))
-                        (word
-                          (extglob_pattern
-                            (extglob_operator)
-                            (extglob_alternative
-                              (literal)))))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal))
-                                    (word
-                                      (literal)))))))))
-                      (dsemi))
+                    (case_list
+                      (case_item
+                        (pattern_list
+                          (word
+                            (extglob_pattern
+                              (extglob_operator)
+                              (extglob_alternative
+                                (literal))
+                              (extglob_alternative
+                                (literal))))
+                          (word
+                            (extglob_pattern
+                              (extglob_operator)
+                              (extglob_alternative
+                                (literal)))))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (literal)))))))))
+                        (dsemi)))
                     (esac_keyword)))))))))
     (newline_list)))
 
@@ -218,38 +221,39 @@ case a=~+ in {a,b}|@(x|y)|a=~+) echo {c,d};; esac
                         (tilde_user
                           (literal))))
                     (in_keyword)
-                    (case_item
-                      (pattern_list
-                        (word
-                          (literal))
-                        (word
-                          (extglob_pattern
-                            (extglob_operator)
-                            (extglob_alternative
-                              (literal))
-                            (extglob_alternative
-                              (literal))))
-                        (word
-                          (literal)
-                          (tilde_expansion
-                            (tilde_user
-                              (literal)))))
-                      (compound_list
-                        (term
-                          (and_or
-                            (pipeline
-                              (pipe_sequence
-                                (command
-                                  (simple_command
-                                    (word
-                                      (literal))
-                                    (word
-                                      (brace_expansion
-                                        (brace_alternative
-                                          (literal))
-                                        (brace_alternative
-                                          (literal)))))))))))
-                      (dsemi))
+                    (case_list
+                      (case_item
+                        (pattern_list
+                          (word
+                            (literal))
+                          (word
+                            (extglob_pattern
+                              (extglob_operator)
+                              (extglob_alternative
+                                (literal))
+                              (extglob_alternative
+                                (literal))))
+                          (word
+                            (literal)
+                            (tilde_expansion
+                              (tilde_user
+                                (literal)))))
+                        (compound_list
+                          (term
+                            (and_or
+                              (pipeline
+                                (pipe_sequence
+                                  (command
+                                    (simple_command
+                                      (word
+                                        (literal))
+                                      (word
+                                        (brace_expansion
+                                          (brace_alternative
+                                            (literal))
+                                          (brace_alternative
+                                            (literal)))))))))))
+                        (dsemi)))
                     (esac_keyword)))))))))
     (newline_list)))
 
@@ -276,41 +280,120 @@ case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
 0:5  - 0:10                       word: word
 0:5  - 0:10                         literal `{a,b}`
 0:11 - 0:13                       in: in_keyword `in`
-0:14 - 0:41                       item: case_item
-0:14 - 0:26                         patterns: pattern_list
-0:14 - 0:19                           word: word
-0:14 - 0:19                             literal `{a,b}`
-0:19 - 0:20                           "|"
-0:20 - 0:26                           word: word
-0:20 - 0:26                             extglob_pattern
-0:20 - 0:21                               operator: extglob_operator `@`
-0:21 - 0:22                               "("
-0:22 - 0:23                               alternative: extglob_alternative
-0:22 - 0:23                                 literal `x`
-0:23 - 0:24                               "|"
-0:24 - 0:25                               alternative: extglob_alternative
-0:24 - 0:25                                 literal `y`
-0:25 - 0:26                               ")"
-0:26 - 0:27                         ")"
-0:27 - 0:38                         body: compound_list
-0:28 - 0:38                           body: term
-0:28 - 0:38                             and_or: and_or
-0:28 - 0:38                               pipeline: pipeline
-0:28 - 0:38                                 pipe_sequence
-0:28 - 0:38                                   command: command
-0:28 - 0:38                                     body: simple_command
-0:28 - 0:32                                       name: word
-0:28 - 0:32                                         literal `echo`
-0:33 - 0:38                                       argument: word
-0:33 - 0:38                                         brace_expansion
-0:33 - 0:34                                           "{"
-0:34 - 0:35                                           alternative: brace_alternative
-0:34 - 0:35                                             literal `c`
-0:35 - 0:36                                           ","
-0:36 - 0:37                                           alternative: brace_alternative
-0:36 - 0:37                                             literal `d`
-0:37 - 0:38                                           "}"
-0:38 - 0:40                         terminator: dsemi `;;`
+0:14 - 0:41                       items: case_list
+0:14 - 0:41                         item: case_item
+0:14 - 0:26                           patterns: pattern_list
+0:14 - 0:19                             word: word
+0:14 - 0:19                               literal `{a,b}`
+0:19 - 0:20                             "|"
+0:20 - 0:26                             word: word
+0:20 - 0:26                               extglob_pattern
+0:20 - 0:21                                 operator: extglob_operator `@`
+0:21 - 0:22                                 "("
+0:22 - 0:23                                 alternative: extglob_alternative
+0:22 - 0:23                                   literal `x`
+0:23 - 0:24                                 "|"
+0:24 - 0:25                                 alternative: extglob_alternative
+0:24 - 0:25                                   literal `y`
+0:25 - 0:26                                 ")"
+0:26 - 0:27                           ")"
+0:27 - 0:38                           body: compound_list
+0:28 - 0:38                             body: term
+0:28 - 0:38                               and_or: and_or
+0:28 - 0:38                                 pipeline: pipeline
+0:28 - 0:38                                   pipe_sequence
+0:28 - 0:38                                     command: command
+0:28 - 0:38                                       body: simple_command
+0:28 - 0:32                                         name: word
+0:28 - 0:32                                           literal `echo`
+0:33 - 0:38                                         argument: word
+0:33 - 0:38                                           brace_expansion
+0:33 - 0:34                                             "{"
+0:34 - 0:35                                             alternative: brace_alternative
+0:34 - 0:35                                               literal `c`
+0:35 - 0:36                                             ","
+0:36 - 0:37                                             alternative: brace_alternative
+0:36 - 0:37                                               literal `d`
+0:37 - 0:38                                             "}"
+0:38 - 0:40                           terminator: dsemi `;;`
 0:41 - 0:45                       esac_keyword `esac`
 0:45 - 1:0        separator: newline_list
 0:45 - 1:0          "\n"
+
+==================
+case lists share ownership with an omitted final terminator and omit empty lists
+:language(bash)
+:language(bash_default)
+:cst
+==================
+case x in a);; b) esac
+case x in a) esac
+case x in esac
+
+------------------
+
+0:0  - 3:0    program
+0:0  - 3:0      commands: complete_commands
+0:0  - 0:22       command: complete_command
+0:0  - 0:22         body: list
+0:0  - 0:22           and_or: and_or
+0:0  - 0:22             pipeline: pipeline
+0:0  - 0:22               pipe_sequence
+0:0  - 0:22                 command: command
+0:0  - 0:22                   body: compound_command
+0:0  - 0:22                     case_clause
+0:0  - 0:4                        case_keyword `case`
+0:5  - 0:6                        word: word
+0:5  - 0:6                          literal `x`
+0:7  - 0:9                        in: in_keyword `in`
+0:10 - 0:18                       items: case_list
+0:10 - 0:15                         item: case_item
+0:10 - 0:11                           patterns: pattern_list
+0:10 - 0:11                             word: word
+0:10 - 0:11                               literal `a`
+0:11 - 0:12                           ")"
+0:12 - 0:14                           terminator: dsemi `;;`
+0:15 - 0:18                         item: case_item
+0:15 - 0:16                           patterns: pattern_list
+0:15 - 0:16                             word: word
+0:15 - 0:16                               literal `b`
+0:16 - 0:17                           ")"
+0:18 - 0:22                       esac_keyword `esac`
+0:22 - 1:0        separator: newline_list
+0:22 - 1:0          "\n"
+1:0  - 1:17       command: complete_command
+1:0  - 1:17         body: list
+1:0  - 1:17           and_or: and_or
+1:0  - 1:17             pipeline: pipeline
+1:0  - 1:17               pipe_sequence
+1:0  - 1:17                 command: command
+1:0  - 1:17                   body: compound_command
+1:0  - 1:17                     case_clause
+1:0  - 1:4                        case_keyword `case`
+1:5  - 1:6                        word: word
+1:5  - 1:6                          literal `x`
+1:7  - 1:9                        in: in_keyword `in`
+1:10 - 1:13                       items: case_list
+1:10 - 1:13                         item: case_item
+1:10 - 1:11                           patterns: pattern_list
+1:10 - 1:11                             word: word
+1:10 - 1:11                               literal `a`
+1:11 - 1:12                           ")"
+1:13 - 1:17                       esac_keyword `esac`
+1:17 - 2:0        separator: newline_list
+1:17 - 2:0          "\n"
+2:0  - 2:14       command: complete_command
+2:0  - 2:14         body: list
+2:0  - 2:14           and_or: and_or
+2:0  - 2:14             pipeline: pipeline
+2:0  - 2:14               pipe_sequence
+2:0  - 2:14                 command: command
+2:0  - 2:14                   body: compound_command
+2:0  - 2:14                     case_clause
+2:0  - 2:4                        case_keyword `case`
+2:5  - 2:6                        word: word
+2:5  - 2:6                          literal `x`
+2:7  - 2:9                        in: in_keyword `in`
+2:10 - 2:14                       esac_keyword `esac`
+2:14 - 3:0        separator: newline_list
+2:14 - 3:0          "\n"

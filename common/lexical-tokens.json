@@ -466,6 +466,10 @@
       "scanner": "REPLACEMENT_SEPARATOR_BEGIN"
     },
     {
+      "begin": "_parameter_replacement_reference_begin",
+      "scanner": "PARAMETER_REPLACEMENT_REFERENCE_BEGIN"
+    },
+    {
       "begin": "_parameter_case_begin",
       "scanner": "PARAMETER_CASE_BEGIN"
     },

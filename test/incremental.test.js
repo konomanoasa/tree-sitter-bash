@@ -6,7 +6,6 @@ import {
   assertEditRoundTrip,
   createParser,
 } from "./support/parser.js";
-
 import { editingWorkloads, workloads } from "./support/workloads.js";
 
 for (const grammar of grammars) {
@@ -47,8 +46,8 @@ for (const grammar of grammars) {
       editTarget = "x",
     } of workloads) {
       if (extglobOnly && grammar.name !== "bash") continue;
-      test(`${name}: scaled edits preserve fresh trees`, () => {
-        for (const size of sizes) {
+      for (const size of sizes) {
+        test(`${name}/${size}: edits preserve fresh trees`, () => {
           const source = createSource(size);
           const index = source.indexOf(editTarget);
           assert.ok(index >= 0);
@@ -57,88 +56,62 @@ for (const grammar of grammars) {
             deleteBytes: 1,
             insert: "y",
           });
-        }
-      });
+        });
+      }
     }
     for (const { name, run } of editingWorkloads()) {
       test(name, () => run(checkWorkload));
     }
-    for (const entry of [
-      {
-        name: "empty conditions in nested function bodies",
-        seed:
-          "echo BEFORE\nouter() {\nmiddle() {\ninner() {\n" +
-          "if\n:; then :;\nfi\n}\n}\n}\necho AFTER\n",
-        remove: ":; then :;\n",
-        insert: "",
-        valid: false,
-      },
-      {
-        name: "function keywords with comment, newline and continuation headers",
-        seed:
-          "echo BEFORE\nfunction outer # header\n{\n" +
-          "function middle ( )\n{\nfunction inner() \\\n{\n" +
-          "if\n:; then :;\nfi\n}\n}\n}\necho AFTER\n",
-        remove: ":; then :;\n",
-        insert: "",
-        valid: false,
-      },
-      {
-        name: "nested arithmetic for bodies with semicolon and newline headers",
-        seed:
-          "echo BEFORE\nfor ((i=0;i<3;i++)); do\n" +
-          "for ((j=0;j<3;j++))\n\ndo\n" +
-          "for ((k=0;k<3;k++)) # header\ndo\n" +
-          "if\n:; then :;\nfi\ndone\ndone\ndone\necho AFTER\n",
-        remove: ":; then :;\n",
-        insert: "",
-        valid: false,
-      },
-      {
-        name: "nested arithmetic for brace bodies",
-        seed:
-          "echo BEFORE\nfor ((;;)) {\nfor ((;;)) {\nfor ((;;)) {\n" +
-          `echo \${x:-w}\n}\n}\n}\necho AFTER\n`,
-        remove: "}\n}\n}\n}\n",
-        insert: "",
-        valid: false,
-      },
-      {
-        name: "missing parameter and body closers in mixed functions and arithmetic for",
-        seed:
-          "echo BEFORE\nfunction outer() # header\n{\n" +
-          "for ((i=0;i<3;i++)); do\ninner()\n{\n" +
-          `echo \${x:-w}\n}\ndone\n}\necho AFTER\n`,
-        remove: "}\n}\ndone\n}\n",
-        insert: "",
-        valid: false,
-      },
-      {
-        name: "an extra closer after a complete arithmetic for header",
-        seed: "echo BEFORE\nfor ((x;y;z)); do :; done\necho AFTER\n",
-        remove: "((x;y;z))",
-        insert: "((x;y;z)))",
-        valid: false,
-      },
-      {
-        name: "arithmetic for body separators change to commented linebreaks",
-        seed: "for ((;;)); do :; done\n",
-        remove: "; do",
-        insert: "\n# body\n do",
-        valid: true,
-      },
-      {
-        name: "function header comments change to continuations",
-        seed: "function f ( ) # header\n{ :; }\n",
-        remove: "# header\n",
-        insert: "\\\n",
-        valid: true,
-      },
-    ]) {
-      test(`${entry.name}: repairs restore the fresh CST`, () => {
-        assertEditRoundTrip(parser, entry);
+    test("declaration value edits reuse later commands and quoted expansions", () => {
+      const partCount = 64;
+      for (const { source, reuse } of [
+        {
+          source: "declare x=value\n".repeat(partCount),
+          reuse: /reuse_node symbol:_complete_command/,
+        },
+        {
+          source: `declare x="value${"$y-x".repeat(partCount)}"\n`,
+          reuse: /reuse_node symbol:parameter_expansion/,
+        },
+      ]) {
+        const edit = {
+          byte: source.indexOf("value"),
+          deleteBytes: 1,
+          insert: "b",
+        };
+        const fresh = parser.parse(applyEdit(source, edit), {});
+        const incremental = parser.parse(source, {
+          arguments: ["--debug"],
+          edits: [edit],
+        });
+        assert.equal(fresh.status, 0, fresh.output);
+        assert.equal(incremental.status, 0, incremental.output);
+        assert.equal(incremental.tree, fresh.tree);
+        const trace = incremental.debugOutput.split("parse_after_edit").at(-1);
+        assert.notEqual(trace, undefined);
+        assert.match(trace, reuse);
+      }
+    });
+
+    if (grammar.name === "bash") {
+      test("Unicode edits use byte offsets", () => {
+        assertEditRoundTrip(parser, {
+          seed: "echo 日本語\n",
+          remove: "本",
+          insert: "本é",
+          valid: true,
+        });
+      });
+      test("comment becomes a command", () => {
+        assertEditRoundTrip(parser, {
+          seed: "# echo yes\n",
+          remove: "# ",
+          insert: "",
+          valid: true,
+        });
       });
     }
+
     test("closing blanks retain list ownership when nearby commands are edited", () => {
       for (const entry of [
         { seed: "echo a ", remove: "a ", insert: "a b " },

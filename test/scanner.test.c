@@ -2290,14 +2290,18 @@ test_recovery_finishes_unterminated_documents_without_end_text(void) {
 
 #ifdef TREE_SITTER_REUSE_ALLOCATOR
 static void test_local_lookahead_failures_leave_no_state_or_allocations(void) {
-  const char *sources[] = {
-    "foo\\\nbar",
-    "<(cat <<E\nbody\nE\n)name()",
-    "x[$(printf 0)]=~",
+  const struct {
+    const char *source;
+    enum TokenType token;
+    bool accepted;
+  } fixtures[] = {
+    {"foo\\\nbar", VARIABLE_NAME_BEGIN, true},
+    {"<(cat <<E\nbody\nE\n)name()", FNAME_TOKEN, true},
+    {"x[$(printf 0)]=~", ASSIGNMENT_ARGUMENT_START, true},
+    {":() { :; }", FNAME_TOKEN, true},
+    {" E\n", HERE_END_BEGIN, false},
   };
-  const enum TokenType tokens[] =
-    {VARIABLE_NAME_BEGIN, FNAME_TOKEN, ASSIGNMENT_ARGUMENT_START};
-  for (size_t fixture = 0; fixture < ARRAY_LENGTH(sources); fixture++) {
+  for (size_t fixture = 0; fixture < ARRAY_LENGTH(fixtures); fixture++) {
     size_t allocation_count = 0;
     for (size_t failure = 0; failure <= allocation_count; failure++) {
       struct Scanner scanner = {0};
@@ -2309,25 +2313,26 @@ static void test_local_lookahead_failures_leave_no_state_or_allocations(void) {
       char before[TREE_SITTER_SERIALIZATION_BUFFER_SIZE];
       unsigned before_length = snapshot(&scanner, before);
       int32_t input[MOCK_INPUT_CAPACITY];
-      size_t length = strlen(sources[fixture]);
+      size_t length = strlen(fixtures[fixture].source);
       assert(length < ARRAY_LENGTH(input));
       for (size_t index = 0; index < length; index++)
-        input[index] = (unsigned char)sources[fixture][index];
+        input[index] = (unsigned char)fixtures[fixture].source[index];
       struct MockLexer mock;
       init_mock_lexer(&mock, input, length);
       bool valid[TOKEN_COUNT] = {0};
-      valid[tokens[fixture]] = true;
+      valid[fixtures[fixture].token] = true;
       size_t calls = reuse_allocation_calls;
       if (failure > 0) reuse_fail_allocation_call = calls + failure;
       bool accepted = bash_scanner_scan(&scanner, &mock.lexer, valid);
       reuse_fail_allocation_call = 0;
       if (failure == 0) {
         allocation_count = reuse_allocation_calls - calls;
-        assert(accepted && allocation_count > 0);
+        assert(accepted == fixtures[fixture].accepted && allocation_count > 0);
       } else {
         assert(!accepted);
-        assert_scanner_matches_snapshot(&scanner, before, before_length);
       }
+      if (!accepted)
+        assert_scanner_matches_snapshot(&scanner, before, before_length);
       clear_scanner(&scanner);
       assert(reuse_live_allocations == 0);
     }

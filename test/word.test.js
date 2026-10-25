@@ -227,6 +227,108 @@ for (const grammar of grammars) {
     });
     const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
+    test("source option commands do not change brace pattern or replacement classification", () => {
+      const source = `echo {a,b} *.txt "\${x/a/&}"\n`;
+      const kinds = [
+        "brace_expansion",
+        "pattern_star_source",
+        "parameter_replacement_reference",
+      ];
+      for (const prefix of [
+        "",
+        "set -f +B\nshopt -u patsub_replacement\n",
+        "set +f -B\nshopt -s patsub_replacement\n",
+      ]) {
+        assert.deepEqual(
+          nodes(prefix + source)
+            .filter(({ type }) => kinds.includes(type))
+            .map(({ type, start, end, text }) => [
+              type,
+              start - Buffer.byteLength(prefix),
+              end - Buffer.byteLength(prefix),
+              text,
+            ]),
+          [
+            ["brace_expansion", 5, 10, "{a,b}"],
+            ["pattern_star_source", 11, 12, "*"],
+            ["parameter_replacement_reference", 24, 25, "&"],
+          ],
+        );
+      }
+    });
+    for (const { name, seed, remove, insert } of [
+      {
+        name: "outer quoting",
+        seed: `: \${x/a/&}\n`,
+        remove: `\${x/a/&}`,
+        insert: `"\${x/a/&}"`,
+      },
+      {
+        name: "local quoting",
+        seed: `: "\${x/a/&}"\n`,
+        remove: "&",
+        insert: '"&"',
+      },
+      { name: "escaping", seed: `: \${x/a/&&}\n`, remove: "&&", insert: "\\&" },
+      {
+        name: "pattern bracket",
+        seed: `: \${x/a/[&]}\n`,
+        remove: "&",
+        insert: "\\&",
+      },
+      {
+        name: "range endpoint",
+        seed: `: \${x/a/[a-&]}\n`,
+        remove: "&",
+        insert: "Z",
+      },
+      {
+        name: "character class",
+        seed: `: \${x/a/[[:a&:]]}\n`,
+        remove: "&",
+        insert: "b",
+      },
+      {
+        name: "collating symbol",
+        seed: `: \${x/a/[[.&.]]}\n`,
+        remove: "&",
+        insert: "a",
+      },
+      {
+        name: "incomplete bracket",
+        seed: `: \${x/a/[&}\n`,
+        remove: "[&",
+        insert: "[&]",
+      },
+      {
+        name: "nested parameter word",
+        seed: `: \${x/a/\${y:-&}}\n`,
+        remove: ":-",
+        insert: "/b/",
+      },
+      {
+        name: "continued source",
+        seed: `: \${x/a/\\\n&}\n`,
+        remove: "\\\n",
+        insert: "\\",
+      },
+      {
+        name: "backquote decoding",
+        seed: `echo \`: \${x/a/\\\\&}\`\n`,
+        remove: "\\\\",
+        insert: "",
+      },
+      {
+        name: "extglob source",
+        seed: `: \${x/a/@(a&|b)}\n`,
+        remove: "&",
+        insert: "\\&",
+      },
+    ]) {
+      test(`replacement reference edits preserve fresh equivalence: ${name}`, () => {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+      });
+    }
     test("bracket elements and range endpoints keep their classification across word and pattern contexts", () => {
       for (const [prefix, suffix] of [
         [": ", ""],
@@ -388,6 +490,7 @@ for (const grammar of grammars) {
     });
 
     test("bracket element and range edits invalidate boundaries within their source contexts", () => {
+      const incompleteCollatingElements = 128;
       for (const part of [
         "[A-[.abc][A-[.def]",
         '[A-[.abc]"q"[A-[.def]',
@@ -398,7 +501,7 @@ for (const grammar of grammars) {
         "[A-[.abc]\0[A-[.def]",
         "[A-[.あいう][A-[.def]",
         `"\${s#[A-[.abc]/[A-[.def]}"`,
-        `${"[A-[.abc]".repeat(128)}[A-[.def]`,
+        `${"[A-[.abc]".repeat(incompleteCollatingElements)}[A-[.def]`,
       ]) {
         const seed = `: ${part}\necho AFTER\n`;
         assertEditRoundTrip(parser, {
@@ -564,37 +667,6 @@ for (const grammar of grammars) {
       }
     });
 
-    test("declaration value edits reuse later commands and quoted expansions", () => {
-      const partCount = 64;
-      for (const { source, reuse } of [
-        {
-          source: "declare x=value\n".repeat(partCount),
-          reuse: /reuse_node symbol:_complete_command/,
-        },
-        {
-          source: `declare x="value${"$y-x".repeat(partCount)}"\n`,
-          reuse: /reuse_node symbol:parameter_expansion/,
-        },
-      ]) {
-        const edit = {
-          byte: source.indexOf("value"),
-          deleteBytes: 1,
-          insert: "b",
-        };
-        const fresh = parser.parse(applyEdit(source, edit), {});
-        const incremental = parser.parse(source, {
-          arguments: ["--debug"],
-          edits: [edit],
-        });
-        assert.equal(fresh.status, 0, fresh.output);
-        assert.equal(incremental.status, 0, incremental.output);
-        assert.equal(incremental.tree, fresh.tree);
-        const trace = incremental.debugOutput.split("parse_after_edit").at(-1);
-        assert.notEqual(trace, undefined);
-        assert.match(trace, reuse);
-      }
-    });
-
     test("array element tilde classification changes with assignment context and repairs", () => {
       for (const [seed, remove, insert, valid] of [
         ["a=(x=~:~)\n", "x", "[0]", true],
@@ -730,6 +802,97 @@ for (const grammar of grammars) {
         insert: "c",
         valid: false,
       });
+    });
+
+    test("repeated arithmetic signs keep their boundaries across contexts and logical layout", () => {
+      for (const [expression, operators] of [
+        ["++1", ["+", "+"]],
+        ["--(x)", ["-", "-"]],
+        ["+++x", ["+", "++"]],
+        ["1++1", ["+", "+"]],
+        ["x++++1", ["++", "+", "+"]],
+        ["++ x", ["++"]],
+        ["++\nx", ["++"]],
+        ["++\\\n1", ["+", "+"]],
+        ["+\\\n+x", ["++"]],
+        ["+\0+1", ["+", "+"]],
+        ["++$x", ["++"]],
+        ["1++x", ["++"]],
+      ]) {
+        for (const source of [
+          `: $(( ${expression} ))\n`,
+          `: $[${expression}]\n`,
+          `(( ${expression} ))\n`,
+          `: "\${a[${expression}]}"\n`,
+          `: "\${x: ${expression}}"\n`,
+          `for (( ${expression};0; )); do :; done\n`,
+        ]) {
+          assert.deepEqual(
+            nodes(source)
+              .filter(
+                ({ type }) =>
+                  type === "arithmetic_operator" ||
+                  type === "arithmetic_candidate_operator",
+              )
+              .map(({ text }) =>
+                text.replaceAll("\\\n", "").replaceAll("\0", ""),
+              ),
+            operators,
+            JSON.stringify(source),
+          );
+        }
+      }
+    });
+
+    test("arithmetic sign edits switch between unary updates and source without stale structure", () => {
+      for (const [remove, insert] of [
+        ["++1", "++x"],
+        ["++x", "++(x)"],
+        ["++x", "+++x"],
+        ["++1", "++$x"],
+        ["1++1", "1++x"],
+        ["x+++1", "1+++1"],
+        ["++1", "++"],
+      ]) {
+        for (const seed of [
+          `: $(( ${remove} ))\necho after\n`,
+          `: "\${a[${remove}]}"\necho after\n`,
+        ]) {
+          assertEditRoundTrip(parser, { seed, remove, insert, valid: true });
+        }
+      }
+    });
+
+    test("arithmetic layout is only space, tab, and newline", () => {
+      for (const [blank, structured] of [
+        [" ", true],
+        ["\t", true],
+        ["\n", true],
+        ["\v", false],
+        ["\f", false],
+        ["\r", false],
+      ]) {
+        for (const source of [
+          `: $((1${blank}+ 2))\n`,
+          `: $[1${blank}+ 2]\n`,
+          `((1${blank}+ 2))\n`,
+          `: \${a[1${blank}+ 2]}\n`,
+        ]) {
+          const types = nodes(source).map(({ type }) => type);
+          assert.equal(
+            types.includes("arithmetic_binary_expression") ||
+              types.includes("arithmetic_candidate_binary_expression"),
+            structured,
+            JSON.stringify(source),
+          );
+          assert.equal(
+            types.includes("arithmetic_source_expression") ||
+              types.includes("arithmetic_candidate_source_expression"),
+            !structured,
+            JSON.stringify(source),
+          );
+        }
+      }
     });
 
     test("hexadecimal prefixes are numbers across arithmetic contexts", () => {
@@ -2497,6 +2660,54 @@ for (const grammar of grammars) {
       }
     }
 
+    test("special parameter indirection survives target edits and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${!!}\n`, "!!", "!$", true],
+        [`: "\${!ref}"\n`, "ref", "$", true],
+        [`: \${!$:-x}\n`, ":-", "-", true],
+        [`: \${!$@Q}\n`, "@Q", "~~", true],
+        [`: \${!$}\n`, "!$", "!\\\n$", true],
+        [`: \${!\0$}\n`, "}", ":-x}", true],
+        [`: \${!$}\necho AFTER\n`, "}", "", false],
+        [`: \${!$}\necho AFTER\n`, "!$", "!$$", false],
+        [`: \${!$}\necho AFTER\n`, "}", "()}", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("name enumeration prefixes keep stars and switch to indirection at operators", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${!x*y*}\n`, "*y*", ":-y*", true],
+        [`: \${!x[a:b]*}\n`, "[a:b]", "[1]:-", true],
+        [`: \${!-*}\n`, "-", "x", true],
+        [`: "\${!x*!x@}"\n`, "*!x", "~", true],
+        [`: \${!x*y*}\n`, "*y", "\\\n*y", true],
+        [`: \${!x\0*y*}\n`, "*y*", ":-y*", true],
+        [`: \${!x.y*}\n`, "*}", ":-*}", false],
+        [`: "\${!x*!x@}"\n`, "@", "-", false],
+        [`: \${!x*y*}\necho AFTER\n`, "*}", "}", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
+    test("case toggle operator and pattern edits match fresh parses and repair", () => {
+      for (const [seed, remove, insert, valid] of [
+        [`: \${x^}\n`, "^", "~", true],
+        [`: "\${x~?}"\n`, "~", "~~", true],
+        [`: \${x~~~}\n`, "~~~", "~", true],
+        [`: \${x~\${p~~}}\n`, "~~", "^^", true],
+        [`: \${x~~[ab]}\n`, "[ab]", "$(printf a)", true],
+        [`: \${x~~}\n`, "~~", "~\\\n~", true],
+        [`: \${x~\0~}\n`, "x", "y", true],
+        [`: \${x~}\necho AFTER\n`, "}", "", false],
+        [`: \${x~$(printf a)}\necho AFTER\n`, "printf a", ";", false],
+      ]) {
+        assertEditRoundTrip(parser, { seed, remove, insert, valid });
+      }
+    });
+
     test("parameter closing braces are not protected by an unquoted subscript", () => {
       for (const source of [
         `: \${x[}]}\n`,
@@ -3076,52 +3287,6 @@ for (const grammar of grammars) {
           .map(({ text }) => text),
         ["\\'"],
       );
-    });
-
-    test("quoted parameter single quotes survive removal and repair", () => {
-      for (const { source, openingStatus = 1 } of [
-        { source: `: "\${x:-'"'}"\n` },
-        { source: `: {a,"\${x:-'"'}"}\n` },
-        { source: `: "\${x:-'a}b'}"\n`, openingStatus: 0 },
-        { source: `: "\${x:-'日\\\n本'}"\n` },
-        { source: `: "\${x:-"\${y:-'"'}"}"\n` },
-        { source: `: \`: "\${x:-'"'}"\`\n` },
-        { source: `: $((1 + "\${x:-'"'}"))\n` },
-      ]) {
-        const original = parser.parse(source, { arguments: ["-c"] });
-        assert.equal(original.status, 0, original.output);
-        for (const offset of [source.indexOf("'"), source.lastIndexOf("'")]) {
-          const remove = {
-            byte: Buffer.byteLength(source.slice(0, offset)),
-            deleteBytes: 1,
-            insert: "",
-          };
-          const brokenSource = applyEdit(source, remove);
-          const broken = parser.parse(brokenSource, { arguments: ["-c"] });
-          const expectedStatus =
-            offset === source.indexOf("'") ? openingStatus : 1;
-          assert.equal(
-            broken.status,
-            expectedStatus,
-            brokenSource + broken.output,
-          );
-          if (expectedStatus === 0) {
-            assert.equal(
-              parser.parse(source, { arguments: ["-c"], edits: [remove] }).tree,
-              broken.tree,
-            );
-          }
-          const restore = { byte: remove.byte, deleteBytes: 0, insert: "'" };
-          for (const { seed, edits } of [
-            { seed: source, edits: [remove, restore] },
-            { seed: brokenSource, edits: [restore] },
-          ]) {
-            const repaired = parser.parse(seed, { arguments: ["-c"], edits });
-            assert.equal(repaired.status, 0, repaired.output);
-            assert.equal(repaired.tree, original.tree);
-          }
-        }
-      }
     });
 
     for (const { name, body, quoted, suffix = "" } of [

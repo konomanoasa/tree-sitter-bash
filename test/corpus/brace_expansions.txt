@@ -716,20 +716,21 @@ Bash command headers and array words preserve enclosing brace expansions
                                               word: (word
                                                 (literal))
                                               in: (in_keyword)
-                                              item: (case_item
-                                                patterns: (pattern_list
-                                                  word: (word
-                                                    (literal)))
-                                                body: (compound_list
-                                                  body: (term
-                                                    and_or: (and_or
-                                                      pipeline: (pipeline
-                                                        (pipe_sequence
-                                                          command: (command
-                                                            body: (simple_command
-                                                              name: (word
-                                                                (literal)))))))))
-                                                terminator: (dsemi))
+                                              items: (case_list
+                                                item: (case_item
+                                                  patterns: (pattern_list
+                                                    word: (word
+                                                      (literal)))
+                                                  body: (compound_list
+                                                    body: (term
+                                                      and_or: (and_or
+                                                        pipeline: (pipeline
+                                                          (pipe_sequence
+                                                            command: (command
+                                                              body: (simple_command
+                                                                name: (word
+                                                                  (literal)))))))))
+                                                  terminator: (dsemi)))
                                               (esac_keyword))))))))))))))))))))))
     separator: (newline_list)
     command: (complete_command
@@ -773,20 +774,21 @@ Bash command headers and array words preserve enclosing brace expansions
                                                                   word: (word
                                                                     (literal))
                                                                   in: (in_keyword)
-                                                                  item: (case_item
-                                                                    patterns: (pattern_list
-                                                                      word: (word
-                                                                        (literal)))
-                                                                    body: (compound_list
-                                                                      body: (term
-                                                                        and_or: (and_or
-                                                                          pipeline: (pipeline
-                                                                            (pipe_sequence
-                                                                              command: (command
-                                                                                body: (simple_command
-                                                                                  name: (word
-                                                                                    (literal)))))))))
-                                                                    terminator: (dsemi))
+                                                                  items: (case_list
+                                                                    item: (case_item
+                                                                      patterns: (pattern_list
+                                                                        word: (word
+                                                                          (literal)))
+                                                                      body: (compound_list
+                                                                        body: (term
+                                                                          and_or: (and_or
+                                                                            pipeline: (pipeline
+                                                                              (pipe_sequence
+                                                                                command: (command
+                                                                                  body: (simple_command
+                                                                                    name: (word
+                                                                                      (literal)))))))))
+                                                                      terminator: (dsemi)))
                                                                   (esac_keyword)))))))
                                                       separator: (separator
                                                         operator: (separator_op)))))))))))))))))))))))))))
@@ -824,20 +826,21 @@ Bash command headers and array words preserve enclosing brace expansions
                                                 word: (word
                                                   (literal))
                                                 in: (in_keyword)
-                                                item: (case_item
-                                                  patterns: (pattern_list
-                                                    word: (word
-                                                      (literal)))
-                                                  body: (compound_list
-                                                    body: (term
-                                                      and_or: (and_or
-                                                        pipeline: (pipeline
-                                                          (pipe_sequence
-                                                            command: (command
-                                                              body: (simple_command
-                                                                name: (word
-                                                                  (literal)))))))))
-                                                  terminator: (dsemi))
+                                                items: (case_list
+                                                  item: (case_item
+                                                    patterns: (pattern_list
+                                                      word: (word
+                                                        (literal)))
+                                                    body: (compound_list
+                                                      body: (term
+                                                        and_or: (and_or
+                                                          pipeline: (pipeline
+                                                            (pipe_sequence
+                                                              command: (command
+                                                                body: (simple_command
+                                                                  name: (word
+                                                                    (literal)))))))))
+                                                    terminator: (dsemi)))
                                                 (esac_keyword)))))))))))))))))))))))
     separator: (newline_list)
     command: (complete_command
@@ -947,25 +950,26 @@ Word groups and combined redirections preserve enclosing brace expansions
                                               word: (word
                                                 (literal))
                                               in: (in_keyword)
-                                              item: (case_item
-                                                patterns: (pattern_list
-                                                  word: (word
-                                                    (extglob_pattern
-                                                      operator: (extglob_operator)
-                                                      alternative: (extglob_alternative
-                                                        (literal))
-                                                      alternative: (extglob_alternative
-                                                        (literal)))))
-                                                body: (compound_list
-                                                  body: (term
-                                                    and_or: (and_or
-                                                      pipeline: (pipeline
-                                                        (pipe_sequence
-                                                          command: (command
-                                                            body: (simple_command
-                                                              name: (word
-                                                                (literal)))))))))
-                                                terminator: (dsemi))
+                                              items: (case_list
+                                                item: (case_item
+                                                  patterns: (pattern_list
+                                                    word: (word
+                                                      (extglob_pattern
+                                                        operator: (extglob_operator)
+                                                        alternative: (extglob_alternative
+                                                          (literal))
+                                                        alternative: (extglob_alternative
+                                                          (literal)))))
+                                                  body: (compound_list
+                                                    body: (term
+                                                      and_or: (and_or
+                                                        pipeline: (pipeline
+                                                          (pipe_sequence
+                                                            command: (command
+                                                              body: (simple_command
+                                                                name: (word
+                                                                  (literal)))))))))
+                                                  terminator: (dsemi)))
                                               (esac_keyword))))))))))))))))))))))
     separator: (newline_list)
     command: (complete_command
@@ -1102,20 +1106,21 @@ Simple command prefixes and array substitutions preserve enclosing braces
                                                                         (word
                                                                           (literal))
                                                                         (in_keyword)
-                                                                        (case_item
-                                                                          (pattern_list
-                                                                            (word
-                                                                              (literal)))
-                                                                          (compound_list
-                                                                            (term
-                                                                              (and_or
-                                                                                (pipeline
-                                                                                  (pipe_sequence
-                                                                                    (command
-                                                                                      (simple_command
-                                                                                        (word
-                                                                                          (literal)))))))))
-                                                                          (dsemi))
+                                                                        (case_list
+                                                                          (case_item
+                                                                            (pattern_list
+                                                                              (word
+                                                                                (literal)))
+                                                                            (compound_list
+                                                                              (term
+                                                                                (and_or
+                                                                                  (pipeline
+                                                                                    (pipe_sequence
+                                                                                      (command
+                                                                                        (simple_command
+                                                                                          (word
+                                                                                            (literal)))))))))
+                                                                            (dsemi)))
                                                                         (esac_keyword)))))))))))))))))))))))))))))))))))
     (newline_list)
     (complete_command
@@ -2069,29 +2074,30 @@ x=[{a,b}]; case @({a,b}) in [{a,b}]) :;; esac; [[ x == @({a,b}) ]]; : ${v/@({a,b
 0:18 - 0:23                             literal `{a,b}`
 0:23 - 0:24                           ")"
 0:25 - 0:27                       in: in_keyword `in`
-0:28 - 0:41                       item: case_item
-0:28 - 0:35                         patterns: pattern_list
-0:28 - 0:35                           word: word
-0:28 - 0:35                             pattern_bracket_source
-0:28 - 0:29                               "["
-0:29 - 0:34                               members: pattern_bracket_members_source
-0:29 - 0:30                                 member: pattern_bracket_character_source `{`
-0:30 - 0:31                                 member: pattern_bracket_character_source `a`
-0:31 - 0:32                                 member: pattern_bracket_character_source `,`
-0:32 - 0:33                                 member: pattern_bracket_character_source `b`
-0:33 - 0:34                                 member: pattern_bracket_character_source `}`
-0:34 - 0:35                               "]"
-0:35 - 0:36                         ")"
-0:36 - 0:38                         body: compound_list
-0:37 - 0:38                           body: term
-0:37 - 0:38                             and_or: and_or
-0:37 - 0:38                               pipeline: pipeline
-0:37 - 0:38                                 pipe_sequence
-0:37 - 0:38                                   command: command
-0:37 - 0:38                                     body: simple_command
-0:37 - 0:38                                       name: word
-0:37 - 0:38                                         literal `:`
-0:38 - 0:40                         terminator: dsemi `;;`
+0:28 - 0:41                       items: case_list
+0:28 - 0:41                         item: case_item
+0:28 - 0:35                           patterns: pattern_list
+0:28 - 0:35                             word: word
+0:28 - 0:35                               pattern_bracket_source
+0:28 - 0:29                                 "["
+0:29 - 0:34                                 members: pattern_bracket_members_source
+0:29 - 0:30                                   member: pattern_bracket_character_source `{`
+0:30 - 0:31                                   member: pattern_bracket_character_source `a`
+0:31 - 0:32                                   member: pattern_bracket_character_source `,`
+0:32 - 0:33                                   member: pattern_bracket_character_source `b`
+0:33 - 0:34                                   member: pattern_bracket_character_source `}`
+0:34 - 0:35                                 "]"
+0:35 - 0:36                           ")"
+0:36 - 0:38                           body: compound_list
+0:37 - 0:38                             body: term
+0:37 - 0:38                               and_or: and_or
+0:37 - 0:38                                 pipeline: pipeline
+0:37 - 0:38                                   pipe_sequence
+0:37 - 0:38                                     command: command
+0:37 - 0:38                                       body: simple_command
+0:37 - 0:38                                         name: word
+0:37 - 0:38                                           literal `:`
+0:38 - 0:40                           terminator: dsemi `;;`
 0:41 - 0:45                       esac_keyword `esac`
 0:45 - 0:46           separator: separator_op
 0:45 - 0:46             ";"

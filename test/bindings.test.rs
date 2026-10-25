@@ -551,52 +551,90 @@ fn repair_every_byte_restores_complete_cst_and_ranges() {
 
 #[test]
 fn large_bodies_and_compressed_nesting_preserve_incremental_structure() {
+  let delimiter_padding = 256;
+  let delimiter_quotes = 16_384;
+  let word_bytes = 1_048_576;
+  let body_bytes = 1_048_576;
+  let command_rows = 16_384;
+  let substring_depth = 1_024;
+  let subscript_characters = 16_384;
+  let word_depth = 32;
+  let extglob_depth = 128;
+  let substitution_depth = 64;
+  let arithmetic_for_depth = 1_024;
+  let ere_text_characters = 16_384;
+  let ere_branches = 4_096;
+  let ere_group_depth = 1_024;
+  let ere_bracket_characters = 4_096;
+  let ere_source_segments = 1_024;
   let sources = [
-    format!("cat << ${{|{0}:; }}\nx\n${{|{0}:; }}\n", " ".repeat(256)),
+    format!(
+      "cat << ${{|{0}:; }}\nx\n${{|{0}:; }}\n",
+      " ".repeat(delimiter_padding)
+    ),
     format!(
       "cat << \"$(printf '{}')\"\nx\n$(printf '')\n",
-      "\"".repeat(16_384)
+      "\"".repeat(delimiter_quotes)
     ),
-    format!("echo x{}\n", "a".repeat(1024 * 1024)),
-    format!("cat <<EOF\nx{}\nEOF\n", "a".repeat(1024 * 1024)),
-    "echo x\n".repeat(16_384),
+    format!("echo x{}\n", "a".repeat(word_bytes)),
+    format!("cat <<EOF\nx{}\nEOF\n", "a".repeat(body_bytes)),
+    "echo x\n".repeat(command_rows),
     format!(
       ": ${{s:{}x${{n:-1}}{}:2}}\n",
-      "(".repeat(1024),
-      ")".repeat(1024)
+      "(".repeat(substring_depth),
+      ")".repeat(substring_depth)
     ),
     format!(
       ": ${{s:{}${{n:-x}}{}:2}}\n",
-      "1?".repeat(1024),
-      ":1".repeat(1024)
+      "1?".repeat(substring_depth),
+      ":1".repeat(substring_depth)
     ),
-    format!("a[x{} ] tail\n", "a".repeat(16_384)),
-    format!("a=([x{} ] tail)\n", "a".repeat(16_384)),
-    format!(": {{fd[x{}]}}>out\n", "a".repeat(16_384)),
-    format!("{}x{}\n", "a[$(".repeat(32), ") ]".repeat(32)),
-    format!("echo {}x{}\n", "@(".repeat(128), ")".repeat(128)),
-    format!("echo {}x{}\n", "$(echo ".repeat(64), ")".repeat(64)),
+    format!("a[x{} ] tail\n", "a".repeat(subscript_characters)),
+    format!("a=([x{} ] tail)\n", "a".repeat(subscript_characters)),
+    format!(": {{fd[x{}]}}>out\n", "a".repeat(subscript_characters)),
+    format!(
+      "{}x{}\n",
+      "a[$(".repeat(word_depth),
+      ") ]".repeat(word_depth)
+    ),
+    format!(
+      "echo {}x{}\n",
+      "@(".repeat(extglob_depth),
+      ")".repeat(extglob_depth)
+    ),
+    format!(
+      "echo {}x{}\n",
+      "$(echo ".repeat(substitution_depth),
+      ")".repeat(substitution_depth)
+    ),
     format!(
       "for (({}x y{};0;)); do :; done\n",
-      "(".repeat(1024),
-      ")".repeat(1024)
+      "(".repeat(arithmetic_for_depth),
+      ")".repeat(arithmetic_for_depth)
     ),
     format!(
       "for (({}x;y;z{})); do :; done\n",
-      "(".repeat(1024),
-      ")".repeat(1024)
+      "(".repeat(arithmetic_for_depth),
+      ")".repeat(arithmetic_for_depth)
     ),
     format!(
       "for (({};0;{})); do :; done\n",
-      "((x y)".repeat(1024),
-      ")".repeat(1024)
+      "((x y)".repeat(arithmetic_for_depth),
+      ")".repeat(arithmetic_for_depth)
     ),
-    format!("[[ s =~ x{} ]]\n", "a".repeat(16_384)),
-    format!("[[ s =~ x{} ]]\n", "|a".repeat(4096)),
-    format!("[[ s =~ {}x{} ]]\n", "(".repeat(1024), ")".repeat(1024)),
-    format!("[[ s =~ [x{}] ]]\n", "a".repeat(4096)),
-    format!("[[ s =~ [[.x{}.]] ]]\n", "a".repeat(16_384)),
-    format!("[[ s =~ \"p\"(x){} ]]\n", "\"q\"(a)".repeat(1024)),
+    format!("[[ s =~ x{} ]]\n", "a".repeat(ere_text_characters)),
+    format!("[[ s =~ x{} ]]\n", "|a".repeat(ere_branches)),
+    format!(
+      "[[ s =~ {}x{} ]]\n",
+      "(".repeat(ere_group_depth),
+      ")".repeat(ere_group_depth)
+    ),
+    format!("[[ s =~ [x{}] ]]\n", "a".repeat(ere_bracket_characters)),
+    format!("[[ s =~ [[.x{}.]] ]]\n", "a".repeat(ere_text_characters)),
+    format!(
+      "[[ s =~ \"p\"(x){} ]]\n",
+      "\"q\"(a)".repeat(ere_source_segments)
+    ),
   ];
   for seed in sources {
     let mut parser = parser();
@@ -613,9 +651,14 @@ fn large_bodies_and_compressed_nesting_preserve_incremental_structure() {
 
 #[test]
 fn metadata_overflow_finishes_and_repaired_input_is_reusable() {
+  let delimiter_bytes = 2048;
+  let reply_padding_bytes = 16_384;
   for source in [
-    format!("cat <<{}\n", "a".repeat(2048)),
-    format!("cat << ${{|{}:; }}\nx\n${{|:; }}\n", " ".repeat(16_384)),
+    format!("cat <<{}\n", "a".repeat(delimiter_bytes)),
+    format!(
+      "cat << ${{|{}:; }}\nx\n${{|:; }}\n",
+      " ".repeat(reply_padding_bytes)
+    ),
   ] {
     let mut parser = parser();
     let mut tree = parser.parse(&source, None).unwrap();

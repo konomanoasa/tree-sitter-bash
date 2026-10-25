@@ -282,6 +282,7 @@ const quotedLiterals = ($) => [
 ];
 const structuredSourceParts = ($) => [
   $.escaped_character,
+  $.parameter_replacement_reference,
   ...quotedLiterals($),
   $.process_substitution,
   $.current_shell_substitution,
@@ -846,13 +847,6 @@ const parameterPatternSource = ($) =>
     seq($._parameter_tilde_source, repeat($._parameter_pattern_part)),
     repeat1($._parameter_pattern_part),
   );
-const caseClauseItems = ($) =>
-  choice(
-    $._esac_keyword_source,
-    seq(field("items", $._case_list), $._esac_keyword_source),
-    seq(field("items", $._case_list_ns), $._esac_keyword_source),
-  );
-
 const compoundListField = ($, name) => field(name, $.compound_list);
 
 const conditionalThenHeader = ($, keyword) =>
@@ -986,7 +980,7 @@ const redirectableCompoundCommand = ($) =>
         seq(
           $._redirect_list_begin,
           optional($._horizontal_layout),
-          field("redirects", $._redirect_list),
+          field("redirects", $.redirect_list),
         ),
       ),
     ),
@@ -1319,6 +1313,7 @@ export default function defineGrammar(name) {
         $._substring_separator_begin,
         $._parameter_replace_begin,
         $._replacement_separator_begin,
+        $._parameter_replacement_reference_begin,
         $._parameter_case_begin,
         $._parameter_transform_begin,
         $._parameter_transform_code_begin,
@@ -1903,7 +1898,7 @@ export default function defineGrammar(name) {
           $.until_clause,
         ),
 
-      _redirect_list: ($) => redirectList($),
+      redirect_list: ($) => redirectList($),
 
       brace_group: ($) =>
         seq(
@@ -1944,7 +1939,7 @@ export default function defineGrammar(name) {
             seq(
               $._linebreak_layout,
               field("in", $._in),
-              optional(seq($._horizontal_layout, field("words", $._wordlist))),
+              optional(seq($._horizontal_layout, field("words", $.word_list))),
             ),
           ),
           separatedForHeader($),
@@ -1952,7 +1947,7 @@ export default function defineGrammar(name) {
 
       _in: ($) => $._in_keyword_source,
 
-      _wordlist: ($) =>
+      word_list: ($) =>
         prec.right(
           seq(
             field("word", $.word),
@@ -2010,7 +2005,12 @@ export default function defineGrammar(name) {
           field("word", alias($._case_word, $.word)),
         ),
 
-      case_clause: ($) => seq($._case_header, caseClauseItems($)),
+      case_clause: ($) =>
+        seq(
+          $._case_header,
+          optional(field("items", $.case_list)),
+          $._esac_keyword_source,
+        ),
 
       _case_header: ($) =>
         seq(
@@ -2020,13 +2020,11 @@ export default function defineGrammar(name) {
           optional($._linebreak_layout),
         ),
 
-      _case_list_ns: ($) =>
+      case_list: ($) =>
         choice(
+          $._case_list,
           field("item", alias($._case_item_ns, $.case_item)),
-          seq(
-            field("terminated", $._case_list),
-            field("item", alias($._case_item_ns, $.case_item)),
-          ),
+          seq($._case_list, field("item", alias($._case_item_ns, $.case_item))),
         ),
 
       _case_list: ($) => repeat1(field("item", $.case_item)),
@@ -2947,6 +2945,9 @@ export default function defineGrammar(name) {
 
       parameter_substring_operator: lexeme("_parameter_substring_begin"),
       parameter_replacement_operator: lexeme("_parameter_replace_begin"),
+      parameter_replacement_reference: lexeme(
+        "_parameter_replacement_reference_begin",
+      ),
       parameter_case_operator: lexeme("_parameter_case_begin"),
       _arithmetic_comma_operator_lexeme: lexeme(
         "_arithmetic_comma_operator_begin",

@@ -2544,3 +2544,68 @@ special parameters followed by brackets are operators not length operands
                           source: (subscript_source
                             candidate: (arithmetic_candidate_number)))))))))))))
     separator: (newline_list)))
+
+==================
+replacement references respect local quotes and nested expansion ownership
+:language(bash)
+:language(bash_default)
+==================
+echo "${x/a/pre&&\&'&'"&"$'&'}" ${x/&/${y:-&}${z/b/&}}
+
+------------------
+
+(program
+  commands: (complete_commands
+    command: (complete_command
+      body: (list
+        and_or: (and_or
+          pipeline: (pipeline
+            (pipe_sequence
+              command: (command
+                body: (simple_command
+                  name: (word
+                    (literal))
+                  argument: (word
+                    (double_quoted
+                      (parameter_expansion
+                        parameter: (variable_name)
+                        (parameter_replacement
+                          operator: (parameter_replacement_operator)
+                          pattern: (parameter_pattern
+                            (literal))
+                          (parameter_replacement_separator)
+                          replacement: (parameter_word
+                            (literal)
+                            (parameter_replacement_reference)
+                            (parameter_replacement_reference)
+                            (escaped_character)
+                            (single_quoted
+                              (single_quote_content))
+                            (double_quoted
+                              (double_quote_text))
+                            (dollar_single_quoted
+                              (dollar_single_quote_text)))))))
+                  argument: (word
+                    (parameter_expansion
+                      parameter: (variable_name)
+                      (parameter_replacement
+                        operator: (parameter_replacement_operator)
+                        pattern: (parameter_pattern
+                          (literal))
+                        (parameter_replacement_separator)
+                        replacement: (parameter_word
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            operator: (parameter_value_operator)
+                            word: (parameter_word
+                              (literal)))
+                          (parameter_expansion
+                            parameter: (variable_name)
+                            (parameter_replacement
+                              operator: (parameter_replacement_operator)
+                              pattern: (parameter_pattern
+                                (literal))
+                              (parameter_replacement_separator)
+                              replacement: (parameter_word
+                                (parameter_replacement_reference)))))))))))))))
+    separator: (newline_list)))

@@ -261,10 +261,11 @@ function f
                                         (literal)))))))
                             (separator
                               (separator_op))))))
-                    (io_redirect
-                      (io_file
-                        (word
-                          (literal))))))))))))
+                    (redirect_list
+                      (io_redirect
+                        (io_file
+                          (word
+                            (literal)))))))))))))
     (newline_list)))
 
 ==================
@@ -446,10 +447,11 @@ run value
                                             parameter: (positional_parameter)))))))))
                             separator: (separator
                               operator: (separator_op))))))
-                    redirect: (io_redirect
-                      body: (io_file
-                        filename: (word
-                          (literal))))))))))))
+                    redirects: (redirect_list
+                      redirect: (io_redirect
+                        body: (io_file
+                          filename: (word
+                            (literal)))))))))))))
     separator: (newline_list)
     command: (complete_command
       body: (list
@@ -894,26 +896,27 @@ function names accept non-assignment equals signs and extglob patterns
 ==================
 function names and body redirections retain source ownership
 :language(bash)
+:language(bash_default)
 :cst
 ==================
-function a-b() { :; } >out
+function a-b() { :; } >out 2>err
 
 ------------------
 
 0:0  - 1:0    program
 0:0  - 1:0      commands: complete_commands
-0:0  - 0:26       command: complete_command
-0:0  - 0:26         body: list
-0:0  - 0:26           and_or: and_or
-0:0  - 0:26             pipeline: pipeline
-0:0  - 0:26               pipe_sequence
-0:0  - 0:26                 command: command
-0:0  - 0:26                   body: function_definition
+0:0  - 0:32       command: complete_command
+0:0  - 0:32         body: list
+0:0  - 0:32           and_or: and_or
+0:0  - 0:32             pipeline: pipeline
+0:0  - 0:32               pipe_sequence
+0:0  - 0:32                 command: command
+0:0  - 0:32                   body: function_definition
 0:0  - 0:8                      function_keyword `function`
 0:9  - 0:12                     name: function_name `a-b`
 0:12 - 0:13                     "("
 0:13 - 0:14                     ")"
-0:15 - 0:26                     body: function_body
+0:15 - 0:32                     body: function_body
 0:15 - 0:21                       body: compound_command
 0:15 - 0:21                         brace_group
 0:15 - 0:16                           "{"
@@ -930,13 +933,20 @@ function a-b() { :; } >out
 0:18 - 0:19                                 operator: separator_op
 0:18 - 0:19                                   ";"
 0:20 - 0:21                           "}"
-0:22 - 0:26                       redirect: io_redirect
-0:22 - 0:26                         body: io_file
-0:22 - 0:23                           ">"
-0:23 - 0:26                           filename: word
-0:23 - 0:26                             literal `out`
-0:26 - 1:0        separator: newline_list
-0:26 - 1:0          "\n"
+0:22 - 0:32                       redirects: redirect_list
+0:22 - 0:26                         redirect: io_redirect
+0:22 - 0:26                           body: io_file
+0:22 - 0:23                             ">"
+0:23 - 0:26                             filename: word
+0:23 - 0:26                               literal `out`
+0:27 - 0:32                         redirect: io_redirect
+0:27 - 0:28                           number: io_number `2`
+0:28 - 0:32                           body: io_file
+0:28 - 0:29                             ">"
+0:29 - 0:32                             filename: word
+0:29 - 0:32                               literal `err`
+0:32 - 1:0        separator: newline_list
+0:32 - 1:0          "\n"
 
 ==================
 Unicode function names do not alias ASCII reserved spellings

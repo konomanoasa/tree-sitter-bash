@@ -28,7 +28,6 @@ struct LogicalLexer {
   enum SourceResult result;
   size_t consumed;
   size_t mark;
-  /* Bracket fallback chains after the pattern literal classified here. */
   uint32_t bracket_chains;
   bool bounded;
 };

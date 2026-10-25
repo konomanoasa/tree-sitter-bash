@@ -15,17 +15,12 @@ fn main() {
     println!("cargo::rerun-if-changed={}", Path::new(&headers).display());
   }
 
-  for (directory, library) in [
+  let grammars = [
     ("src", "tree-sitter-bash"),
     ("bash_default/src", "tree-sitter-bash-default"),
-  ] {
+  ];
+  for (directory, _) in grammars {
     println!("cargo::rerun-if-changed={directory}");
-    let directory = Path::new(directory);
-    build
-      .clone()
-      .include(directory)
-      .files([directory.join("parser.c"), directory.join("scanner.c")])
-      .compile(library);
   }
   for header in [
     "common/arithmetic.h",
@@ -34,5 +29,14 @@ fn main() {
     "common/source.h",
   ] {
     println!("cargo::rerun-if-changed={header}");
+  }
+
+  for (directory, library) in grammars {
+    let directory = Path::new(directory);
+    build
+      .clone()
+      .include(directory)
+      .files([directory.join("parser.c"), directory.join("scanner.c")])
+      .compile(library);
   }
 }

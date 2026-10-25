@@ -460,14 +460,7 @@
       (pattern_question_source) @character.special
     ]))
 
-(for_clause
-  word: (word
-    [
-      (pattern_star_source) @character.special
-      (pattern_question_source) @character.special
-    ]))
-
-(select_clause
+(word_list
   word: (word
     [
       (pattern_star_source) @character.special
@@ -779,55 +772,7 @@
           ])
       ])))
 
-(for_clause
-  word: (word
-    (pattern_bracket_source
-      [
-        "[" @punctuation.bracket
-        "]" @punctuation.bracket
-        (pattern_bracket_negation_source) @operator
-        (pattern_bracket_members_source
-          [
-            (pattern_bracket_character_source) @character
-            (pattern_bracket_hyphen_source) @character
-            (pattern_bracket_range_source
-              [
-                (pattern_bracket_character_source) @character
-                (pattern_bracket_hyphen_source) @character
-                (pattern_bracket_range_operator_source) @operator
-                (pattern_collating_symbol_source
-                  [
-                    "[" @punctuation.bracket
-                    "." @punctuation.delimiter
-                    "]" @punctuation.bracket
-                    (pattern_collating_symbol_character_source) @character.special
-                  ])
-              ])
-            (pattern_character_class_source
-              [
-                "[" @punctuation.bracket
-                ":" @punctuation.delimiter
-                "]" @punctuation.bracket
-                (pattern_character_class_content_source) @character.special
-              ])
-            (pattern_collating_symbol_source
-              [
-                "[" @punctuation.bracket
-                "." @punctuation.delimiter
-                "]" @punctuation.bracket
-                (pattern_collating_symbol_character_source) @character.special
-              ])
-            (pattern_equivalence_class_source
-              [
-                "[" @punctuation.bracket
-                "=" @punctuation.delimiter
-                "]" @punctuation.bracket
-                (pattern_equivalence_class_character_source) @character.special
-              ])
-          ])
-      ])))
-
-(select_clause
+(word_list
   word: (word
     (pattern_bracket_source
       [
@@ -1057,6 +1002,8 @@
   (parameter_transformation_operator) @operator)
 
 (parameter_transformation_code) @character.special
+
+(parameter_replacement_reference) @string.special.symbol
 
 (locale_quoted
   [

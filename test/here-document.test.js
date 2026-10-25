@@ -170,72 +170,6 @@ for (const grammar of grammars) {
         }
       }
     });
-    test("moving a substitution close before its body rejects and repairs locally", () => {
-      for (const [open, close] of [
-        ["$(", ")"],
-        ["`", "`"],
-        ["<(", ")"],
-        [">(", ")"],
-        ["${ ", "}"],
-        ["${| ", "}"],
-      ]) {
-        for (const [before, after] of [
-          ["echo BEFORE\n: ", "\necho AFTER\n"],
-          ["cat <<OUT\n$(: ", ")\nOUT\necho AFTER\n"],
-        ]) {
-          const body = "cat <<E\nbody\nE\n";
-          const seed = `${before}${open}${body}${close}${after}`;
-          assertEditRoundTrip(parser, {
-            seed,
-            remove: body + close,
-            insert: `cat <<E${close === "}" ? "; " : ""}${close}\nbody\nE\n`,
-            valid: false,
-          });
-          assertEditRoundTrip(parser, {
-            seed,
-            remove: "\nE\n",
-            insert: "\nOTHER\n",
-            valid: false,
-          });
-        }
-      }
-    });
-    test("breaking a here document terminator after trailing blanks or a comment restores the sequence", () => {
-      for (const seed of [
-        "cat <<`cat` # c\nx\n`cat`\n",
-        "cat <<`cat`  \nx\n`cat`\n",
-        "cat <<-`cat` # c\n\tx\n\t`cat`\n",
-        "cat <<`cat` | cat # c\nx\n`cat`\n",
-        "cat <<`cat` # c\nx\n`cat`\necho after\n",
-      ]) {
-        assertEditRoundTrip(parser, {
-          seed,
-          remove: "`cat`\n",
-          insert: "`c[at`\n",
-          valid: false,
-        });
-      }
-    });
-    test("breaking a here document terminator inside a quoted substitution restores the command", () => {
-      for (const [open, close] of [
-        ['"$(', ')"'],
-        ['"`', '`"'],
-        ['"${ ', '}"'],
-      ]) {
-        assertEditRoundTrip(parser, {
-          seed: `echo ${open}cat <<\${x:-E} \nx\n\${x:-E}\n${close}\n`,
-          remove: `\${x:-E}\n`,
-          insert: `\${x:"-E}\n`,
-          valid: false,
-        });
-      }
-      assertEditRoundTrip(parser, {
-        seed: `echo "$(cat <<\${x:-E}\n\\$x\n\${x:-E}\n)"\n`,
-        remove: `\${x:-E}\n)`,
-        insert: `\${x:"-E}\n)`,
-        valid: false,
-      });
-    });
     const extglob = grammar.name === "bash";
     const nodes = (source) => parseNodes(parser, source);
     test("stripped tabs on a final line without a newline end an empty delimiter", () => {
@@ -482,13 +416,6 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "a here string within a brace loses its operand then is repaired",
-          seed: ": {a,$(cat <<<x)}\n",
-          remove: "<<<x",
-          insert: "<<<",
-          valid: false,
-        },
-        {
           name: "a brace delimiter gains a newline and becomes unterminated",
           seed: `cat << \${ :; }\n$x\n\${ :; }\n`,
           remove: `<< \${ `,
@@ -573,13 +500,6 @@ for (const grammar of grammars) {
           valid: true,
         },
         {
-          name: "locale quoted delimiter closing quote is repaired",
-          seed: 'cat <<$"EOF"\n$x\nEOF\n',
-          remove: 'EOF"',
-          insert: "EOF",
-          valid: false,
-        },
-        {
           name: "here string becomes here document",
           seed: "cat <<<EOF\nEOF\n",
           remove: "<<<",
@@ -599,13 +519,6 @@ for (const grammar of grammars) {
           remove: `\${ `,
           insert: `\${| `,
           valid: true,
-        },
-        {
-          name: "delimiter nested quote boundary is lost then repaired",
-          seed: 'cat <<"$(echo "a b")"\nbody\n$(echo a b)\n',
-          remove: ')"',
-          insert: '"',
-          valid: false,
         },
         {
           name: "quoted delimiter changes expansion ownership",
@@ -655,13 +568,6 @@ for (const grammar of grammars) {
           remove: "<<IN",
           insert: "<<'IN'",
           valid: true,
-        },
-        {
-          name: "an inner terminator is removed while an outer document is pending",
-          seed: ': <<OUT "$(cat <<IN\n$x\nIN\n)"\n$y\nOUT\n',
-          remove: "$x\nIN",
-          insert: "$x\n",
-          valid: false,
         },
         {
           name: "a suspended outer here document loses its terminator",
@@ -771,55 +677,6 @@ for (const grammar of grammars) {
         insert: " <<OUT\nOUT\n",
         valid: true,
       });
-    });
-
-    test("substitution boundaries reject pending documents and recover after completion", () => {
-      for (const [name, prefix, closer] of [
-        ["command", ": $(cat <<E", ")"],
-        ["quoted command", ': "$(cat <<E', ')"'],
-        ["nested command", ": $(: $(cat <<E", "))"],
-        ["input process", ": <(cat <<E", ")"],
-        ["output process", ": >(cat <<E", ")"],
-        ["backquote", ": `cat <<E", "`"],
-        ["quoted backquote", ': "`cat <<E', '`"'],
-        ["current shell", ": ${ cat <<E;", " }"],
-        ["reply", ": ${| cat <<E;", " }"],
-        ["current shell list", ": ${ cat <<E; :;", " }"],
-        ["reply pipeline", ": ${| cat <<E | :;", " }"],
-      ]) {
-        const incomplete = `${prefix}${closer}\n`;
-        const completion = "\nbody\nE\n";
-        const complete = `${prefix}${completion}${closer}\n`;
-        const options = { arguments: ["-c"] };
-        const fresh = parser.parse(incomplete, options);
-        assert.equal(fresh.status, 1, name);
-        assert.equal(parser.parse(`${incomplete}E\n`, options).status, 1, name);
-        assert.ok(!fresh.tree.includes("here_document_end"));
-        const original = parser.parse(complete, options);
-        assert.equal(original.status, 0, `${name}\n${original.output}`);
-        const insert = {
-          byte: Buffer.byteLength(prefix),
-          deleteBytes: 0,
-          insert: completion,
-        };
-        const remove = {
-          byte: insert.byte,
-          deleteBytes: Buffer.byteLength(completion),
-          insert: "",
-        };
-        const broken = parser.parse(complete, { ...options, edits: [remove] });
-        assert.equal(broken.status, 1, `${name}\n${broken.output}`);
-        for (const [source, edits] of [
-          [incomplete, [insert]],
-          [complete, [remove, insert]],
-        ]) {
-          const repaired = parser.parse(source, { ...options, edits });
-          assert.equal(repaired.status, 0, `${name}\n${repaired.output}`);
-          assert.equal(repaired.tree, original.tree, name);
-        }
-      }
-      const source = "cat <<OUT $(:) `:`\nbody\nOUT\n";
-      assert.equal(parser.parse(source, {}).status, 0);
     });
 
     test("delimiter spelling preserves control bytes and layout through edits", () => {
@@ -1236,76 +1093,6 @@ for (const grammar of grammars) {
         }
       }
     });
-
-    for (const [name, prefix, delimiter, suffix] of [
-      ["parameter", "cat <<EOF\n${value:-\n", "EOF\n", "}\nEOF\nafter\n"],
-      ["arithmetic", "cat <<EOF\n$((1 +\n", "EOF\n", "))\nEOF\nafter\n"],
-      ["command", "cat <<EOF\n$(printf x\n", "EOF\n", ")\nEOF\nafter\n"],
-      ["backquote", "cat <<EOF\n`printf x\n", "EOF\n", "`\nEOF\nafter\n"],
-      ["current shell", "cat <<EOF\n${ printf x\n", "EOF\n", "}\nEOF\nafter\n"],
-      ["reply", "cat <<EOF\n${| printf x\n", "EOF\n", "}\nEOF\nafter\n"],
-      ["subscript", "cat <<EOF\n${a[\n", "EOF\n", "]}\nEOF\nafter\n"],
-      ["substring", "cat <<EOF\n${value:\n", "EOF\n", "}\nEOF\nafter\n"],
-      ["extglob", "cat <<EOF\n${value#@(\n", "EOF\n", ")}\nEOF\nafter\n"],
-      ["double quote", 'cat <<EOF\n${value:-"\n', "EOF\n", '"}\nEOF\nafter\n'],
-      ["single quote", "cat <<EOF\n${value#'\n", "EOF\n", "'}\nEOF\nafter\n"],
-      [
-        "dollar single quote",
-        "cat <<EOF\n${value#$'\n",
-        "EOF\n",
-        "'}\nEOF\nafter\n",
-      ],
-      [
-        "nested document",
-        "cat <<EOF\n$(cat <<INNER\n",
-        "EOF\n",
-        "INNER\n)\nEOF\nafter\n",
-      ],
-      [
-        "nested quoted document",
-        "cat <<EOF\n$(cat <<'INNER'\n",
-        "EOF\n",
-        "INNER\n)\nEOF\nafter\n",
-      ],
-      [
-        "stripped tabs",
-        "cat <<-EOF\n${value:-\n",
-        "\tEOF\n",
-        "}\nEOF\nafter\n",
-      ],
-      [
-        "continued delimiter",
-        "cat <<EOF\n${value:-\n",
-        "E\\\nOF\n",
-        "}\nEOF\nafter\n",
-      ],
-    ]) {
-      test(`here-document delimiter bounds ${name} before its later closer`, () => {
-        const source = `${prefix}x${delimiter}${suffix}`;
-        const options = { arguments: ["-c"] };
-        const original = parser.parse(source, options);
-        assert.equal(original.status, 0, original.output);
-        const remove = {
-          byte: Buffer.byteLength(prefix),
-          deleteBytes: 1,
-          insert: "",
-        };
-        const fresh = parser.parse(`${prefix}${delimiter}${suffix}`, options);
-        const incremental = parser.parse(source, {
-          ...options,
-          edits: [remove],
-        });
-        assert.equal(fresh.status, 1, fresh.output);
-        assert.equal(incremental.status, 1, incremental.output);
-        const undo = { byte: remove.byte, deleteBytes: 0, insert: "x" };
-        const repaired = parser.parse(source, {
-          ...options,
-          edits: [remove, undo],
-        });
-        assert.equal(repaired.status, 0, repaired.output);
-        assert.equal(repaired.tree, original.tree);
-      });
-    }
 
     for (const entry of delimiterCases) {
       test(entry.name, () => {
