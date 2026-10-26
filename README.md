@@ -25,6 +25,10 @@ npm run build
 npm test
 ```
 
+## Parsing Policy
+
+[Parsing Policy](PARSING_POLICY.md)
+
 ## Specification
 
 [GNU Bash Reference Manual 5.3](https://www.gnu.org/software/bash/manual/bash.html)

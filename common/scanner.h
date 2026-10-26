@@ -8420,7 +8420,7 @@ static bool scan_bash_function_name(
     }
   }
   if (length == 0 && shape.plain) return false;
-  /* Nested lookahead can switch views, so cached positions do not order source. */
+  /* Cached positions from different lookahead views are not comparable. */
   size_t end = probe_position(lexer);
   size_t end_source = lexer_raw_position(lexer);
   probe_seek(lexer, start);

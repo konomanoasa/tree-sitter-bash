@@ -24,7 +24,7 @@ enum SourceStageKind {
 };
 
 struct SourceOrigin {
-  /* Advance ordinals; pending units can start before this callback. */
+  /* Advance ordinals can be negative after resuming. */
   int64_t start;
   int64_t end;
   int64_t character;

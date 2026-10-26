@@ -231,7 +231,6 @@ for (const grammar of grammars) {
         const first = parser.parse(source, options);
         const actual = sourceNodes(first.tree, source);
         assert.notEqual(actual.length, 0);
-        // CLI status misses hidden missing nodes.
         assert.equal(actual[0].recovery, status !== 0, first.output);
         assert.equal(actual[0].end, Buffer.byteLength(source));
         const repeated = parser.parse(source, options);
