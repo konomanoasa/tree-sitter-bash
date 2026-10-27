@@ -1241,7 +1241,7 @@ const cases = [
 
 for (const grammar of grammars) {
   for (const { name, parts, extglob = false } of cases) {
-    if (extglob && grammar.name !== "bash") continue;
+    if (extglob && grammar.name !== "bash_extglob") continue;
     test(`${grammar.name}: ${name}`, () => {
       const source = parts.map(([text]) => text).join("");
       const ranges = [];

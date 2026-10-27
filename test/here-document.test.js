@@ -170,7 +170,7 @@ for (const grammar of grammars) {
         }
       }
     });
-    const extglob = grammar.name === "bash";
+    const extglob = grammar.name === "bash_extglob";
     const nodes = (source) => parseNodes(parser, source);
     test("stripped tabs on a final line without a newline end an empty delimiter", () => {
       const seed = "cat <<-''\n\tx\n\t\t";
@@ -198,7 +198,7 @@ for (const grammar of grammars) {
         valid: true,
       });
     });
-    if (grammar.name === "bash") {
+    if (grammar.name === "bash_extglob") {
       test("here document Unicode delimiters use UTF-8 independently of locale", () => {
         const source = ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n";
         const originalLocale = process.env.LC_ALL;

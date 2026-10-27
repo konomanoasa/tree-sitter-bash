@@ -1,6 +1,6 @@
 ==================
 scalar append
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 x+=one y+=two echo "$x"
@@ -36,7 +36,7 @@ x+=one y+=two echo "$x"
 
 ==================
 assignments command name arguments and ordered redirects
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 A=one 2>err echo "$A" tail >out
@@ -77,7 +77,7 @@ A=one 2>err echo "$A" tail >out
 
 ==================
 compound assignment values retain source form before ordinary commands and after redirects
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 y=(1) cmd
@@ -142,7 +142,7 @@ y=(1) cmd
 
 ==================
 leading redirects permit compound assignments before and after declaration names
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 >out 2>err a=(one) b+=(two) declare c=(three)
@@ -199,7 +199,7 @@ leading redirects permit compound assignments before and after declaration names
 
 ==================
 redirect after an assignment bounds later subscripts to the word
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 x=1 >f y[1]=2 z[3 4]=4 cmd
@@ -240,7 +240,7 @@ x=1 >f y[1]=2 z[3 4]=4 cmd
 
 ==================
 redirects after an assignment preserve subsequent scalar assignments and declarations
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
@@ -313,7 +313,7 @@ x=(one)>out c=z 2>err declare a=$v b+=~/p; y=()
 
 ==================
 parenthesized assignment subscripts take precedence over function names: "a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
@@ -427,7 +427,7 @@ a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }; a[ ] () { :; }
 
 ==================
 parenthesized assignment subscripts take precedence over function names rejects "a[ () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a[ () { :; }

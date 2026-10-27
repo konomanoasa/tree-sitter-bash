@@ -1,6 +1,6 @@
 ==================
 arithmetic command precedence
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ((x=2**3, x++))
@@ -33,7 +33,7 @@ arithmetic command precedence
 
 ==================
 arithmetic command empty
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 (( ))
@@ -54,7 +54,7 @@ arithmetic command empty
 
 ==================
 repeated arithmetic signs before numbers form nested unary expressions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -93,7 +93,7 @@ repeated arithmetic signs before numbers form nested unary expressions
 
 ==================
 repeated arithmetic signs distinguish groups from prefix and postfix updates
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ((++(x),+++x,x++++1))
@@ -137,7 +137,7 @@ repeated arithmetic signs distinguish groups from prefix and postfix updates
 
 ==================
 repeated arithmetic signs after a number split into binary and unary operators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ((1++1))
@@ -164,7 +164,7 @@ repeated arithmetic signs after a number split into binary and unary operators
 
 ==================
 repeated arithmetic signs retain expansion-dependent and incomplete source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ((++$x,1++))
@@ -192,7 +192,7 @@ repeated arithmetic signs retain expansion-dependent and incomplete source
 
 ==================
 arithmetic command dynamic
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 (( 0x$x + ${a[i]} ))
@@ -224,7 +224,7 @@ arithmetic command dynamic
 
 ==================
 arithmetic command invalid value
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 (( 1;2 ))
@@ -249,7 +249,7 @@ arithmetic command invalid value
 
 ==================
 hashes remain arithmetic command source across newlines
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 (( 1 # c ))
@@ -291,7 +291,7 @@ hashes remain arithmetic command source across newlines
 
 ==================
 an escaped ANSI-C quote keeps the arithmetic command boundary
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 (( $'a\'b' )); printf AFTER

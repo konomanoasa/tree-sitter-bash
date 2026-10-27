@@ -1,15 +1,12 @@
 # Parsing Policy
 
-The parser analyzes source as written. It parses the following commands but
-does not apply their effects to parsing.
+`bash_default` parses source using [Bash 5.3](https://www.gnu.org/software/bash/manual/bash.html) default settings. To parse with `extglob`
+enabled, use `bash_extglob`. The selected grammar applies to the whole document.
 
-| Command            | Effects not applied                                               |
-| ------------------ | ----------------------------------------------------------------- |
-| `.`, `source`      | Loading another file or applying changes made by its execution.   |
-| `alias`, `unalias` | Alias substitution or changes to alias definitions.               |
-| `eval`             | Reparsing code constructed from its arguments.                    |
-| `set`, `shopt`     | Changing parsing conditions in response to shell option settings. |
+The following commands can affect how subsequent source is parsed. The parser
+recognizes these commands but does not apply their effects.
 
-Only `extglob` can be selected through the grammar. Use `bash` for enabled
-or `bash_default` for disabled, for the whole document. Commands in the source
-do not change this selection.
+| Command            | Effects not applied                                 |
+| ------------------ | --------------------------------------------------- |
+| `alias`, `unalias` | Alias substitution or changes to alias definitions. |
+| `set`, `shopt`     | Changes to shell option settings.                   |

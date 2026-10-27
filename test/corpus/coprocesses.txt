@@ -1,6 +1,6 @@
 ==================
 coprocess scalar assignment-shaped arguments retain brace expansions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc x y={a,b}
@@ -32,7 +32,7 @@ coproc x y={a,b}
 
 ==================
 coprocess braces crossing a subscript retain word structure and later compound arguments
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker x[{0]=a,1]=b} z=(one)
@@ -68,7 +68,7 @@ coproc worker x[{0]=a,1]=b} z=(one)
 
 ==================
 coproc named compound
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker { printf x; } >out
@@ -111,7 +111,7 @@ coproc worker { printf x; } >out
 
 ==================
 coproc named subshell
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker (printf x)
@@ -147,7 +147,7 @@ coproc worker (printf x)
 
 ==================
 coproc named conditional
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker [[ x ]]
@@ -176,7 +176,7 @@ coproc worker [[ x ]]
 
 ==================
 coproc anonymous
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc { :; }; coproc printf x
@@ -222,7 +222,7 @@ coproc { :; }; coproc printf x
 
 ==================
 coproc source word names
-:language(bash)
+:language(bash_extglob)
 ==================
 coproc wo"$name" { :; }
 coproc a[ 日本 ](:)
@@ -380,7 +380,7 @@ coproc time { :; }
 
 ==================
 coproc assignment arguments
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
@@ -466,7 +466,7 @@ coproc declare a=(1)
 
 ==================
 coproc pending command words
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc worker a[ ] x[ ]
@@ -544,7 +544,7 @@ coproc worker x=y do
 
 ==================
 coproc quoted reserved names
-:language(bash)
+:language(bash_extglob)
 ==================
 coproc "do" { :; }
 coproc worker "declare" a=value
@@ -616,7 +616,7 @@ coproc worker !(:)
 
 ==================
 pipeline prefixes and coprocess names own their commands
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 time -p ! coproc worker { :; } |& cat
@@ -665,7 +665,7 @@ time -p ! coproc worker { :; } |& cat
 
 ==================
 coprocess assignment-shaped arguments preserve their argument role: "coproc worker a=(\"x y\" $p $(printf z)) x+=y declare -a b+=(2) >out tail\n"
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
@@ -747,7 +747,7 @@ coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
 
 ==================
 coprocess assignment-shaped arguments preserve their argument role: "coproc declare a=(1)\n"
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 coproc declare a=(1)
@@ -779,7 +779,7 @@ coproc declare a=(1)
 
 ==================
 coprocess array after ordinary argument "coproc worker tail a=(1)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc worker tail a=(1)
@@ -790,7 +790,7 @@ coproc worker tail a=(1)
 
 ==================
 coprocess array after process substitution "coproc worker <(:) a=(1)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc worker <(:) a=(1)
@@ -801,7 +801,7 @@ coproc worker <(:) a=(1)
 
 ==================
 coprocess array after assignment prefix "coproc x=y worker a=(1)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc x=y worker a=(1)
@@ -812,7 +812,7 @@ coproc x=y worker a=(1)
 
 ==================
 coprocess quoted declaration argument "coproc worker \"declare\" a=(1)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc worker "declare" a=(1)
@@ -823,7 +823,7 @@ coproc worker "declare" a=(1)
 
 ==================
 coprocess reserved command name "coproc do\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc do
@@ -834,7 +834,7 @@ coproc do
 
 ==================
 coprocess reserved first argument "coproc worker do\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc worker do
@@ -845,7 +845,7 @@ coproc worker do
 
 ==================
 coprocess declaration reserved first argument "coproc declare do\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 coproc declare do
@@ -854,7 +854,7 @@ coproc declare do
 
 ==================
 coproc declaration leading assignments keep the command-position subscript boundary
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc export x[1 2]=1 y[3 4]+=2 -a z[5 6]=3
@@ -902,7 +902,7 @@ coproc export x[1 2]=1 y[3 4]+=2 -a z[5 6]=3
 
 ==================
 coproc raw command leading assignments keep the command-position subscript boundary
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc eval x[1 2]=(1 2) y[3 4]=5 z[6 7] w[8 9]
@@ -954,7 +954,7 @@ coproc eval x[1 2]=(1 2) y[3 4]=5 z[6 7] w[8 9]
 
 ==================
 coproc name raw commands read compound assignment arguments as words
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 coproc c eval x=(1 2) y=3
@@ -1006,7 +1006,7 @@ coproc c x=1 let y=(1+2)
 
 ==================
 coproc declaration unterminated leading subscript "coproc export x[\n"
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1018,7 +1018,7 @@ coproc export x[
 
 ==================
 coproc raw command unterminated leading subscript "coproc eval x[\n"
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1030,7 +1030,7 @@ coproc eval x[
 
 ==================
 coproc simple command before closing reserved words
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 { coproc worker }
@@ -1099,7 +1099,7 @@ if :; then coproc "$name" fi
 
 ==================
 coproc simple command cannot be followed by a non-closing reserved word "coproc worker fi\n"
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================

@@ -2,12 +2,12 @@
   "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
   "grammars": [
     {
-      "name": "bash",
-      "title": "Bash",
-      "scope": "source.bash",
+      "name": "bash_default",
+      "title": "Bash (default options)",
+      "scope": "source.bash_default",
       "path": ".",
-      "file-types": ["bash"],
-      "injection-regex": "^bash$",
+      "file-types": ["bash", "bash_default"],
+      "injection-regex": "^bash(_default)?$",
       "highlights": "queries/highlights.scm",
       "external-files": [
         "common/arithmetic.h",
@@ -19,12 +19,12 @@
       ]
     },
     {
-      "name": "bash_default",
-      "title": "Bash (default options)",
-      "scope": "source.bash_default",
-      "path": "bash_default",
-      "file-types": ["bash_default"],
-      "injection-regex": "^bash_default$",
+      "name": "bash_extglob",
+      "title": "Bash (extglob enabled)",
+      "scope": "source.bash_extglob",
+      "path": "bash_extglob",
+      "file-types": ["bash_extglob"],
+      "injection-regex": "^bash_extglob$",
       "highlights": "queries/highlights.scm",
       "external-files": [
         "common/arithmetic.h",
@@ -32,7 +32,7 @@
         "common/source.h",
         "common/scanner.h",
         "common/lexical-tokens.json",
-        "bash_default/src/lexical-tokens.h",
+        "bash_extglob/src/lexical-tokens.h",
         "src/parser.c",
         "src/tree_sitter/parser.h"
       ]

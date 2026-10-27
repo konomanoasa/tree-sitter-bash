@@ -9,7 +9,7 @@ GNU Bourne Again SHell 5.3.
 
 ## Parsing Option
 
-For Bash parsing with `extglob` disabled, use `bash_default`.
+For Bash parsing with `extglob` enabled, use `bash_extglob`.
 
 ## Installation
 

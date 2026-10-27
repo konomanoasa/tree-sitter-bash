@@ -1,6 +1,6 @@
 ==================
 commands in here document
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<EOF
@@ -105,7 +105,7 @@ EOF
 
 ==================
 expansions in here document
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<EOF
@@ -186,7 +186,7 @@ EOF
 
 ==================
 an empty quoted delimiter does not invent a terminator at EOF
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<''
@@ -224,7 +224,7 @@ cat <<''
 
 ==================
 stripped tabs on a final line without a newline end an empty quoted delimiter
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<-''
@@ -259,7 +259,7 @@ cat <<-''
 
 ==================
 stripped tabs at EOF belong to an empty here document without a body node
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -292,7 +292,7 @@ cat <<-E
 
 ==================
 stripped tabs at EOF remain in a quoted here document after its body
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -331,7 +331,7 @@ x
 
 ==================
 an unquoted body keeps expansions and apparent commands through EOF
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<E
@@ -368,7 +368,7 @@ echo AFTER
 
 ==================
 unquoted body preserves expansions and literal double quotes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<EOF
@@ -428,7 +428,7 @@ EOF
 
 ==================
 outer delimiter quoting disables body expansion
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<E"OF"
@@ -467,7 +467,7 @@ EOF
 
 ==================
 quoted delimiter does not join body lines
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<'EOF'
@@ -507,7 +507,7 @@ EOF
 
 ==================
 a quoted body inside backquotes joins continued lines
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : `cat <<'E'
@@ -562,7 +562,7 @@ E
 
 ==================
 backquotes in a here-document keep escaped double quotes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<E
@@ -616,7 +616,7 @@ E
 
 ==================
 here-document parameters and commands retain distinct backquote quoting
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<E

@@ -1,6 +1,6 @@
 ==================
 array compound append
-:language(bash)
+:language(bash_extglob)
 ==================
 a=(one "two three" ${x} {a,b} @(x|y)); a+=(four)
 
@@ -55,7 +55,7 @@ a=(one "two three" ${x} {a,b} @(x|y)); a+=(four)
 
 ==================
 array subscript assignments
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a[x + y]=value a["key"]+=more
@@ -95,7 +95,7 @@ a[x + y]=value a["key"]+=more
 
 ==================
 array compound indexed elements
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=([0]=zero [i+1]+=one two)
@@ -136,7 +136,7 @@ a=([0]=zero [i+1]+=one two)
 
 ==================
 array ordinary bracket word
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=([x] [a-z] [0]=value)
@@ -176,7 +176,7 @@ a=([x] [a-z] [0]=value)
 
 ==================
 array multiline and comment
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=(
@@ -214,7 +214,7 @@ a=(
 
 ==================
 array empty
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=()
@@ -237,7 +237,7 @@ a=()
 
 ==================
 array process substitution
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=(<(printf x) $(printf y) ${ printf z; })
@@ -305,7 +305,7 @@ a=(<(printf x) $(printf y) ${ printf z; })
 
 ==================
 array compound assignment value braces literal
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a=([0]=x{a,b} {a,b})
@@ -340,7 +340,7 @@ a=([0]=x{a,b} {a,b})
 
 ==================
 array spaces
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo ${a[ one two ]} $((a[ one two ]+1))
@@ -383,7 +383,7 @@ echo ${a[ one two ]} $((a[ one two ]+1))
 
 ==================
 subscript parentheses are type neutral source text
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a[(]=x; a[)]+=y; declare -A a=([)(]=z [(key)]=v); a[(b[)c])]=w
@@ -473,7 +473,7 @@ a[(]=x; a[)]+=y; declare -A a=([)(]=z [(key)]=v); a[(b[)c])]=w
 
 ==================
 array words retain leading lexical brackets
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -519,7 +519,7 @@ a=([a b] [(] [)] [key]=value)
 
 ==================
 extglob operators are plain inside leading bracket payloads
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -586,7 +586,7 @@ a[@(x] b
 
 ==================
 array words apply lexical brackets only at an unquoted start
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -628,7 +628,7 @@ a=([x][a b] \[a b] a[x y])
 
 ==================
 Array subscript arithmetic candidates preserve precedence and source fallback
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a[i=1,j?2:3]=value
@@ -837,7 +837,7 @@ a[i=1,j?2:3]=value
 
 ==================
 array assignments preserve type neutral keys and element order
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 declare -A a=(["日本語"]=one [x+y]+=two three)
@@ -894,7 +894,7 @@ declare -A a=(["日本語"]=one [x+y]+=two three)
 
 ==================
 array elements retain ordinary quoting and reserved spellings in nested contexts
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 a=(for); : "$(a=(\( \)))"; coproc worker a=(for time "if")
@@ -985,7 +985,7 @@ a=(for); : "$(a=(\( \)))"; coproc worker a=(for time "if")
 
 ==================
 array words keep leading lexical brackets across whitespace and operators
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 declare -A a=([a b] [a;b] [a|b] [a<b] [(] [)] [a
@@ -1069,7 +1069,7 @@ b])
 
 ==================
 array lexical brackets apply only at an unquoted element start
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 a=([x][a b] "[a b]" \[a b] a[x y])
@@ -1119,7 +1119,7 @@ a=([x][a b] "[a b]" \[a b] a[x y])
 
 ==================
 array subscripts retain type-neutral source in both expansion contexts
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 echo ${a[x+y]} $((a[x+y]+1))
@@ -1177,7 +1177,7 @@ echo ${a[x+y]} $((a[x+y]+1))
 
 ==================
 subscript parentheses distinguish unmatched source from arithmetic candidates
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 a[(]=x; a[)]+=y; declare -A a=([)(]=z); echo "${a[(key)]}" $((a[(key)]+1))
@@ -1301,7 +1301,7 @@ a[(]=x; a[)]+=y; declare -A a=([)(]=z); echo "${a[(key)]}" $((a[(key)]+1))
 
 ==================
 nested substitutions and coprocess arguments retain unmatched subscript parentheses
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1616,7 +1616,7 @@ incomplete arithmetic retains candidate tokens while blank subscripts have no ca
 
 ==================
 compound assignment boundaries reject "a=([)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a=([)
@@ -1627,7 +1627,7 @@ a=([)
 
 ==================
 compound assignment boundaries reject "a=([x)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a=([x)
@@ -1638,7 +1638,7 @@ a=([x)
 
 ==================
 compound assignment boundaries reject "declare -A a=([x)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 declare -A a=([x)
@@ -1649,7 +1649,7 @@ declare -A a=([x)
 
 ==================
 compound assignment boundaries reject "x=y >out b=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 x=y >out b=(one)
@@ -1660,7 +1660,7 @@ x=y >out b=(one)
 
 ==================
 compound assignment boundaries reject "x=y>out b=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 x=y>out b=(one)
@@ -1671,7 +1671,7 @@ x=y>out b=(one)
 
 ==================
 compound assignment boundaries reject "x=y >out c=z b=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 x=y >out c=z b=(one)
@@ -1682,7 +1682,7 @@ x=y >out c=z b=(one)
 
 ==================
 compound assignment boundaries reject ">out x=y 2>err b=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 >out x=y 2>err b=(one)
@@ -1693,7 +1693,7 @@ compound assignment boundaries reject ">out x=y 2>err b=(one)\n"
 
 ==================
 compound assignment boundaries reject "x=() >out declare b=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 x=() >out declare b=(one)
@@ -1704,7 +1704,7 @@ x=() >out declare b=(one)
 
 ==================
 compound assignment boundaries reject "x=y >out declare a=x b+=(one)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 x=y >out declare a=x b+=(one)
@@ -1715,7 +1715,7 @@ x=y >out declare a=x b+=(one)
 
 ==================
 array missing close "a=(one two\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a=(one two
@@ -1726,7 +1726,7 @@ a=(one two
 
 ==================
 ordinary command array argument "echo a=(one two)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 echo a=(one two)

@@ -1,6 +1,6 @@
 ==================
 closing blanks belong to a list after its separator and outside it otherwise
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -59,7 +59,7 @@ closing blanks belong to a list after its separator and outside it otherwise
 
 ==================
 groups own nested lists and following redirects
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 { echo one; echo two; } >out; (echo three) <in
@@ -132,7 +132,7 @@ groups own nested lists and following redirects
 
 ==================
 compound commands close groups and subshells after separators without a terminator
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 { :; ( : ) }
@@ -217,7 +217,7 @@ compound commands close groups and subshells after separators without a terminat
 
 ==================
 closing reserved words cannot follow a compound redirection target
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================

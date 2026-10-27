@@ -2,10 +2,11 @@ use konomanoasa_tree_sitter_bash as grammar;
 use tree_sitter::{
   InputEdit, Parser, Point, Query, QueryCursor, StreamingIterator, Tree,
 };
+use tree_sitter_language::LanguageFn;
 
-fn parser() -> Parser {
+fn parser(language: LanguageFn) -> Parser {
   let mut parser = Parser::new();
-  parser.set_language(&grammar::LANGUAGE.into()).unwrap();
+  parser.set_language(&language.into()).unwrap();
   parser
 }
 
@@ -74,8 +75,12 @@ fn replace(
   *tree = parser.parse(&*source, Some(tree)).unwrap();
 }
 
-fn captures(source: &str, query: &Query) -> Vec<(usize, usize, String)> {
-  let tree = parser().parse(source, None).unwrap();
+fn captures(
+  language: LanguageFn,
+  source: &str,
+  query: &Query,
+) -> Vec<(usize, usize, String)> {
+  let tree = parser(language).parse(source, None).unwrap();
   let mut cursor = QueryCursor::new();
   let mut matches = cursor.matches(query, tree.root_node(), source.as_bytes());
   let mut result = Vec::new();
@@ -124,7 +129,9 @@ fn captures(source: &str, query: &Query) -> Vec<(usize, usize, String)> {
 
 #[test]
 fn parses_valid_source() {
-  let tree = parser().parse("echo hello\n", None).unwrap();
+  let tree = parser(grammar::LANGUAGE)
+    .parse("echo hello\n", None)
+    .unwrap();
   assert_eq!(tree.root_node().kind(), "program");
   assert_eq!(tree.root_node().byte_range(), 0..11);
   assert!(!tree.root_node().has_error());
@@ -135,12 +142,17 @@ fn parses_valid_source() {
 #[test]
 fn parses_fixed_conditions_for_every_language() {
   for (name, language, node_types, extglob) in [
-    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, true),
     (
       "bash_default",
-      grammar::LANGUAGE_DEFAULT,
-      grammar::NODE_TYPES_DEFAULT,
+      grammar::LANGUAGE,
+      grammar::NODE_TYPES,
       false,
+    ),
+    (
+      "bash_extglob",
+      grammar::LANGUAGE_EXTGLOB,
+      grammar::NODE_TYPES_EXTGLOB,
+      true,
     ),
   ] {
     let language = language.into();
@@ -194,9 +206,10 @@ fn parses_fixed_conditions_for_every_language() {
 #[test]
 fn highlights_lexical_nodes_with_context_precedence() {
   let query =
-    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
+    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
+      .unwrap();
   let source = "x=\"$1\"; echo ~ @(a|b) [[:alpha:]][[=a=]]\n";
-  let actual = captures(source, &query);
+  let actual = captures(grammar::LANGUAGE_EXTGLOB, source, &query);
   let expected = [
     (0, 1, "variable"),
     (1, 2, "operator"),
@@ -230,7 +243,7 @@ fn highlights_lexical_nodes_with_context_precedence() {
       .collect::<Vec<_>>()
   );
   assert_eq!(
-    captures("echo plain # comment\n", &query),
+    captures(grammar::LANGUAGE_EXTGLOB, "echo plain # comment\n", &query),
     vec![
       (0, 4, "function.call".into()),
       (5, 10, "string".into()),
@@ -238,7 +251,7 @@ fn highlights_lexical_nodes_with_context_precedence() {
     ]
   );
   assert_eq!(
-    captures("ec\\\nho ab\\\ncd\n", &query),
+    captures(grammar::LANGUAGE_EXTGLOB, "ec\\\nho ab\\\ncd\n", &query),
     vec![
       (0, 2, "function.call".into()),
       (2, 3, "punctuation.special".into()),
@@ -253,13 +266,13 @@ fn highlights_lexical_nodes_with_context_precedence() {
 #[test]
 fn ere_group_fields_survive_adjacent_quotes_and_expansions() {
   let query = Query::new(
-    &grammar::LANGUAGE.into(),
+    &grammar::LANGUAGE_EXTGLOB.into(),
     r#"(ere_expression opening: "(" @opening closing: ")" @closing)"#,
   )
   .unwrap();
   let source = "[[ x =~ \"${p}\"(a|b)+${q}(c) ]]\n";
   assert_eq!(
-    captures(source, &query),
+    captures(grammar::LANGUAGE_EXTGLOB, source, &query),
     vec![
       (14, 15, "opening".into()),
       (18, 19, "closing".into()),
@@ -268,7 +281,7 @@ fn ere_group_fields_survive_adjacent_quotes_and_expansions() {
     ]
   );
   assert_eq!(
-    captures("[[ x =~ () ]]\n", &query),
+    captures(grammar::LANGUAGE_EXTGLOB, "[[ x =~ () ]]\n", &query),
     vec![(8, 9, "opening".into()), (9, 10, "closing".into()),]
   );
 }
@@ -277,7 +290,9 @@ fn ere_group_fields_survive_adjacent_quotes_and_expansions() {
 fn ere_fields_own_direct_children_of_flat_static_and_source_expressions() {
   let source =
     r#"[[ x =~ ^(a|bc){2,3}?d{4}e{5,}()[[:alpha:][.ch.][=é=][.ab${p}cd.]]$ ]]"#;
-  let tree = parser().parse(source, None).unwrap();
+  let tree = parser(grammar::LANGUAGE_EXTGLOB)
+    .parse(source, None)
+    .unwrap();
   assert!(!tree.root_node().has_error());
   for (kind, text, expected) in [
     (
@@ -333,7 +348,9 @@ fn ere_fields_own_direct_children_of_flat_static_and_source_expressions() {
     }
   }
   for source in ["[[ x =~ ()*?+? ]]", "[[ x =~ \"p\"()*?+?${q} ]]"] {
-    let tree = parser().parse(source, None).unwrap();
+    let tree = parser(grammar::LANGUAGE_EXTGLOB)
+      .parse(source, None)
+      .unwrap();
     assert!(!tree.root_node().has_error(), "{source}");
     let start = source.find("()").unwrap();
     let expression = tree
@@ -359,7 +376,9 @@ fn ere_fields_own_direct_children_of_flat_static_and_source_expressions() {
 #[test]
 fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
   let source = "[[ x =~ [[.é.][.a\\\nb.][=日=][=ab=][.-.][.ab${p}cd.]] ]]";
-  let tree = parser().parse(source, None).unwrap();
+  let tree = parser(grammar::LANGUAGE_EXTGLOB)
+    .parse(source, None)
+    .unwrap();
   assert!(!tree.root_node().has_error());
   let mut pending = vec![tree.root_node()];
   let mut payloads = Vec::new();
@@ -409,14 +428,16 @@ fn collating_payload_leaves_preserve_logical_lengths_and_source_ranges() {
   let continuation = source.find("\\\n").unwrap();
   assert_eq!(continuations, vec![continuation..continuation + 1]);
   let query =
-    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
-  captures(source, &query);
+    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
+      .unwrap();
+  captures(grammar::LANGUAGE_EXTGLOB, source, &query);
 }
 
 #[test]
 fn highlights_remain_lexical_across_continuations_and_recovery() {
   let query =
-    Query::new(&grammar::LANGUAGE.into(), grammar::HIGHLIGHTS_QUERY).unwrap();
+    Query::new(&grammar::LANGUAGE_EXTGLOB.into(), grammar::HIGHLIGHTS_QUERY)
+      .unwrap();
   for source in [
     "if [[ $x == @(a|b) ]]; then a=(1 \"x\"); echo ${a[0]} $((1+2)); fi\n",
     "cat <<EOF\nabc${x}def\nEOF\n",
@@ -424,8 +445,8 @@ fn highlights_remain_lexical_across_continuations_and_recovery() {
   ] {
     for at in 0..source.len() {
       let continued = format!("{}\\\n{}", &source[..at], &source[at..]);
-      captures(&continued, &query);
-      captures(&source[..at], &query);
+      captures(grammar::LANGUAGE_EXTGLOB, &continued, &query);
+      captures(grammar::LANGUAGE_EXTGLOB, &source[..at], &query);
     }
   }
   for source in [
@@ -433,7 +454,7 @@ fn highlights_remain_lexical_across_continuations_and_recovery() {
     "cat <<EOF\n$x\nEOF\n",
     "[[ x =~ ^(a|${p})+[[:di\\\ngit:]]{${n},4}?$ ]]\n",
   ] {
-    captures(source, &query);
+    captures(grammar::LANGUAGE_EXTGLOB, source, &query);
   }
 }
 
@@ -514,7 +535,7 @@ fn repair_every_byte_restores_complete_cst_and_ranges() {
     "[[ x =~ ([[.a).]]b ]]; echo next\n",
     "[[ x =~ [[.(a.]]b) ]]; echo next\n",
   ] {
-    let mut parser = parser();
+    let mut parser = parser(grammar::LANGUAGE_EXTGLOB);
     let original = parser.parse(seed, None).unwrap();
     assert!(!original.root_node().has_error(), "{seed}");
     let expected = snapshot(&original);
@@ -637,7 +658,7 @@ fn large_bodies_and_compressed_nesting_preserve_incremental_structure() {
     ),
   ];
   for seed in sources {
-    let mut parser = parser();
+    let mut parser = parser(grammar::LANGUAGE_EXTGLOB);
     let mut tree = parser.parse(&seed, None).unwrap();
     assert!(!tree.root_node().has_error(), "{} bytes", seed.len());
     let at = seed.find('x').unwrap();
@@ -660,7 +681,7 @@ fn metadata_overflow_finishes_and_repaired_input_is_reusable() {
       " ".repeat(reply_padding_bytes)
     ),
   ] {
-    let mut parser = parser();
+    let mut parser = parser(grammar::LANGUAGE_EXTGLOB);
     let mut tree = parser.parse(&source, None).unwrap();
     assert!(tree.root_node().has_error());
     assert_eq!(tree.root_node().end_byte(), source.len());

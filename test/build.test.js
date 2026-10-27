@@ -96,9 +96,9 @@ test(`${language}: generated checks reject stale, missing, and unshareable parse
     }
 
     writeFileSync(
-      join(directory, "bash_default", "grammar.js"),
+      join(directory, "bash_extglob", "grammar.js"),
       `export default grammar({
-  name: "bash_default",
+  name: "bash_extglob",
   rules: { program: () => "unshared" },
 });
 `,
@@ -107,7 +107,7 @@ test(`${language}: generated checks reject stale, missing, and unshareable parse
     assert.equal(unshared.status, 1, unshared.stdout + unshared.stderr);
     assert.ok(
       unshared.stderr.includes(
-        "bash_default: generated parser differs from bash; cannot share its tables.",
+        "bash_extglob: generated parser differs from bash_default; cannot share its tables.",
       ),
       unshared.stdout + unshared.stderr,
     );

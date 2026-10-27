@@ -1,6 +1,6 @@
 ==================
 structured arithmetic retains precedence assignment and conditional
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((x = 1 + 2 * 3)) $((x ? y : z))
@@ -42,7 +42,7 @@ echo $((x = 1 + 2 * 3)) $((x ? y : z))
 
 ==================
 hexadecimal prefixes without digits are numbers
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((0x)) $((0X+1)) $[0x]
@@ -76,7 +76,7 @@ echo $((0x)) $((0X+1)) $[0x]
 
 ==================
 arithmetic source fragments stay together before expansion
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((0x$y)) $((12${suffix}))
@@ -110,7 +110,7 @@ echo $((0x$y)) $((12${suffix}))
 
 ==================
 arithmetic evaluation errors remain arithmetic source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((0xg)) $((printf hi)) $(((x)=1)) $((1;2)) $((1/0))
@@ -160,7 +160,7 @@ echo $((0xg)) $((printf hi)) $(((x)=1)) $((1;2)) $((1/0))
 
 ==================
 hashes remain arithmetic source across expansion forms and newlines
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $(( 1 # c )) $[ 1 # c ] $(( 1 # c
@@ -212,7 +212,7 @@ echo $(( 1 # c )) $[ 1 # c ] $(( 1 # c
 
 ==================
 comments in command substitutions inside arithmetic consume same-line closing delimiters
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -222,7 +222,7 @@ echo $(( 1 + $(printf 2 # c) ))
 
 ==================
 empty arithmetic and quoted arithmetic remain expansions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $(()) $(('1')) $(("2"))
@@ -256,7 +256,7 @@ echo $(()) $(('1')) $(("2"))
 
 ==================
 arithmetic operators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((a=2**3**2,b++,--c,++d+e--)) $((-2**2))
@@ -318,7 +318,7 @@ echo $((a=2**3**2,b++,--c,++d+e--)) $((-2**2))
 
 ==================
 arithmetic bases
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((2#101+16#ff+36#Z+64#_+64#@+0xFF+077)) $((2#2)) $((65#1))
@@ -369,7 +369,7 @@ echo $((2#101+16#ff+36#Z+64#_+64#@+0xFF+077)) $((2#2)) $((65#1))
 
 ==================
 arithmetic array sources
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((arr[x+y]+=1)) $((++arr[$x])) $((arr[b[2]]++))
@@ -427,7 +427,7 @@ echo $((arr[x+y]+=1)) $((++arr[$x])) $((arr[b[2]]++))
 
 ==================
 nested braces in arithmetic substitution
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((1+${ { printf 2; }; }))
@@ -478,7 +478,7 @@ echo $((1+${ { printf 2; }; }))
 
 ==================
 extglob inside arithmetic substitution
-:language(bash)
+:language(bash_extglob)
 ==================
 echo $((1+$(echo @(a|b))))
 
@@ -523,7 +523,7 @@ echo $((1+$(echo @(a|b))))
 
 ==================
 nested arithmetic subscript substitution
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((a[${x}]+b[$(echo 1)]))
@@ -573,7 +573,7 @@ echo $((a[${x}]+b[$(echo 1)]))
 
 ==================
 arithmetic nested assignment
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((a ? b=1 : (c=2))) $((a=1,b=2,c))
@@ -625,7 +625,7 @@ echo $((a ? b=1 : (c=2))) $((a=1,b=2,c))
 
 ==================
 arithmetic delimiters precede crossing subscript spellings
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((a[(]+1))) $((a[)(]+1)); ((a[(]+1)); echo $((a[$((1+2))]+1))
@@ -732,7 +732,7 @@ echo $((a[(]+1))) $((a[)(]+1)); ((a[(]+1)); echo $((a[$((1+2))]+1))
 
 ==================
 arithmetic source retains ANSI-C and locale quotes around delimiters
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $(( $'a\'b' + $"1" + $ ))
@@ -801,7 +801,7 @@ for (($'a;b';$"c)d";$'e')); do :; done
 
 ==================
 bracket arithmetic shares expression precedence and permits an empty expression
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : $[1+2*3] $[]
@@ -834,7 +834,7 @@ bracket arithmetic shares expression precedence and permits an empty expression
 
 ==================
 bracket arithmetic keeps unmatched parentheses and raw brackets as arithmetic source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : $[(1+2] $[1+2)] $[[1]]
@@ -876,7 +876,7 @@ bracket arithmetic keeps unmatched parentheses and raw brackets as arithmetic so
 
 ==================
 bracket and parenthesis arithmetic nest with array references
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : $[a[1]+$((2*$[3]))]
@@ -913,7 +913,7 @@ bracket and parenthesis arithmetic nest with array references
 
 ==================
 bracket arithmetic subscripts keep unbalanced parentheses as source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -968,7 +968,7 @@ bracket arithmetic subscripts keep unbalanced parentheses as source
 
 ==================
 bracket arithmetic quotations protect closing brackets
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : $["1]"+2] $[1\]+2] $[${x:-']'}]
@@ -1012,7 +1012,7 @@ bracket arithmetic quotations protect closing brackets
 
 ==================
 bracket arithmetic requires its closing bracket
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1024,7 +1024,7 @@ bracket arithmetic requires its closing bracket
 
 ==================
 bracket arithmetic cannot borrow a closing bracket from a quoted string
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1036,7 +1036,7 @@ bracket arithmetic cannot borrow a closing bracket from a quoted string
 
 ==================
 an unfinished numeric spelling is a single source fragment
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 echo $((0x$y)) $((0xg))
@@ -1080,7 +1080,7 @@ echo $((0x$y)) $((0xg))
 
 ==================
 arithmetic source preserves ANSI-C and locale quotes without evaluating them
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 echo $(( $'a\'日' + $"$x" ))
@@ -1126,7 +1126,7 @@ echo $(( $'a\'日' + $"$x" ))
 
 ==================
 a dollar separated from arithmetic quoting remains a source fragment
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 echo $(( $
@@ -1165,7 +1165,7 @@ echo $(( $
 
 ==================
 an assignment in a conditional alternative stays arithmetic source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((a ? b : c=2))

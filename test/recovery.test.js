@@ -963,7 +963,7 @@ for (const grammar of grammars) {
       });
     }
 
-    if (grammar.name === "bash") {
+    if (grammar.name === "bash_extglob") {
       for (const entry of [
         {
           name: "a for brace body loses its required separator",

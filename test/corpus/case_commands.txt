@@ -1,6 +1,6 @@
 ==================
 case terminators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 case x in a) : ;;& b) : ;& c) : ;; esac
@@ -69,7 +69,7 @@ case x in a) : ;;& b) : ;& c) : ;; esac
 
 ==================
 case patterns and fall through terminators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
@@ -146,7 +146,7 @@ case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
 
 ==================
 case pattern extglob
-:language(bash)
+:language(bash_extglob)
 ==================
 case x in @(a|b)|!(c)) echo yes;; esac
 
@@ -198,7 +198,7 @@ case x in @(a|b)|!(c)) echo yes;; esac
 
 ==================
 case words preserve brace literals and assignment-shaped tildes
-:language(bash)
+:language(bash_extglob)
 ==================
 case a=~+ in {a,b}|@(x|y)|a=~+) echo {c,d};; esac
 
@@ -259,7 +259,7 @@ case a=~+ in {a,b}|@(x|y)|a=~+) echo {c,d};; esac
 
 ==================
 case selectors and patterns retain literal brace spelling
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
@@ -322,7 +322,7 @@ case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
 
 ==================
 case lists share ownership with an omitted final terminator and omit empty lists
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================

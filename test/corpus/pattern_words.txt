@@ -1,6 +1,6 @@
 ==================
 Reserved punctuation separates groups and extglob
-:language(bash)
+:language(bash_extglob)
 ==================
 [[ ((x)) ]]
 ! ( : )
@@ -88,7 +88,7 @@ Reserved punctuation separates groups and extglob
 
 ==================
 special parameter spellings before extglob patterns are literal dollars
-:language(bash)
+:language(bash_extglob)
 ==================
 $@(a) $!(b|c)x $?(d)
 
@@ -128,7 +128,7 @@ $@(a) $!(b|c)x $?(d)
 
 ==================
 extglob kinds and nesting
-:language(bash)
+:language(bash_extglob)
 ==================
 echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 
@@ -195,7 +195,7 @@ echo ?(a) *(a|b) +(a) @(a|b) !(a|+(b|c)) @() @(a||b)
 
 ==================
 extglob source delimiters
-:language(bash)
+:language(bash_extglob)
 ==================
 echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 
@@ -259,7 +259,7 @@ echo @(a b|[ab]|"x|y"|\)|$(echo x)|${x}) @(a(b|c))
 
 ==================
 bracket negation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo [^a] [!a]
@@ -291,7 +291,7 @@ echo [^a] [!a]
 
 ==================
 Range endpoints treat class and equivalence openings as literal brackets
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [A-[:digit:]] [A-[=Z=]]
@@ -339,7 +339,7 @@ Range endpoints treat class and equivalence openings as literal brackets
 
 ==================
 Incomplete collating range endpoints keep the bracket close while complete symbols stay structured
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [A-[.abc] [A-[.Z.]]
@@ -380,7 +380,7 @@ Incomplete collating range endpoints keep the bracket close while complete symbo
 
 ==================
 Unclosed class and collating openings inside a bracket stay members
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [[:]] [[:a]:] [[.]] [[:a[=b=]c:]d] [[.a]b.]]
@@ -439,7 +439,7 @@ Unclosed class and collating openings inside a bracket stay members
 
 ==================
 Unterminated brackets with nested openings are re-read from the next bracket
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : a[.[.[=[=b=] [:[=\[:digit:] [[:a-[.b.]
@@ -489,7 +489,7 @@ Unterminated brackets with nested openings are re-read from the next bracket
 
 ==================
 Bracket elements stay structured in case patterns and assignments
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 case x in [a[:alpha:]]) ;; esac; x=[a[.b.]]
@@ -539,7 +539,7 @@ case x in [a[:alpha:]]) ;; esac; x=[a[.b.]]
 
 ==================
 Dollar-prefixed extglobs retain literal prefixes and pattern operators
-:language(bash)
+:language(bash_extglob)
 ==================
 : $@(a) $?(b)
 
@@ -572,7 +572,7 @@ Dollar-prefixed extglobs retain literal prefixes and pattern operators
 
 ==================
 Extglobs inside a bracket fallback count as members
-:language(bash)
+:language(bash_extglob)
 ==================
 : [a$?(b)[c] [@(<(b))][c]
 
@@ -622,7 +622,7 @@ Extglobs inside a bracket fallback count as members
 
 ==================
 Process substitutions, locale strings, and braces count as bracket fallback members
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [<(b)][c] [$"b"<(x)][c] [{a,b}<(x)][c]
@@ -705,7 +705,7 @@ Process substitutions, locale strings, and braces count as bracket fallback memb
 
 ==================
 extglob suffixes stay in command words beside function definitions
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }
@@ -791,7 +791,7 @@ a[ ]@(x|y) arg; x@(a|b) arg; f+ () { :; }
 
 ==================
 extglob lexical boundaries reject a bracket-hidden closing parenthesis "echo @([)])\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 echo @([)])
@@ -800,7 +800,7 @@ echo @([)])
 
 ==================
 token delimiters inside bracket expressions within extglob groups stay members
-:language(bash)
+:language(bash_extglob)
 ==================
 case $s in @([a|b]|c)) :;; esac
 x=@([;]|c)
@@ -870,7 +870,7 @@ x=@([;]|c)
 
 ==================
 conditional patterns keep blanks inside bracket expressions within extglob groups
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ $s == @([ ]|x) ]]
@@ -907,7 +907,7 @@ conditional patterns keep blanks inside bracket expressions within extglob group
 
 ==================
 Empty class, equivalence, and collating elements retain their complete boundaries
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [[::]] [[..]] [[==]]
@@ -941,7 +941,7 @@ Empty class, equivalence, and collating elements retain their complete boundarie
 
 ==================
 Only empty collating symbols form special range endpoints
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : [A-[..]] [A-[::]] [A-[==]]

@@ -1,6 +1,6 @@
 ==================
 process substitution in words and redirects
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <(echo hi) pre<(echo hi)post > >(cat)
@@ -69,7 +69,7 @@ cat <(echo hi) pre<(echo hi)post > >(cat)
 
 ==================
 nested process substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $(cat <(echo hi)) $((1+$(cat <(echo 2))))
@@ -151,7 +151,7 @@ echo $(cat <(echo hi)) $((1+$(cat <(echo 2))))
 
 ==================
 descriptor spellings remain word prefixes before process substitutions
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 : 2<(printf x) {fd}>(:) {fd[0]}<(printf y)

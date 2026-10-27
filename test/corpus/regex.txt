@@ -1,6 +1,6 @@
 ==================
 ERE ranges retain dynamic endpoints as source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [a-${p}b-c][a-"z"b-c][a-\zb-c] ]]
@@ -101,7 +101,7 @@ ERE ranges retain dynamic endpoints as source
 
 ==================
 conditional regex groups
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ $x =~ ^(a|b)+$ ]]
@@ -145,7 +145,7 @@ conditional regex groups
 
 ==================
 conditional regex whitespace group
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ (a b) ]]
@@ -187,7 +187,7 @@ conditional regex whitespace group
 
 ==================
 conditional regex escaped parentheses
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ \(a\) ]]
@@ -224,7 +224,7 @@ conditional regex escaped parentheses
 
 ==================
 conditional regex brackets
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [()] ]]
@@ -268,7 +268,7 @@ conditional regex brackets
 
 ==================
 conditional regex deferred validation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [ ]]
@@ -298,7 +298,7 @@ conditional regex deferred validation
 
 ==================
 conditional regex expansion
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ "${p}"(a|b) ]]
@@ -340,7 +340,7 @@ conditional regex expansion
 
 ==================
 conditional regex adjacent boolean and
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ a =~ a&&b ]]
@@ -377,7 +377,7 @@ conditional regex adjacent boolean and
 
 ==================
 conditional regex adjacent bars
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ x|| ]]
@@ -411,7 +411,7 @@ conditional regex adjacent bars
 
 ==================
 ERE alternation and concatenation own static repetition
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ ab|c+ ]]
@@ -452,7 +452,7 @@ ERE alternation and concatenation own static repetition
 
 ==================
 ERE anchors groups intervals and modifiers
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ ^(ab)+[0-9]{2,4}?.$ ]]
@@ -513,7 +513,7 @@ ERE anchors groups intervals and modifiers
 
 ==================
 ERE bracket hierarchy and collating content
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [^]a-][[:digit:][.ch.][=a=]][a--b][()] ]]
@@ -605,7 +605,7 @@ ERE bracket hierarchy and collating content
 
 ==================
 ERE opaque source retains unbound duplication
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ "ab"+${p}+\.+ ]]
@@ -642,7 +642,7 @@ ERE opaque source retains unbound duplication
 
 ==================
 ERE static hierarchy surrounds source payloads
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ (a|${p})+[a-z${p}]{1${n},4}$ ]]
@@ -706,7 +706,7 @@ ERE static hierarchy surrounds source payloads
 
 ==================
 ERE runtime-invalid spellings remain shell operands
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [a-z ]]; [[ x =~ a{2 ]]; [[ x =~ a| ]]
@@ -777,7 +777,7 @@ ERE runtime-invalid spellings remain shell operands
 
 ==================
 ERE grouping differs from Bash parenthesis boundaries
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ ([a)]b ]]; [[ x =~ [a(]b) ]]
@@ -861,7 +861,7 @@ ERE grouping differs from Bash parenthesis boundaries
 
 ==================
 ERE compound payloads keep quote and expansion ownership
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ [[.a${p}c.]][[:al"ph"a:]][[=a${p}c=]] ]]
@@ -934,7 +934,7 @@ ERE compound payloads keep quote and expansion ownership
 
 ==================
 ERE substitutions retain nested shell commands
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ ^$(printf a)${ printf b; }<(printf c)$ ]]
@@ -1009,7 +1009,7 @@ ERE substitutions retain nested shell commands
 
 ==================
 ERE static duplication and source operators stay distinct
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ *a++b?? ]]
@@ -1051,7 +1051,7 @@ ERE static duplication and source operators stay distinct
 
 ==================
 ERE ordinary brace and bracket members keep literal roles
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 [[ x =~ a}[][.-][[.-.]]] ]]
@@ -1105,7 +1105,7 @@ ERE ordinary brace and bracket members keep literal roles
 
 ==================
 ERE ordinary characters retain individual UTF-8 source ranges
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ 日本🙂日 ]]
@@ -1148,7 +1148,7 @@ ERE ordinary characters retain individual UTF-8 source ranges
 
 ==================
 ERE hierarchy owns static repetition, intervals and code point leaves
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ ^(ab|cd)+[[:digit:]a-z]{2,4}?日.$ ]]
@@ -1241,7 +1241,7 @@ ERE hierarchy owns static repetition, intervals and code point leaves
 
 ==================
 opaque ERE source and following repetitions are not single atoms
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ "ab"+${part}+\.+ ]]
@@ -1287,7 +1287,7 @@ opaque ERE source and following repetitions are not single atoms
 
 ==================
 ERE groups, brackets and interval payloads retain embedded Bash source
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ (a|${part})+[a-z${part}]{${n}} ]]
@@ -1367,7 +1367,7 @@ ERE groups, brackets and interval payloads retain embedded Bash source
 
 ==================
 ERE delimiter probes preserve process substitution payloads
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ [a<(printf "]")][[.b>((printf c)).]]{<(printf 1)} ]]
@@ -1498,7 +1498,7 @@ ERE delimiter probes preserve process substitution payloads
 
 ==================
 ERE groups remain structured immediately after opaque source
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 [[ x =~ "${p}"(a|b)+${q}(c) ]]
@@ -1564,7 +1564,7 @@ ERE groups remain structured immediately after opaque source
 
 ==================
 conditional regex unclosed group "[[ x =~ ( ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 [[ x =~ ( ]]
@@ -1575,7 +1575,7 @@ conditional regex unclosed group "[[ x =~ ( ]]\n"
 
 ==================
 conditional regex bracket does not quote parenthesis "[[ x =~ [)] ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 [[ x =~ [)] ]]
@@ -1586,7 +1586,7 @@ conditional regex bracket does not quote parenthesis "[[ x =~ [)] ]]\n"
 
 ==================
 conditional regex unclosed parenthesis inside bracket "[[ x =~ [(] ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 [[ x =~ [(] ]]
@@ -1597,7 +1597,7 @@ conditional regex unclosed parenthesis inside bracket "[[ x =~ [(] ]]\n"
 
 ==================
 conditional regex bracket does not join words "[[ x =~ [a b] ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 [[ x =~ [a b] ]]

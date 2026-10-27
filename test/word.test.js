@@ -225,7 +225,7 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
-    const extglob = grammar.name === "bash";
+    const extglob = grammar.name === "bash_extglob";
     const nodes = (source) => parseNodes(parser, source);
     test("source option commands do not change brace pattern or replacement classification", () => {
       const source = `echo {a,b} *.txt "\${x/a/&}"\n`;
@@ -980,7 +980,7 @@ for (const grammar of grammars) {
       }
     });
 
-    if (grammar.name === "bash") {
+    if (grammar.name === "bash_extglob") {
       test("a line continuation at the end of input becomes a trailing backslash", () => {
         assertEditRoundTrip(parser, {
           seed: "echo a\\\nb\n",

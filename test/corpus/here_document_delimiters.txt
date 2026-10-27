@@ -1,6 +1,6 @@
 ==================
 condition in command substitution delimiter
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$( [[ x ]] )
@@ -48,7 +48,7 @@ $( [[ x ]] )
 
 ==================
 here document delimiter extglob
-:language(bash)
+:language(bash_extglob)
 ==================
 cat <<@(a|b)
 x
@@ -89,7 +89,7 @@ x
 
 ==================
 here document ANSI-C Unicode delimiter
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\u0045OF'
@@ -128,7 +128,7 @@ EOF
 
 ==================
 here document ANSI-C hex width
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\x454OF'
@@ -167,7 +167,7 @@ E4OF
 
 ==================
 ANSI-C unknown escape delimiter
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\q\x'
@@ -206,7 +206,7 @@ x
 
 ==================
 ANSI-C NUL truncates only the quoted segment
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<a$'\0ignored'b
@@ -247,7 +247,7 @@ ab
 
 ==================
 delimiter quotes are removed without parameter expansion
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<"${x:-"a"}"
@@ -290,7 +290,7 @@ ${x:-a}
 
 ==================
 delimiter quotes are removed without command execution
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<"$(echo "a")"
@@ -342,7 +342,7 @@ $(echo a)
 
 ==================
 quotes inside unquoted parameter spelling are retained
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<${x:-"a"}
@@ -385,7 +385,7 @@ ${x:-"a"}
 
 ==================
 quotes inside unquoted substitution spelling are retained
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$(echo "a")
@@ -437,7 +437,7 @@ $(echo "a")
 
 ==================
 empty quoted delimiter ends at empty line
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<''
@@ -473,7 +473,7 @@ body
 
 ==================
 quoted parameter with nested blanks
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<"${x:-"a b"}"
@@ -516,7 +516,7 @@ ${x:-a b}
 
 ==================
 quoted command with nested blanks
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<"$(echo "a b")"
@@ -568,7 +568,7 @@ $(echo a b)
 
 ==================
 unquoted parameter name
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$x
@@ -606,7 +606,7 @@ $x
 
 ==================
 locale quote delimiter prefixes are removed without expanding their contents
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$"EOF" <<[$"x"] <<$"$name"
@@ -675,7 +675,7 @@ $name
 
 ==================
 here document delimiter words preserve process substitution source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat << pre<(printf x)>(:)post
@@ -740,7 +740,7 @@ pre<(printf x)>(:)post
 
 ==================
 here document outer quoting controls extglob quote removal
-:language(bash)
+:language(bash_extglob)
 ==================
 cat << @("a b"|c) << ""@("a b"|c)
 $v
@@ -803,7 +803,7 @@ $w
 
 ==================
 brace substitution delimiter prefixes preserve layout through quote removal
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat << ${	:; } << ""${| 	printf "x"; }
@@ -880,7 +880,7 @@ ${| 	printf x; }
 
 ==================
 Quoted parameter delimiter with extquote enabled
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : <<"${x:-$'ab'}"
@@ -923,7 +923,7 @@ ${x:-ab}
 
 ==================
 here document delimiter: quoted array parameter pattern
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "${x[0]#'"'}"
@@ -994,7 +994,7 @@ printf after
 
 ==================
 here document delimiter: here string within a command substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $(cat <<< x)
@@ -1067,7 +1067,7 @@ printf after
 
 ==================
 here document delimiter: current shell prefix preserves horizontal blanks
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1142,7 +1142,7 @@ printf after
 
 ==================
 a current shell delimiter containing a newline cannot match a single line
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1218,7 +1218,7 @@ printf after
 
 ==================
 a reply delimiter containing a newline cannot match a single line
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1296,7 +1296,7 @@ printf after
 
 ==================
 here document delimiter: reply prefix layout survives quote removal
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1373,7 +1373,7 @@ printf after
 
 ==================
 here document delimiter: double quoted brace prefix preserves layout and nested ANSI-C quotes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1450,7 +1450,7 @@ printf after
 
 ==================
 here document delimiter: single quoted brace source retains its blanks
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << '${|	 :; }'
@@ -1505,7 +1505,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C quoted brace source retains decoded blanks
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $'${|\t :; }'
@@ -1563,7 +1563,7 @@ printf after
 
 ==================
 here document delimiter: input process substitution word
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << pre<(printf "a b")post
@@ -1638,7 +1638,7 @@ printf after
 
 ==================
 here document delimiter: output process substitution word
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << >(:)
@@ -1706,7 +1706,7 @@ printf after
 
 ==================
 here document delimiter: extglob internal quotes and escapes
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << @("a b"|c\ d)
@@ -1773,7 +1773,7 @@ printf after
 
 ==================
 here document delimiter: outer quote removes extglob quotes and escapes
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << ""@("a b"|c\ d)
@@ -1841,7 +1841,7 @@ printf after
 
 ==================
 here document delimiter: trailing quote applies to earlier command substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $(printf "a b")""
@@ -1915,7 +1915,7 @@ printf after
 
 ==================
 here document delimiter: outer quote applies to parameter source
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << ""${v:-"a b"}
@@ -1980,7 +1980,7 @@ printf after
 
 ==================
 here document delimiter: outer quote applies to backquote source
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << ""`printf "a b"`
@@ -2053,7 +2053,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C quote inside process substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << <(printf $'a\tb')
@@ -2129,7 +2129,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C apostrophe retains canonical quoting
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << @($'a\'b'|c)
@@ -2197,7 +2197,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C NUL ends its quoted value
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << @($'a\0b'|c)
@@ -2265,7 +2265,7 @@ printf after
 
 ==================
 here document delimiter: locale prefix inside command substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $(printf $"a b")
@@ -2339,7 +2339,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C decoding precedes quoted parameter quote removal
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "${v:-$'a\"b'}"
@@ -2407,7 +2407,7 @@ printf after
 
 ==================
 here document delimiter: ANSI-C quote inside a double quoted command substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "$(printf $'a\tb')"
@@ -2484,7 +2484,7 @@ printf after
 
 ==================
 here document delimiter: backquote preserves nested ANSI-C spelling
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << `printf $'a\tb'`
@@ -2559,7 +2559,7 @@ printf after
 
 ==================
 here document delimiter: current shell substitution has its own quote context
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "${ printf $'a\tb'; }"
@@ -2637,7 +2637,7 @@ printf after
 
 ==================
 here document delimiter: reply substitution has its own quote context
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "${|printf $'a\tb'; }"
@@ -2716,7 +2716,7 @@ printf after
 
 ==================
 here document delimiter: Unicode escape retains its double quoted backslash
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << "$(printf '\日')"
@@ -2790,7 +2790,7 @@ printf after
 
 ==================
 here document delimiter: control escape before the closing quote stays literal
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $'E\c'
@@ -2847,7 +2847,7 @@ printf after
 
 ==================
 here document delimiter: control escape of an escaped quote keeps the quote
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 cat << $'E\c\''
@@ -2904,7 +2904,7 @@ printf after
 
 ==================
 delimiter quoting is local to its word inside quoted command substitution
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 : "$(cat << @($'a\tb'|c) << ${v:-$'x'}
@@ -3006,7 +3006,7 @@ ${v:-'x'}
 
 ==================
 here document delimiter retains an isolated decoded continuation byte
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\x80'
@@ -3045,7 +3045,7 @@ echo AFTER
 
 ==================
 here document delimiter retains a decoded octal byte outside UTF-8
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\777'
@@ -3084,7 +3084,7 @@ echo AFTER
 
 ==================
 here document delimiter retains an incomplete decoded UTF-8 sequence
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\xc3'
@@ -3123,7 +3123,7 @@ echo AFTER
 
 ==================
 here document control escape masks the leading UTF-8 byte
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 cat <<$'\cé'

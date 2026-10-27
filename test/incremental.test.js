@@ -45,7 +45,7 @@ for (const grammar of grammars) {
       extglobOnly,
       editTarget = "x",
     } of workloads) {
-      if (extglobOnly && grammar.name !== "bash") continue;
+      if (extglobOnly && grammar.name !== "bash_extglob") continue;
       for (const size of sizes) {
         test(`${name}/${size}: edits preserve fresh trees`, () => {
           const source = createSource(size);
@@ -93,7 +93,7 @@ for (const grammar of grammars) {
       }
     });
 
-    if (grammar.name === "bash") {
+    if (grammar.name === "bash_extglob") {
       test("Unicode edits use byte offsets", () => {
         assertEditRoundTrip(parser, {
           seed: "echo 日本語\n",

@@ -1,6 +1,6 @@
 ==================
 select word list
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 select choice in a b; do break; done
@@ -44,7 +44,7 @@ select choice in a b; do break; done
 
 ==================
 select positional parameters
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 select choice; do break; done
@@ -82,7 +82,7 @@ select choice; do break; done
 
 ==================
 for brace body
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for x in a b; { :; }
@@ -124,7 +124,7 @@ for x in a b; { :; }
 
 ==================
 select brace body
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 select x in a b; { break; }
@@ -166,7 +166,7 @@ select x in a b; { break; }
 
 ==================
 word loop body separators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for x do :; done
@@ -286,7 +286,7 @@ select x in a b; { :; }
 
 ==================
 loops preserve variables word lists conditions and bodies
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for x in one two; do echo "$x"; done
@@ -414,7 +414,7 @@ until test "$y"; do :; done
 
 ==================
 compound commands close loop and if bodies after separators without a terminator
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 while :; do :; ( : ) done
@@ -528,7 +528,7 @@ if :; then :; { :; } fi
 
 ==================
 for brace body missing separator "for x { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for x { :; }
@@ -539,7 +539,7 @@ for x { :; }
 
 ==================
 select brace body missing separator "select x { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 select x { :; }
@@ -550,7 +550,7 @@ select x { :; }
 
 ==================
 for word list missing separator "for x in a { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for x in a { :; }
@@ -561,7 +561,7 @@ for x in a { :; }
 
 ==================
 select word list missing separator "select x in a { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 select x in a { :; }
@@ -570,7 +570,7 @@ select x in a { :; }
 
 ==================
 single and empty iteration word lists retain their boundaries
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================

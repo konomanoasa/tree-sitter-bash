@@ -18,7 +18,7 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
-    const extglob = grammar.name === "bash";
+    const extglob = grammar.name === "bash_extglob";
     const nodes = (source) => parseNodes(parser, source);
     test("syntax list edits preserve owners through empty single and multiple elements", () => {
       for (const [seed, remove, insert] of [
@@ -315,7 +315,7 @@ for (const grammar of grammars) {
       }
     });
 
-    if (grammar.name === "bash") {
+    if (grammar.name === "bash_extglob") {
       test("time is a command or function name after a pipe", () => {
         const actual = nodes("time -p : | time : |& ti\\\nme() { :; }\n");
         assert.deepEqual(

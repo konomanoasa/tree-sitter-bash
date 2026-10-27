@@ -67,7 +67,7 @@ for (const grammar of grammars) {
       extglobOnly,
       editTarget = "x",
     } of workloads) {
-      if (extglobOnly && grammar.name !== "bash") continue;
+      if (extglobOnly && grammar.name !== "bash_extglob") continue;
       test(`${name}: records fresh and incremental scaling`, (context) => {
         for (const size of sizes) {
           const source = createSource(size);

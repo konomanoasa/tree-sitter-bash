@@ -1,6 +1,6 @@
 ==================
 arithmetic for mixes complete groups with crossing parentheses
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((((x y)(z w);0;))); do :; done
@@ -87,7 +87,7 @@ for ((((x y);)(z w)(;))); do :; done
 
 ==================
 arithmetic for expressions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((i=0;i<3;i++)); do :; done
@@ -135,7 +135,7 @@ for ((i=0;i<3;i++)); do :; done
 
 ==================
 arithmetic for braces
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((;;)) { break; }
@@ -170,7 +170,7 @@ for ((;;)) { break; }
 
 ==================
 arithmetic for dynamic
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((i=${start};i<$limit;i+=${step})); do :; done
@@ -222,7 +222,7 @@ for ((i=${start};i<$limit;i+=${step})); do :; done
 
 ==================
 arithmetic for multiline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((
@@ -277,7 +277,7 @@ do :; done
 
 ==================
 arithmetic for semicolons cross subscript boundaries
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -325,7 +325,7 @@ for ((a[x;y;z])); do :; done
 
 ==================
 arithmetic for parentheses cross expressions and retain complete inner groups
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -412,7 +412,7 @@ for ((((x;y);z))); do :; done
 
 ==================
 arithmetic for quotations and substitutions protect internal semicolons
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 
@@ -501,7 +501,7 @@ for ((a["x;y"] + a[$((x;y))] + a[$(echo x; echo y)];0;)); do :; done
 
 ==================
 arithmetic for separator precedes newlines before do
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 for ((i = 0; i < 1; i++));
@@ -553,7 +553,7 @@ do :; done
 
 ==================
 arithmetic for quotes protect semicolons and closing parentheses
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 for (($'a;))';$"b;))";$'c\'')); do :; done
@@ -616,7 +616,7 @@ for (($'a;))';$"b;))";$'c\'')); do :; done
 
 ==================
 arithmetic for fields distinguish all three expressions: "for ((i=0;i<2;i++)); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 for ((i=0;i<2;i++)); do :; done
@@ -671,7 +671,7 @@ for ((i=0;i<2;i++)); do :; done
 
 ==================
 arithmetic for fields distinguish all three expressions: "for ((;;)) do break; done\n"
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -715,7 +715,7 @@ for ((;;)) do break; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((a[x;y];;)); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((a[x;y];;)); do :; done
@@ -726,7 +726,7 @@ for ((a[x;y];;)); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((;a[(x;y)];)); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((;a[(x;y)];)); do :; done
@@ -737,7 +737,7 @@ for ((;a[(x;y)];)); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((;;a[x;y])); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((;;a[x;y])); do :; done
@@ -748,7 +748,7 @@ for ((;;a[x;y])); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for (((x;y);;)); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for (((x;y);;)); do :; done
@@ -759,7 +759,7 @@ for (((x;y);;)); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((a[x;y])); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((a[x;y])); do :; done
@@ -770,7 +770,7 @@ for ((a[x;y])); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for (((x;y;z)); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for (((x;y;z)); do :; done
@@ -781,7 +781,7 @@ for (((x;y;z)); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "for ((x;y;z))); do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((x;y;z))); do :; done
@@ -792,7 +792,7 @@ for ((x;y;z))); do :; done
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "echo $(for ((a[x;y];;)); do :; done)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 echo $(for ((a[x;y];;)); do :; done)
@@ -803,7 +803,7 @@ echo $(for ((a[x;y];;)); do :; done)
 
 ==================
 arithmetic for requires two separators and balanced outer parentheses in "echo `for ((a[x;y];;)); do :; done`\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 echo `for ((a[x;y];;)); do :; done`
@@ -814,7 +814,7 @@ echo `for ((a[x;y];;)); do :; done`
 
 ==================
 arithmetic for missing separator "for ((i=0;i<2)) do :; done\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 for ((i=0;i<2)) do :; done

@@ -1,6 +1,6 @@
 ==================
 nested commands substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo "$([[ $x == @(a|b) ]] && ((x++)))"
@@ -58,7 +58,7 @@ echo "$([[ $x == @(a|b) ]] && ((x++)))"
 
 ==================
 command substitution resets quote context
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo "$(printf '%s' "$x")"
@@ -101,7 +101,7 @@ echo "$(printf '%s' "$x")"
 
 ==================
 command substitution selected by shell boundary
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((printf hi);:) $( (echo yes))
@@ -177,7 +177,7 @@ echo $((printf hi);:) $( (echo yes))
 
 ==================
 current shell substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
@@ -246,7 +246,7 @@ echo ${ printf hi; }suffix ${| REPLY=hi; } "${ printf hi; }"
 
 ==================
 nested current shell substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; }))
@@ -343,7 +343,7 @@ echo ${ { printf hi; }; } ${ printf "%s" ${ printf hi; }; } $((1+${ printf 2; })
 
 ==================
 compound commands close braced substitutions after blanks
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo ${ { printf hi; } } ${| ( REPLY=hi ) }x "${ if :; then printf hi; fi }"
@@ -448,7 +448,7 @@ echo ${ { printf hi; } } ${| ( REPLY=hi ) }x "${ if :; then printf hi; fi }"
 
 ==================
 empty current shell substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo ${ } ${| } ${
@@ -479,7 +479,7 @@ echo ${ } ${| } ${
 
 ==================
 here strings in substitutions retain enclosing arithmetic and braces
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : $(( $(cat <<<1) + 2 )) {a,$(cat <<<x)}
@@ -545,7 +545,7 @@ here strings in substitutions retain enclosing arithmetic and braces
 
 ==================
 arithmetic shifts in substitutions do not start here documents
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : {a,$( ((1 << 2))
@@ -598,7 +598,7 @@ arithmetic shifts in substitutions do not start here documents
 
 ==================
 Braced substitutions balance groups after command prefixes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : {a,${ time { :; }; }}
@@ -691,7 +691,7 @@ Braced substitutions balance groups after command prefixes
 
 ==================
 Conditional words and regex groups preserve enclosing braced substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : {a,${ [[ x == } ]]; }}
@@ -786,7 +786,7 @@ Conditional words and regex groups preserve enclosing braced substitutions
 
 ==================
 Braced command lookahead distinguishes quoted commands and literal closing braces
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : {a,${ : }; }}
@@ -859,7 +859,7 @@ Braced command lookahead distinguishes quoted commands and literal closing brace
 
 ==================
 ambiguous command substitutions keep comments and here-documents
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 echo $((echo a) # c

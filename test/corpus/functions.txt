@@ -1,6 +1,6 @@
 ==================
 time after pipes is a command or function name
-:language(bash)
+:language(bash_extglob)
 ==================
 time -p : | time : |& time() { :; }
 : | "!" : | !(x|y) | !<(:)
@@ -91,7 +91,7 @@ time -p : | time : |& time() { :; }
 
 ==================
 function optional parentheses
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 function f { :; }; function g() ( : );
@@ -148,7 +148,7 @@ function f { :; }; function g() ( : );
 
 ==================
 function broad name
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a-b() { :; }; @ () { :; }; function @() { :; }
@@ -226,7 +226,7 @@ a-b() { :; }; @ () { :; }; function @() { :; }
 
 ==================
 function multiline header
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 function f
@@ -270,7 +270,7 @@ function f
 
 ==================
 function arithmetic body
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 function f ((x++))
@@ -298,7 +298,7 @@ function f ((x++))
 
 ==================
 function conditional body
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 f() [[ -n "$x" ]]
@@ -330,7 +330,7 @@ f() [[ -n "$x" ]]
 
 ==================
 explicit function names reject double quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -342,7 +342,7 @@ function "f" { :; }
 
 ==================
 unquoted process substitution function names preserve source
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 <(:)() { :; }
@@ -377,7 +377,7 @@ unquoted process substitution function names preserve source
 
 ==================
 process substitution and extglob form one function name
-:language(bash)
+:language(bash_extglob)
 ==================
 <(:)@(a)() { :; }
 
@@ -411,7 +411,7 @@ process substitution and extglob form one function name
 
 ==================
 functions own compound bodies and redirects
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 run() { echo "$1"; } >log
@@ -468,7 +468,7 @@ run value
 
 ==================
 assignment subscript parentheses precede function names
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 a[(i+1)]=x; a[ (j+2) ]+=y; a[(x)] () { :; }
@@ -572,7 +572,7 @@ Disabled extglob permits an adjacent punctuation function name
 
 ==================
 escaped command names retain source escapes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -599,7 +599,7 @@ escaped command names retain source escapes
 
 ==================
 explicit unquoted function names retain reserved spellings
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -666,7 +666,7 @@ function } { :; }; function then { :; }
 
 ==================
 function names accept non-assignment equals signs and extglob patterns
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 =a() { :; }; 1=a() { :; }; a-b=c() { :; }; a[1]x=y() { :; }; a++=b() { :; }; @(a)() { :; }; x@(a|b)y () { :; }; function @(a) { :; }
@@ -895,7 +895,7 @@ function names accept non-assignment equals signs and extglob patterns
 
 ==================
 function names and body redirections retain source ownership
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -950,7 +950,7 @@ function a-b() { :; } >out 2>err
 
 ==================
 Unicode function names do not alias ASCII reserved spellings
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 ũf() { :; }
@@ -991,7 +991,7 @@ Unicode function names do not alias ASCII reserved spellings
 
 ==================
 command boundaries reject "f() { ! }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 f() { ! }
@@ -1002,7 +1002,7 @@ f() { ! }
 
 ==================
 command boundaries reject "! () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ! () { :; }
@@ -1013,7 +1013,7 @@ command boundaries reject "! () { :; }\n"
 
 ==================
 command boundaries reject "[[ () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 [[ () { :; }
@@ -1024,7 +1024,7 @@ command boundaries reject "[[ () { :; }\n"
 
 ==================
 command boundaries reject "{ () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 { () { :; }
@@ -1035,7 +1035,7 @@ command boundaries reject "{ () { :; }\n"
 
 ==================
 command boundaries reject "} () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 } () { :; }
@@ -1046,7 +1046,7 @@ command boundaries reject "} () { :; }\n"
 
 ==================
 command boundaries reject "]] () { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ]] () { :; }
@@ -1057,7 +1057,7 @@ command boundaries reject "]] () { :; }\n"
 
 ==================
 command boundaries reject "a+=b() { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a+=b() { :; }
@@ -1068,7 +1068,7 @@ a+=b() { :; }
 
 ==================
 command boundaries reject "a[1]+=b() { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 a[1]+=b() { :; }
@@ -1079,7 +1079,7 @@ a[1]+=b() { :; }
 
 ==================
 command boundaries reject "@() { :; }\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 @() { :; }
@@ -1090,7 +1090,7 @@ command boundaries reject "@() { :; }\n"
 
 ==================
 function absent body "function f()\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 function f()
@@ -1098,7 +1098,7 @@ function f()
 ------------------
 ==================
 function names retain line continuations without quoting the name
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :cst
 ==================
@@ -1173,7 +1173,7 @@ nt { :; }
 
 ==================
 function names reject backslash quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1185,7 +1185,7 @@ pri\nt() { :; }
 
 ==================
 explicit function names reject backslash quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1197,7 +1197,7 @@ function pri\nt { :; }
 
 ==================
 an escaped separator cannot form an explicit function name
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1209,7 +1209,7 @@ function f\ name { :; }
 
 ==================
 function names reject quoted reserved punctuation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1221,7 +1221,7 @@ function names reject quoted reserved punctuation
 
 ==================
 function names reject escaped reserved punctuation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1233,7 +1233,7 @@ function names reject escaped reserved punctuation
 
 ==================
 function names reject single quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1245,7 +1245,7 @@ function names reject single quotation
 
 ==================
 function names reject partial quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1257,7 +1257,7 @@ pr"int"() { :; }
 
 ==================
 function names reject ANSI-C quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1269,7 +1269,7 @@ $'print'() { :; }
 
 ==================
 function names reject locale quotation
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1281,7 +1281,7 @@ $"print"() { :; }
 
 ==================
 function names reject parameter expansions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1293,7 +1293,7 @@ $print() { :; }
 
 ==================
 function names reject literal dollars
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1305,7 +1305,7 @@ print$() { :; }
 
 ==================
 explicit function names reject command substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1317,7 +1317,7 @@ function $(echo print) { :; }
 
 ==================
 function names reject dollars inside subscript spellings
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1329,7 +1329,7 @@ a[$x]() { :; }
 
 ==================
 function names reject quotes inside subscript spellings
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1341,7 +1341,7 @@ a["x"]() { :; }
 
 ==================
 function names reject quotes inside process substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1353,7 +1353,7 @@ function names reject quotes inside process substitutions
 
 ==================
 function names reject dollars inside process substitutions
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 :error
 ==================
@@ -1365,7 +1365,7 @@ function names reject dollars inside process substitutions
 
 ==================
 function names reject literal dollars before extglob patterns
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 $?(d)() { :; }
@@ -1376,7 +1376,7 @@ $?(d)() { :; }
 
 ==================
 function names reject quotes inside extglob patterns
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 @(pr"int")() { :; }
@@ -1387,7 +1387,7 @@ function names reject quotes inside extglob patterns
 
 ==================
 function names reject dollars inside extglob patterns
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 @(a$x)() { :; }

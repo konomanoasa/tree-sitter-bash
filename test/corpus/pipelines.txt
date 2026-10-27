@@ -1,6 +1,6 @@
 ==================
 time remains a command name after one pipe newline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |
@@ -31,7 +31,7 @@ time x
 
 ==================
 time remains a command name on the pipe stderr line
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |& time x
@@ -60,7 +60,7 @@ time remains a command name on the pipe stderr line
 
 ==================
 quoted time remains a command name after a pipe stderr newline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |&
@@ -93,7 +93,7 @@ quoted time remains a command name after a pipe stderr newline
 
 ==================
 time remains a command name after a pipe stderr newline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |&
@@ -125,7 +125,7 @@ time x
 
 ==================
 time remains a command name after two pipe newlines
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |
@@ -157,7 +157,7 @@ time x
 
 ==================
 time remains a command name after pipe comments
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : | # first
@@ -193,7 +193,7 @@ time x
 
 ==================
 time remains a function name after a pipe stderr newline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 : |&
@@ -236,7 +236,7 @@ time() { :; }
 
 ==================
 Empty negation ends at command separators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 !; ! &
@@ -312,7 +312,7 @@ echo $(!
 
 ==================
 time and pipe stderr
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 time -p ! printf x |& cat
@@ -345,7 +345,7 @@ time -p ! printf x |& cat
 
 ==================
 time repeated prefixes
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ! time ! time -p :
@@ -374,7 +374,7 @@ time repeated prefixes
 
 ==================
 time empty pipeline
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 time; time -p
@@ -399,7 +399,7 @@ time; time -p
 
 ==================
 time option terminator
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 time -p -- :; time -- :
@@ -436,7 +436,7 @@ time -p -- :; time -- :
 
 ==================
 pipeline negation lists and asynchronous terminators
-:language(bash)
+:language(bash_extglob)
 :language(bash_default)
 ==================
 ! echo a | cat && echo yes || echo no; wait &
@@ -492,7 +492,7 @@ pipeline negation lists and asynchronous terminators
 
 ==================
 quoted negation and joined substitutions remain pipeline command words
-:language(bash)
+:language(bash_extglob)
 :cst
 ==================
 : | "!" : |& \! : | !(x|y) | !<(:)
@@ -565,7 +565,7 @@ quoted negation and joined substitutions remain pipeline command words
 
 ==================
 command boundaries reject ": | ! :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : | ! :
@@ -576,7 +576,7 @@ command boundaries reject ": | ! :\n"
 
 ==================
 command boundaries reject ": |& ! :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : |& ! :
@@ -587,7 +587,7 @@ command boundaries reject ": |& ! :\n"
 
 ==================
 command boundaries reject ": | !\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : | !
@@ -598,7 +598,7 @@ command boundaries reject ": | !\n"
 
 ==================
 command boundaries reject ": |& !\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : |& !
@@ -609,7 +609,7 @@ command boundaries reject ": |& !\n"
 
 ==================
 command boundaries reject "! && :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ! && :
@@ -620,7 +620,7 @@ command boundaries reject "! && :\n"
 
 ==================
 command boundaries reject "! || :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ! || :
@@ -631,7 +631,7 @@ command boundaries reject "! || :\n"
 
 ==================
 command boundaries reject "! | :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ! | :
@@ -642,7 +642,7 @@ command boundaries reject "! | :\n"
 
 ==================
 command boundaries reject "!\n&& :\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 !
@@ -654,7 +654,7 @@ command boundaries reject "!\n&& :\n"
 
 ==================
 command boundaries reject "echo $(!)\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 echo $(!)
@@ -665,7 +665,7 @@ echo $(!)
 
 ==================
 command boundaries reject "case x in x) !;; esac\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 case x in x) !;; esac
@@ -676,7 +676,7 @@ case x in x) !;; esac
 
 ==================
 command boundaries reject "case x in x) !;& esac\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 case x in x) !;& esac
@@ -687,7 +687,7 @@ case x in x) !;& esac
 
 ==================
 command boundaries reject "]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ]]
@@ -698,7 +698,7 @@ command boundaries reject "]]\n"
 
 ==================
 command boundaries reject "! ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 ! ]]
@@ -709,7 +709,7 @@ command boundaries reject "! ]]\n"
 
 ==================
 command boundaries reject ": | ]]\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : | ]]
@@ -720,7 +720,7 @@ command boundaries reject ": | ]]\n"
 
 ==================
 command boundaries reject ": $(]])\n"
-:language(bash)
+:language(bash_extglob)
 :error
 ==================
 : $(]])
