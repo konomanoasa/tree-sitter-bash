@@ -7,15 +7,19 @@
 [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammars for
 GNU Bourne Again SHell 5.3.
 
-## Parsing Option
-
-For Bash parsing with `extglob` enabled, use `bash_extglob`.
-
 ## Installation
 
 ```sh
 npm install @konomanoasa/tree-sitter-bash
 ```
+
+## Parsing Option
+
+For Bash parsing with `extglob` enabled, use `bash_extglob`.
+
+## Parsing Policy
+
+[Parsing Policy](PARSING_POLICY.md)
 
 ## Development
 
@@ -25,18 +29,14 @@ npm run build
 npm test
 ```
 
-## Parsing Policy
-
-[Parsing Policy](PARSING_POLICY.md)
-
 ## Specification
 
 [GNU Bash Reference Manual 5.3](https://www.gnu.org/software/bash/manual/bash.html)
 
-## Used By
-
-[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode)
-
 ## License
 
 [MIT](LICENSE)
+
+## Used By
+
+[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode)
