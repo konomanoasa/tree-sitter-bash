@@ -1,7 +1,7 @@
 ==================
 array words keep assignment-shaped tildes literal while explicit element values expand them
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=(x=~ x=one:~ x+=~ ~ [0]=~ [1]=x:~)
 
@@ -45,7 +45,7 @@ a=(x=~ x=one:~ x+=~ ~ [0]=~ [1]=x:~)
 ==================
 array words retain quotes and expansions with their own tilde contexts
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=(x="~" x=${v:-~} x=$(printf x=~))
 
@@ -96,7 +96,7 @@ a=(x="~" x=${v:-~} x=$(printf x=~))
 ==================
 tilde prefixes and assignment arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo ~+ ~- ~2 ~+2 ~-2 a=~:~/bin a=one:~user/bin
 
@@ -228,7 +228,7 @@ x+=~ a[0]+=~user
 ==================
 subscripted assignment-shaped arguments classify value tildes without assignment nodes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 printf x[0]=~ x[0]+=~:~ x[]=~ x[0]=one:~
 
@@ -276,7 +276,7 @@ printf x[0]=~ x[0]+=~:~ x[]=~ x[0]=one:~
 ==================
 assignment-shaped arguments require one ordinary word with an unquoted name and equals
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 printf x[1 + 2]=~ x[0][1]=~ x[0]suffix=~ 1x[0]=~ x[0]\=~ "x"[0]=~
 
@@ -339,7 +339,7 @@ printf x[1 + 2]=~ x[0][1]=~ x[0]suffix=~ 1x[0]=~ x[0]\=~ "x"[0]=~
 ==================
 subscripted arguments retain quotes expansions and independent inner tilde contexts
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 printf x["a b"]=~ x[$(printf 0)]=~ x[${a:-~}]=~ x[~]=~ x[a=~:~]=~
 
@@ -418,7 +418,7 @@ printf x["a b"]=~ x[$(printf 0)]=~ x[${a:-~}]=~ x[~]=~ x[a=~:~]=~
 ==================
 subscripted argument tilde boundaries preserve ordinary bracket patterns
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 printf x[]=abc] x[!]=abc] x[]=~:~] x[!]=~/[ab] x[a[0]]=~ x[a\]]=~
 
@@ -491,7 +491,7 @@ printf x[]=abc] x[!]=abc] x[]=~:~] x[!]=~/[ab] x[a[0]]=~ x[a\]]=~
 ==================
 subscripted argument tilde positions retain ranges across line continuations
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 printf x\

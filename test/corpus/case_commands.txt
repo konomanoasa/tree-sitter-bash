@@ -1,7 +1,7 @@
 ==================
 case terminators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 case x in a) : ;;& b) : ;& c) : ;; esac
 
@@ -70,7 +70,7 @@ case x in a) : ;;& b) : ;& c) : ;; esac
 ==================
 case patterns and fall through terminators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 case "$x" in a|b) echo one;; c) :;& *) echo other;; esac
 
@@ -323,7 +323,7 @@ case {a,b} in {a,b}|@(x|y)) echo {c,d};; esac
 ==================
 case lists share ownership with an omitted final terminator and omit empty lists
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 case x in a);; b) esac

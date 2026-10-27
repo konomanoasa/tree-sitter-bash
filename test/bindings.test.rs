@@ -142,12 +142,7 @@ fn parses_valid_source() {
 #[test]
 fn parses_fixed_conditions_for_every_language() {
   for (name, language, node_types, extglob) in [
-    (
-      "bash_default",
-      grammar::LANGUAGE,
-      grammar::NODE_TYPES,
-      false,
-    ),
+    ("bash", grammar::LANGUAGE, grammar::NODE_TYPES, false),
     (
       "bash_extglob",
       grammar::LANGUAGE_EXTGLOB,

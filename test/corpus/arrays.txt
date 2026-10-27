@@ -56,7 +56,7 @@ a=(one "two three" ${x} {a,b} @(x|y)); a+=(four)
 ==================
 array subscript assignments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a[x + y]=value a["key"]+=more
 
@@ -96,7 +96,7 @@ a[x + y]=value a["key"]+=more
 ==================
 array compound indexed elements
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=([0]=zero [i+1]+=one two)
 
@@ -137,7 +137,7 @@ a=([0]=zero [i+1]+=one two)
 ==================
 array ordinary bracket word
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=([x] [a-z] [0]=value)
 
@@ -177,7 +177,7 @@ a=([x] [a-z] [0]=value)
 ==================
 array multiline and comment
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=(
  one # comment
@@ -215,7 +215,7 @@ a=(
 ==================
 array empty
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=()
 
@@ -238,7 +238,7 @@ a=()
 ==================
 array process substitution
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=(<(printf x) $(printf y) ${ printf z; })
 
@@ -306,7 +306,7 @@ a=(<(printf x) $(printf y) ${ printf z; })
 ==================
 array compound assignment value braces literal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a=([0]=x{a,b} {a,b})
 
@@ -341,7 +341,7 @@ a=([0]=x{a,b} {a,b})
 ==================
 array spaces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo ${a[ one two ]} $((a[ one two ]+1))
 
@@ -384,7 +384,7 @@ echo ${a[ one two ]} $((a[ one two ]+1))
 ==================
 subscript parentheses are type neutral source text
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a[(]=x; a[)]+=y; declare -A a=([)(]=z [(key)]=v); a[(b[)c])]=w
 
@@ -474,7 +474,7 @@ a[(]=x; a[)]+=y; declare -A a=([)(]=z [(key)]=v); a[(b[)c])]=w
 ==================
 array words retain leading lexical brackets
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 a=([a b] [(] [)] [key]=value)
@@ -520,7 +520,7 @@ a=([a b] [(] [)] [key]=value)
 ==================
 extglob operators are plain inside leading bracket payloads
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 a=([@(x] [x@(y] [[:@(x{a,b}:]])
@@ -587,7 +587,7 @@ a[@(x] b
 ==================
 array words apply lexical brackets only at an unquoted start
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 a=([x][a b] \[a b] a[x y])
@@ -629,7 +629,7 @@ a=([x][a b] \[a b] a[x y])
 ==================
 Array subscript arithmetic candidates preserve precedence and source fallback
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a[i=1,j?2:3]=value
 : "${a[++i**2]}" "${a[i+++1]}" "${a[[x]+1]}" "${a[)(x+)]}"
@@ -1302,7 +1302,7 @@ a[(]=x; a[)]+=y; declare -A a=([)(]=z); echo "${a[(key)]}" $((a[(key)]+1))
 ==================
 nested substitutions and coprocess arguments retain unmatched subscript parentheses
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 a[$(coproc worker b[ ) ]=x c=(1))]=y; echo $(a[(]=x)

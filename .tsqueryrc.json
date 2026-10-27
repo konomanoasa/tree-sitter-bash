@@ -1,7 +1,4 @@
 {
-  "parser_aliases": {
-    "bash": "bash_default"
-  },
   "parser_install_directories": ["build", "."],
   "valid_captures": {
     "highlights": {

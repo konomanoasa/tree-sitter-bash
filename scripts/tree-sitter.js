@@ -380,11 +380,6 @@ function checkQueries() {
   );
   for (const grammar of grammars) {
     const parserAliases = { ...configuration.parser_aliases };
-    for (const [alias, language] of Object.entries(parserAliases)) {
-      if (grammars.some(({ name }) => name === language)) {
-        parserAliases[alias] = grammar.name;
-      }
-    }
     for (const { name } of grammars) {
       if (name === grammar.name) delete parserAliases[name];
       else parserAliases[name] = grammar.name;

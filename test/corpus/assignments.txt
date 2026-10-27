@@ -1,7 +1,7 @@
 ==================
 scalar append
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 x+=one y+=two echo "$x"
 
@@ -37,7 +37,7 @@ x+=one y+=two echo "$x"
 ==================
 assignments command name arguments and ordered redirects
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 A=one 2>err echo "$A" tail >out
 
@@ -78,7 +78,7 @@ A=one 2>err echo "$A" tail >out
 ==================
 compound assignment values retain source form before ordinary commands and after redirects
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 y=(1) cmd
 >f y=(1) cmd
@@ -200,7 +200,7 @@ leading redirects permit compound assignments before and after declaration names
 ==================
 redirect after an assignment bounds later subscripts to the word
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 x=1 >f y[1]=2 z[3 4]=4 cmd
 

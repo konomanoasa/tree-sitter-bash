@@ -1,7 +1,7 @@
 ==================
 comments stop at physical newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 # header\
 echo ok # trailing
@@ -32,7 +32,7 @@ echo ok # trailing
 ==================
 comments starting with a function-like word are not function names
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 #x() { :; }
 : $(#(
@@ -77,7 +77,7 @@ comments starting with a function-like word are not function names
 ==================
 a continuation right after the comment marker stays in the comment
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 #\
 x

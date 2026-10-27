@@ -16,7 +16,7 @@ fn main() {
   }
 
   let grammars = [
-    ("src", "tree-sitter-bash-default"),
+    ("src", "tree-sitter-bash"),
     ("bash_extglob/src", "tree-sitter-bash-extglob"),
   ];
   for (directory, _) in grammars {

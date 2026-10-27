@@ -2,12 +2,12 @@
   "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
   "grammars": [
     {
-      "name": "bash_default",
-      "title": "Bash (default options)",
-      "scope": "source.bash_default",
+      "name": "bash",
+      "title": "Bash",
+      "scope": "source.bash",
       "path": ".",
-      "file-types": ["bash", "bash_default"],
-      "injection-regex": "^bash(_default)?$",
+      "file-types": ["bash"],
+      "injection-regex": "^bash$",
       "highlights": "queries/highlights.scm",
       "external-files": [
         "common/arithmetic.h",

@@ -1,7 +1,7 @@
 ==================
 arithmetic command precedence
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ((x=2**3, x++))
 
@@ -34,7 +34,7 @@ arithmetic command precedence
 ==================
 arithmetic command empty
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 (( ))
 
@@ -55,7 +55,7 @@ arithmetic command empty
 ==================
 repeated arithmetic signs before numbers form nested unary expressions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 ((++1 + --1))
@@ -94,7 +94,7 @@ repeated arithmetic signs before numbers form nested unary expressions
 ==================
 repeated arithmetic signs distinguish groups from prefix and postfix updates
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ((++(x),+++x,x++++1))
 
@@ -138,7 +138,7 @@ repeated arithmetic signs distinguish groups from prefix and postfix updates
 ==================
 repeated arithmetic signs after a number split into binary and unary operators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ((1++1))
 
@@ -165,7 +165,7 @@ repeated arithmetic signs after a number split into binary and unary operators
 ==================
 repeated arithmetic signs retain expansion-dependent and incomplete source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ((++$x,1++))
 
@@ -193,7 +193,7 @@ repeated arithmetic signs retain expansion-dependent and incomplete source
 ==================
 arithmetic command dynamic
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 (( 0x$x + ${a[i]} ))
 
@@ -225,7 +225,7 @@ arithmetic command dynamic
 ==================
 arithmetic command invalid value
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 (( 1;2 ))
 
@@ -250,7 +250,7 @@ arithmetic command invalid value
 ==================
 hashes remain arithmetic command source across newlines
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 (( 1 # c ))
 (( 1 # c

@@ -1,7 +1,7 @@
 ==================
 time remains a command name after one pipe newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |
 time x
@@ -32,7 +32,7 @@ time x
 ==================
 time remains a command name on the pipe stderr line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |& time x
 
@@ -61,7 +61,7 @@ time remains a command name on the pipe stderr line
 ==================
 quoted time remains a command name after a pipe stderr newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |&
 "time" x
@@ -94,7 +94,7 @@ quoted time remains a command name after a pipe stderr newline
 ==================
 time remains a command name after a pipe stderr newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |&
 time x
@@ -126,7 +126,7 @@ time x
 ==================
 time remains a command name after two pipe newlines
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |
 
@@ -158,7 +158,7 @@ time x
 ==================
 time remains a command name after pipe comments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : | # first
 # second
@@ -194,7 +194,7 @@ time x
 ==================
 time remains a function name after a pipe stderr newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : |&
 time() { :; }
@@ -237,7 +237,7 @@ time() { :; }
 ==================
 Empty negation ends at command separators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 !; ! &
 if !; then :; fi
@@ -313,7 +313,7 @@ echo $(!
 ==================
 time and pipe stderr
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 time -p ! printf x |& cat
 
@@ -346,7 +346,7 @@ time -p ! printf x |& cat
 ==================
 time repeated prefixes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ! time ! time -p :
 
@@ -375,7 +375,7 @@ time repeated prefixes
 ==================
 time empty pipeline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 time; time -p
 
@@ -400,7 +400,7 @@ time; time -p
 ==================
 time option terminator
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 time -p -- :; time -- :
 
@@ -437,7 +437,7 @@ time -p -- :; time -- :
 ==================
 pipeline negation lists and asynchronous terminators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 ! echo a | cat && echo yes || echo no; wait &
 

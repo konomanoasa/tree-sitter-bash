@@ -1,7 +1,7 @@
 ==================
 condition in command substitution delimiter
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$( [[ x ]] )
 $( [[ x ]] )
@@ -90,7 +90,7 @@ x
 ==================
 here document ANSI-C Unicode delimiter
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\u0045OF'
 x
@@ -129,7 +129,7 @@ EOF
 ==================
 here document ANSI-C hex width
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\x454OF'
 x
@@ -168,7 +168,7 @@ E4OF
 ==================
 ANSI-C unknown escape delimiter
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\q\x'
 x
@@ -207,7 +207,7 @@ x
 ==================
 ANSI-C NUL truncates only the quoted segment
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<a$'\0ignored'b
 x
@@ -248,7 +248,7 @@ ab
 ==================
 delimiter quotes are removed without parameter expansion
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<"${x:-"a"}"
 $x
@@ -291,7 +291,7 @@ ${x:-a}
 ==================
 delimiter quotes are removed without command execution
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<"$(echo "a")"
 $x
@@ -343,7 +343,7 @@ $(echo a)
 ==================
 quotes inside unquoted parameter spelling are retained
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<${x:-"a"}
 $x
@@ -386,7 +386,7 @@ ${x:-"a"}
 ==================
 quotes inside unquoted substitution spelling are retained
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$(echo "a")
 $x
@@ -438,7 +438,7 @@ $(echo "a")
 ==================
 empty quoted delimiter ends at empty line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<''
 body
@@ -474,7 +474,7 @@ body
 ==================
 quoted parameter with nested blanks
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<"${x:-"a b"}"
 body
@@ -517,7 +517,7 @@ ${x:-a b}
 ==================
 quoted command with nested blanks
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<"$(echo "a b")"
 body
@@ -569,7 +569,7 @@ $(echo a b)
 ==================
 unquoted parameter name
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$x
 body
@@ -607,7 +607,7 @@ $x
 ==================
 locale quote delimiter prefixes are removed without expanding their contents
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$"EOF" <<[$"x"] <<$"$name"
 $first
@@ -676,7 +676,7 @@ $name
 ==================
 here document delimiter words preserve process substitution source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat << pre<(printf x)>(:)post
 $v
@@ -804,7 +804,7 @@ $w
 ==================
 brace substitution delimiter prefixes preserve layout through quote removal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat << ${	:; } << ""${| 	printf "x"; }
 $v
@@ -881,7 +881,7 @@ ${| 	printf x; }
 ==================
 Quoted parameter delimiter with extquote enabled
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : <<"${x:-$'ab'}"
 body
@@ -1068,7 +1068,7 @@ printf after
 ==================
 here document delimiter: current shell prefix preserves horizontal blanks
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 cat << ${  	printf "x"; }
@@ -1143,7 +1143,7 @@ printf after
 ==================
 a current shell delimiter containing a newline cannot match a single line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 cat << ${
@@ -1219,7 +1219,7 @@ printf after
 ==================
 a reply delimiter containing a newline cannot match a single line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 cat << ${| 	
@@ -1297,7 +1297,7 @@ printf after
 ==================
 here document delimiter: reply prefix layout survives quote removal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 cat << ""${| 	printf "x"; }
@@ -1374,7 +1374,7 @@ printf after
 ==================
 here document delimiter: double quoted brace prefix preserves layout and nested ANSI-C quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 cat << "${	printf $'x'; }"
@@ -3007,7 +3007,7 @@ ${v:-'x'}
 ==================
 here document delimiter retains an isolated decoded continuation byte
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\x80'
 body
@@ -3046,7 +3046,7 @@ echo AFTER
 ==================
 here document delimiter retains a decoded octal byte outside UTF-8
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\777'
 body
@@ -3085,7 +3085,7 @@ echo AFTER
 ==================
 here document delimiter retains an incomplete decoded UTF-8 sequence
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\xc3'
 body
@@ -3124,7 +3124,7 @@ echo AFTER
 ==================
 here document control escape masks the leading UTF-8 byte
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<$'\cé'
 body

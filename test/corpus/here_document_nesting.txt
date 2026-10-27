@@ -1,7 +1,7 @@
 ==================
 here document inside current shell substitution
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo ${ cat <<EOF
 x
@@ -52,7 +52,7 @@ EOF
 ==================
 here document inside process substitution
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <(cat <<EOF
 x
@@ -104,7 +104,7 @@ EOF
 ==================
 here document inside brace alternatives
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo {$(cat <<EOF
 x
@@ -160,7 +160,7 @@ EOF
 ==================
 Array words and conditional here documents protect embedded closing delimiters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {a,$(a=(x # ) }
 y [)] [)]=z))}
@@ -280,7 +280,7 @@ x == x ]]; }}
 ==================
 tab stripping and queued documents retain order
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<-ONE <<'TWO'
 	$x
@@ -332,7 +332,7 @@ TWO
 ==================
 substitution owns its inner here document
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<OUTER
 $(cat <<INNER
@@ -398,7 +398,7 @@ OUTER
 ==================
 an active outer document resumes after a quoted backquote here document
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<OUT
 `cat <<-'IN'
@@ -464,7 +464,7 @@ OUT
 ==================
 nested here document queues preserve body and delimiter source order
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 : <<OUT "$(cat <<ONE <<'TWO'
@@ -960,7 +960,7 @@ EOF acceptance does not complete unfinished shell constructs ": ${| cat <<E; if;
 ==================
 pending document cannot cross a substitution into a parameter name
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" ${foo\
@@ -973,7 +973,7 @@ bar}
 ==================
 pending document cannot cross a substitution into quoted text
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" "foo
@@ -986,7 +986,7 @@ bar"
 ==================
 pending document cannot cross a substitution before physical EOF
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" $foo\
@@ -997,7 +997,7 @@ body
 ==================
 function-name lookahead rejects two unfinished substitutions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 $(cat <<A)$(cat <<B)na\
@@ -1012,7 +1012,7 @@ me() { :; }
 ==================
 pending document cannot cross a substitution into continued whitespace
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" \
@@ -1025,7 +1025,7 @@ E
 ==================
 pending document cannot cross a substitution into backquotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" `: \
@@ -1038,7 +1038,7 @@ E
 ==================
 pending document cannot cross a substitution into arithmetic layout
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" $((1 +
@@ -1051,7 +1051,7 @@ E
 ==================
 pending document cannot cross a substitution before a blank line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" foo\
@@ -1064,7 +1064,7 @@ E
 ==================
 pending document cannot cross a substitution before a list terminator
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)";\
@@ -1076,7 +1076,7 @@ E
 ==================
 pending document cannot cross a substitution before trailing layout
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "$(cat <<E)" \
@@ -1088,7 +1088,7 @@ E
 ==================
 function-name lookahead rejects adjacent unfinished substitutions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 $(cat <<A)$(cat <<B)\
@@ -1103,7 +1103,7 @@ me() { :; }
 ==================
 a substitution cannot close with a pending document inside an outer body
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 cat <<A
@@ -1148,7 +1148,7 @@ E
 ==================
 regex groups do not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 [[ x =~ ($(cat <<E)) ]]
@@ -1160,7 +1160,7 @@ E
 ==================
 conditional patterns do not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 [[ x == @($(cat <<E)) ]]
@@ -1172,7 +1172,7 @@ E
 ==================
 parameter patterns do not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : ${u#@($(cat <<E))}
@@ -1184,7 +1184,7 @@ E
 ==================
 backquote continuation does not permit pending document inheritance
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : `: $(cat <<E) \
@@ -1197,7 +1197,7 @@ E
 ==================
 a pending backquote document cannot use physical EOF after its closer
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 x=`cat <<EOF\\`
@@ -1206,7 +1206,7 @@ x=`cat <<EOF\\`
 ==================
 a backquote closer does not terminate an unfinished document
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : `cat <<IN
@@ -1219,7 +1219,7 @@ echo AFTER
 ==================
 an outer document end does not finish a nested backquote document
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 cat <<OUT
@@ -1233,7 +1233,7 @@ OUT
 ==================
 a backquote closer does not end a delimiter line
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : `cat <<E
@@ -1245,7 +1245,7 @@ E`
 ==================
 a document inside a delimiter cannot inherit outer source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : <<$(cat <<E)

@@ -1,7 +1,7 @@
 ==================
 coprocess scalar assignment-shaped arguments retain brace expansions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc x y={a,b}
 
@@ -33,7 +33,7 @@ coproc x y={a,b}
 ==================
 coprocess braces crossing a subscript retain word structure and later compound arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker x[{0]=a,1]=b} z=(one)
 
@@ -69,7 +69,7 @@ coproc worker x[{0]=a,1]=b} z=(one)
 ==================
 coproc named compound
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker { printf x; } >out
 
@@ -112,7 +112,7 @@ coproc worker { printf x; } >out
 ==================
 coproc named subshell
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker (printf x)
 
@@ -148,7 +148,7 @@ coproc worker (printf x)
 ==================
 coproc named conditional
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker [[ x ]]
 
@@ -177,7 +177,7 @@ coproc worker [[ x ]]
 ==================
 coproc anonymous
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc { :; }; coproc printf x
 
@@ -381,7 +381,7 @@ coproc time { :; }
 ==================
 coproc assignment arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker a=("x y" $p $(printf z)) x+=y declare -a b+=(2) >out tail
 coproc declare a=(1)
@@ -467,7 +467,7 @@ coproc declare a=(1)
 ==================
 coproc pending command words
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc worker a[ ] x[ ]
 coproc worker a[ ]=v b=(1) tail
@@ -855,7 +855,7 @@ coproc declare do
 ==================
 coproc declaration leading assignments keep the command-position subscript boundary
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc export x[1 2]=1 y[3 4]+=2 -a z[5 6]=3
 
@@ -903,7 +903,7 @@ coproc export x[1 2]=1 y[3 4]+=2 -a z[5 6]=3
 ==================
 coproc raw command leading assignments keep the command-position subscript boundary
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc eval x[1 2]=(1 2) y[3 4]=5 z[6 7] w[8 9]
 
@@ -955,7 +955,7 @@ coproc eval x[1 2]=(1 2) y[3 4]=5 z[6 7] w[8 9]
 ==================
 coproc name raw commands read compound assignment arguments as words
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 coproc c eval x=(1 2) y=3
 coproc c x=1 let y=(1+2)
@@ -1007,7 +1007,7 @@ coproc c x=1 let y=(1+2)
 ==================
 coproc declaration unterminated leading subscript "coproc export x[\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 coproc export x[
@@ -1019,7 +1019,7 @@ coproc export x[
 ==================
 coproc raw command unterminated leading subscript "coproc eval x[\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 coproc eval x[
@@ -1031,7 +1031,7 @@ coproc eval x[
 ==================
 coproc simple command before closing reserved words
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 { coproc worker }
 if :; then coproc "$name" fi
@@ -1100,7 +1100,7 @@ if :; then coproc "$name" fi
 ==================
 coproc simple command cannot be followed by a non-closing reserved word "coproc worker fi\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 coproc worker fi

@@ -1,7 +1,7 @@
 ==================
 declaration scalar braces preserve name subscript operator and value fields
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 declare x[{0,1}]=pre{a,b}post y+={1..3} empty=
 
@@ -51,7 +51,7 @@ declare x[{0,1}]=pre{a,b}post y+={1..3} empty=
 ==================
 declaration compound elements retain their individual brace contexts
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 declare x=({a,b} [0]={c,d}) y={e,f}
 
@@ -95,7 +95,7 @@ declare x=({a,b} [0]={c,d}) y={e,f}
 ==================
 declaration braces crossing the subscript boundary remain one argument word
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 declare x[{0]=a,1]=b} y={c,d}
 
@@ -131,7 +131,7 @@ declare x[{0]=a,1]=b} y={c,d}
 ==================
 quoted and escaped declaration braces stay literal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 declare x="{a,b}" y=\{a,b\} z={c,d}
 
@@ -171,7 +171,7 @@ declare x="{a,b}" y=\{a,b\} z={c,d}
 ==================
 Declaration assignments stop after redirects and leading process substitutions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 >out declare a=(one) pre<(echo x) b=(two) >log c=value
 declare a=(one) <(echo x) b=value
@@ -260,7 +260,7 @@ declare a=(one) <(echo x) b=value
 ==================
 declaration arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 declare -A a=([key]=value); typeset a+=(two); local b=(three); export c=(four); readonly d=(five)
 
@@ -341,7 +341,7 @@ declare -A a=([key]=value); typeset a+=(two); local b=(three); export c=(four); 
 ==================
 alias arguments preserve scalar and compound assignment structure
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 alias x=(one) y+=two
 
@@ -372,7 +372,7 @@ alias x=(one) y+=two
 ==================
 declaration prefixed assignments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 x=1 declare -a a=(one) >out
 
@@ -408,7 +408,7 @@ x=1 declare -a a=(one) >out
 ==================
 assignment and redirection order preserves scalar declaration fields
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 >out x=y a=(one) declare b=(two); x=() >out c=z declare a=$v b+=~/p
@@ -579,7 +579,7 @@ declarations survive leading redirects and substitutions inside arguments
 ==================
 declaration subscripts respect ordinary word and command boundaries: "declare a[x y]=z b[\"x y\"]=v; declare a[x; echo next\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 declare a[x y]=z b["x y"]=v; declare a[x; echo next

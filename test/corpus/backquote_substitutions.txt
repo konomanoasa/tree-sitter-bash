@@ -1,7 +1,7 @@
 ==================
 backquote substitution retains nested command source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo `printf '%s' "$x"`
 
@@ -97,7 +97,7 @@ echo `printf "%s" @(a|b) ${x//a/b}`
 ==================
 backquotes join continued lines inside single quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : `printf %s 'a\
 b'`
@@ -139,7 +139,7 @@ b'`
 ==================
 closing backquote ends arithmetic and quoted source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : `$((`))`
@@ -151,7 +151,7 @@ x=`((`))`
 ==================
 escaped double quotes decode only directly inside double quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo "`echo \"a\"`" "${x:-`echo \"a\"`}" $((`echo \"1\"`)) ${!x`echo \"a\"`*}
 [[ a =~ `echo \"a\"` ]]
@@ -286,7 +286,7 @@ echo "`echo \"a\"`" "${x:-`echo \"a\"`}" $((`echo \"1\"`)) ${!x`echo \"a\"`*}
 ==================
 command words after escaped backslashes and a continuation keep quoted segments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo `\\\
 \'a'`
@@ -363,7 +363,7 @@ echo `x; \\\
 ==================
 quoted parameter value operators preserve escaped backquote quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x-"`echo \"1\"`"}" "${x:-"`echo \"1\"`"}" "${x="`echo \"1\"`"}" "${x:="`echo \"1\"`"}" "${x+"`echo \"1\"`"}" "${x:+"`echo \"1\"`"}"
 
@@ -523,7 +523,7 @@ quoted parameter value operators preserve escaped backquote quotes
 ==================
 unquoted parameter words decode quotes in their own double quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:-"`echo \"1\"`"}
 
@@ -566,7 +566,7 @@ unquoted parameter words decode quotes in their own double quotes
 ==================
 nested parameter values retain inherited quote removal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x:-${y:-"`echo \"1\"`"}}" "${x:-"${y:-"`echo \"1\"`"}"}"
 
@@ -643,7 +643,7 @@ nested parameter values retain inherited quote removal
 ==================
 parameter error words reset inherited backquote quoting
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x?"`echo \"1\"`"}" "${x:?"`echo \"1\"`"}"
 
@@ -709,7 +709,7 @@ parameter error words reset inherited backquote quoting
 ==================
 parameter errors and nested values apply their own quote context
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x:?${y:-"`echo \"1\"`"}}" "${x:?"${y:-"`echo \"1\"`"}"}" "${x:-"${y:?"`echo \"1\"`"}"}"
 
@@ -812,7 +812,7 @@ parameter errors and nested values apply their own quote context
 ==================
 parameter patterns reset inherited backquote quoting
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x#"`echo \"1\"`"}" "${x##"`echo \"1\"`"}" "${x%"`echo \"1\"`"}" "${x^"`echo \"1\"`"}" "${x~"`echo \"1\"`"}"
 
@@ -946,7 +946,7 @@ parameter patterns reset inherited backquote quoting
 ==================
 parameter replacement pattern and value decode their quoted backquotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x/"`echo \"1\"`"/"`echo \"1\"`"}"
 
@@ -1009,7 +1009,7 @@ parameter replacement pattern and value decode their quoted backquotes
 ==================
 nested pattern values acquire quotation only from an inner quote
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x#${y:-"`echo \"1\"`"}}" "${x#"${y:-"`echo \"1\"`"}"}"
 
@@ -1085,7 +1085,7 @@ nested pattern values acquire quotation only from an inner quote
 ==================
 command bodies reset parameter quote inheritance
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x:-"$(: "`echo \"1\"`")"}"
 
@@ -1143,7 +1143,7 @@ command bodies reset parameter quote inheritance
 ==================
 arithmetic parameter values preserve escaped backquote quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : $(( ${x:-"`echo \"1\"`"} )) $[ ${x:-"`echo \"1\"`"} ]
 
@@ -1211,7 +1211,7 @@ arithmetic parameter values preserve escaped backquote quotes
 ==================
 arithmetic quotes directly around backquotes still decode
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : $(( "`echo \"1\"`" ))
 
@@ -1252,7 +1252,7 @@ arithmetic quotes directly around backquotes still decode
 ==================
 substring nested values inherit arithmetic quoting
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:${y:-"`echo \"1\"`"}}
 
@@ -1301,7 +1301,7 @@ substring nested values inherit arithmetic quoting
 ==================
 substring explicit quotes decode their backquotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:"`echo \"1\"`"}
 
@@ -1346,7 +1346,7 @@ substring explicit quotes decode their backquotes
 ==================
 unquoted parameter backquotes protect decoded grouping characters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:-"`echo \"(1)\"`"}
 
@@ -1389,7 +1389,7 @@ unquoted parameter backquotes protect decoded grouping characters
 ==================
 quoted parameter backquotes expose grouping characters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "${x:-"`echo \"(1)\"`"}"
@@ -1399,7 +1399,7 @@ quoted parameter backquotes expose grouping characters
 ==================
 arithmetic parameter backquotes expose grouping characters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : $(( ${x:-"`echo \"(1)\"`"} ))
@@ -1409,7 +1409,7 @@ arithmetic parameter backquotes expose grouping characters
 ==================
 arithmetic commands pass quoting into parameter values
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 (( ${x:-"`echo \"1\"`"} ))
 
@@ -1451,7 +1451,7 @@ arithmetic commands pass quoting into parameter values
 ==================
 array subscripts pass quoting into parameter values
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${a[${x:-"`echo \"1\"`"}]}
 
@@ -1500,7 +1500,7 @@ array subscripts pass quoting into parameter values
 ==================
 array subscript quotes directly around backquotes still decode
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${a["`echo \"1\"`"]}
 
@@ -1545,7 +1545,7 @@ array subscript quotes directly around backquotes still decode
 ==================
 regex operand quotes decode backquote quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ 1 =~ "`echo \"1\"`" ]]
 
@@ -1590,7 +1590,7 @@ regex operand quotes decode backquote quotes
 ==================
 regex parameter values decode backquote quotes in their own quotes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ 1 =~ ${x:-"`echo \"1\"`"} ]]
 
@@ -1639,7 +1639,7 @@ regex parameter values decode backquote quotes in their own quotes
 ==================
 parenthesized arithmetic resets parameter quotation while bracket arithmetic retains it
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : "${x:-$(( "`echo \"(1)\"`" ))}" "${x:-$[ "`echo \"1\"`" ]}" "${x:-"$[ "`echo \"1\"`" ]"}"
 
@@ -1736,7 +1736,7 @@ parenthesized arithmetic resets parameter quotation while bracket arithmetic ret
 ==================
 bracket arithmetic inside a quoted parameter exposes escaped grouping characters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 : "${x:-$[ "`echo \"(1)\"`" ]}"

@@ -1,7 +1,7 @@
 ==================
 redirect variable descriptors own variable names
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 exec {fd}>out; : {fd}>&-; : 3<&4- 5>&6-
 
@@ -64,7 +64,7 @@ exec {fd}>out; : {fd}>&-; : 3<&4- 5>&6-
 ==================
 redirect stdout and stderr
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo x &>out; echo y &>>out
 
@@ -108,7 +108,7 @@ echo x &>out; echo y &>>out
 ==================
 redirect compound output
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 { :; } &>out
 
@@ -146,7 +146,7 @@ redirect compound output
 ==================
 redirect compound descriptor
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 { :; } {fd}>out
 
@@ -185,7 +185,7 @@ redirect compound descriptor
 ==================
 here string source
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 cat <<< "$x"; cat 3<<<$(printf x)
 
@@ -241,7 +241,7 @@ cat <<< "$x"; cat 3<<<$(printf x)
 ==================
 array descriptors retain quoted subscript source and here document ownership
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {fd["x y"]}>out {fd[$i]}<<EOF
 body
@@ -295,7 +295,7 @@ EOF
 ==================
 descriptor spellings before process substitution remain word prefixes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : 2<(printf x) {fd}>(:)
 
@@ -347,7 +347,7 @@ descriptor spellings before process substitution remain word prefixes
 ==================
 file descriptor duplication and redirection operators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 exec 3<input 4>output 5>>append 6<>both 7>&1 8<&0 9>|force
 
@@ -462,7 +462,7 @@ redirection descriptors and here string operators retain exact ranges
 ==================
 descriptor duplication operators accept an adjacent numeric operand
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 : <&2>out >&3>log
@@ -506,7 +506,7 @@ descriptor duplication operators accept an adjacent numeric operand
 ==================
 numeric descriptors stop at the signed 32 bit lexical boundary
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : 2147483647>out 0000000001>out
 
@@ -538,7 +538,7 @@ numeric descriptors stop at the signed 32 bit lexical boundary
 ==================
 overflowing descriptor digits remain ordinary arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : 2147483648>out 999999999999999999999>out
 
@@ -572,7 +572,7 @@ overflowing descriptor digits remain ordinary arguments
 ==================
 overflowing descriptor digits cannot follow a compound command
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 { :; } 2147483648>out

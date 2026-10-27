@@ -1,7 +1,7 @@
 ==================
 command-name brackets stop before ordinary suffixes and arguments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail
 
@@ -135,7 +135,7 @@ a[$(>out x=y a[)] ) ] next; a[ ]@(x|y) arg
 ==================
 reserved word spellings glued to subscripts or plus signs are command words
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 time[[ a ]] fi+ if[x]=1
 in[b] then+=2
@@ -188,7 +188,7 @@ in[b] then+=2
 ==================
 quoted and expanded command names
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 "printf" value; ${runner} arg
 
@@ -224,7 +224,7 @@ quoted and expanded command names
 ==================
 reserved words remain words outside keyword positions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo if then do done fi
 
@@ -256,7 +256,7 @@ echo if then do done fi
 ==================
 trailing backslash at end of input is a literal
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo a\
 ------------------
@@ -436,7 +436,7 @@ a[x][ ] tail; a[] next; echo a[ ]; "a"[ ] tail; a\[ ] tail; 1a[ ] tail; a-b[ ] t
 ==================
 command-name subscripts retain whitespace and operators in one word
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 a[ ] one; a[(x)] two; a[;|
@@ -582,7 +582,7 @@ a[$(>out x=y a[)] ) ] next
 ==================
 eval and let compound-shaped arguments remain ordinary words
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 eval a=(one two) tail
 let n+=(1 + 2)
@@ -642,7 +642,7 @@ eval a[1]=(x y)
 ==================
 eval compound-shaped argument after a split subscript "eval x[1 2]=(1 2)\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 eval x[1 2]=(1 2)
@@ -654,7 +654,7 @@ eval x[1 2]=(1 2)
 ==================
 eval compound-shaped argument retains quotes expansions comments and suffixes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 eval a=("x $v" $(printf z) # c
  q)tail next
@@ -702,7 +702,7 @@ eval a=("x $v" $(printf z) # c
 ==================
 eval argument whitespace belongs to the single word
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 eval a=(x y)
@@ -729,7 +729,7 @@ eval a=(x y)
 ==================
 quoting eval disables compound-shaped argument boundaries
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 "eval" a=(one two)
@@ -739,7 +739,7 @@ quoting eval disables compound-shaped argument boundaries
 ==================
 a redirect after let ends compound-shaped argument boundaries
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :error
 ==================
 let >out n=(1 + 2)
@@ -781,7 +781,7 @@ eval a=(@( a#b | #c)) tail
 ==================
 eval arguments preserve brace alternatives across comments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 eval a=({a, # {,(;
  b})

@@ -1,7 +1,7 @@
 ==================
 conditional words retain adjacent operators and closing spellings
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ a[k]=~ && -n $x]] && $x]] == "x"=~ ]]
 [[ "x"-eq ]]; [[ x =~ "]]" ]]
@@ -84,7 +84,7 @@ conditional words retain adjacent operators and closing spellings
 ==================
 conditional punctuation still separates words without blanks
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ x<y && ("x">"y") || x==y ]]
 
@@ -128,7 +128,7 @@ conditional punctuation still separates words without blanks
 ==================
 conditional precedence
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ x -eq 2 || ( -n y && -z z ) ]]
 
@@ -170,7 +170,7 @@ conditional precedence
 ==================
 conditional comparison and pattern
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ $x == @(a|b) && ! -f "$p" ]]
 
@@ -215,7 +215,7 @@ conditional comparison and pattern
 ==================
 conditional compact ordering
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ x<y && x>z ]]
 
@@ -252,7 +252,7 @@ conditional compact ordering
 ==================
 conditional line breaks
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[
  -n "$x" &&
@@ -300,7 +300,7 @@ conditional line breaks
 ==================
 conditional comments
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ # comment
 x ]]
@@ -330,7 +330,7 @@ x ]]
 ==================
 conditional literal braces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ x == {a,b} ]]
 
@@ -359,7 +359,7 @@ conditional literal braces
 ==================
 conditional quoted operators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ "!" == "-n" ]]
 
@@ -390,7 +390,7 @@ conditional quoted operators
 ==================
 conditional word argument
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo [[ x ]]
 
@@ -418,7 +418,7 @@ echo [[ x ]]
 ==================
 conditional simple tests
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 test "$x" = y; [ -n "$x" ]; let "x++"
 
@@ -475,7 +475,7 @@ test "$x" = y; [ -n "$x" ]; let "x++"
 ==================
 conditional newlines follow negation, groups, and complete terms
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ !
 ( -n a
@@ -525,7 +525,7 @@ b == c
 ==================
 conditionals preserve condition consequence and alternatives
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
 
@@ -621,7 +621,7 @@ if test "$x"; then echo yes; elif test "$y"; then :; else echo no; fi
 ==================
 Conditional pattern forces nested extglob with extquote enabled
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ a == $(: <<@("${x:-$'ab'}"|c)
 body
@@ -902,7 +902,7 @@ conditional precedence owns pattern and regex operands
 ==================
 bare conditions allow a newline before the closing delimiter
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ a
 ]]
@@ -930,7 +930,7 @@ bare conditions allow a newline before the closing delimiter
 ==================
 bare conditions allow a comment before the closing delimiter
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ a # comment
 ]]
@@ -1008,7 +1008,7 @@ a ]]
 ==================
 negated bare conditions allow a trailing newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ ! a
 ]]
@@ -1038,7 +1038,7 @@ negated bare conditions allow a trailing newline
 ==================
 grouped bare conditions allow a trailing newline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ ( a
 ) ]]
@@ -1067,7 +1067,7 @@ grouped bare conditions allow a trailing newline
 ==================
 bare conditions allow a newline before a conjunction
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ a
 && b ]]
@@ -1141,7 +1141,7 @@ conditional misplaced operator "[[ x -eq ]]\n"
 ==================
 conditional comments precede conjunctions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 [[ -n a # c
 && ( b == c )	# d

@@ -1,7 +1,7 @@
 ==================
 select word list
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 select choice in a b; do break; done
 
@@ -45,7 +45,7 @@ select choice in a b; do break; done
 ==================
 select positional parameters
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 select choice; do break; done
 
@@ -83,7 +83,7 @@ select choice; do break; done
 ==================
 for brace body
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for x in a b; { :; }
 
@@ -125,7 +125,7 @@ for x in a b; { :; }
 ==================
 select brace body
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 select x in a b; { break; }
 
@@ -167,7 +167,7 @@ select x in a b; { break; }
 ==================
 word loop body separators
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for x do :; done
 for x; { :; }
@@ -287,7 +287,7 @@ select x in a b; { :; }
 ==================
 loops preserve variables word lists conditions and bodies
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for x in one two; do echo "$x"; done
 while test "$x"; do :; done
@@ -415,7 +415,7 @@ until test "$y"; do :; done
 ==================
 compound commands close loop and if bodies after separators without a terminator
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 while :; do :; ( : ) done
 if :; then :; { :; } fi
@@ -571,7 +571,7 @@ select x in a { :; }
 ==================
 single and empty iteration word lists retain their boundaries
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 for x in a; do :; done

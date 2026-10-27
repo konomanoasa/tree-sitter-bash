@@ -1,7 +1,7 @@
 ==================
 parameter brace suppression extends past its syntax end and then resumes
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 : ${x:-{a}{b,c}}{d,e}
@@ -43,7 +43,7 @@ parameter brace suppression extends past its syntax end and then resumes
 ==================
 parameter brace suppression protects enclosing alternative boundaries
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 : {L,${x:-{a}{b,c}}}
@@ -84,7 +84,7 @@ parameter brace suppression protects enclosing alternative boundaries
 ==================
 parameter brace suppression ends at word boundaries when braces remain open
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:-{a}{1..3} {d,e}
 
@@ -119,7 +119,7 @@ parameter brace suppression ends at word boundaries when braces remain open
 ==================
 quoted and escaped opening braces do not extend parameter brace suppression
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : ${x:-\{a}{b,c} ${x:-"{a"}{b,c}
 
@@ -165,7 +165,7 @@ quoted and escaped opening braces do not extend parameter brace suppression
 ==================
 later parameter whitespace remains inside the surrounding brace suppression
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {L,${x:-{a}${y:-a b}{b,c}}}{d,e}
 
@@ -208,7 +208,7 @@ later parameter whitespace remains inside the surrounding brace suppression
 ==================
 brace alternatives and sequences
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo pre{a,b}post {1..9..2} {z..a..-2} {,x,} {a,{b,c}}
 
@@ -268,7 +268,7 @@ echo pre{a,b}post {1..9..2} {z..a..-2} {,x,} {a,{b,c}}
 ==================
 invalid brace candidates
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo {x} {1..x} {1..9..x} {{a,b}} {a,{x}}
 
@@ -312,7 +312,7 @@ echo {x} {1..x} {1..9..x} {{a,b}} {a,{x}}
 ==================
 quoted braces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo "{a,b}" \{a,b} {a\,b} a\@\(x\)
 
@@ -350,7 +350,7 @@ echo "{a,b}" \{a,b} {a\,b} a\@\(x\)
 ==================
 substitution inside brace alternatives
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 echo {$(echo "{a,b}"),x}
 
@@ -424,7 +424,7 @@ echo {@(a|b),x}
 ==================
 brace alternatives retain both process substitution directions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {a,<(:),>(:)}
 
@@ -672,7 +672,7 @@ a=([{日,本 c}]); : {a,@($(printf x,y)|c)}
 ==================
 Bash command headers and array words preserve enclosing brace expansions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {a,$(time -p -- case x in x) :;; esac)}
 : {a,$(function f { case x in x) :;; esac; })}
@@ -1052,7 +1052,7 @@ Word groups and combined redirections preserve enclosing brace expansions
 ==================
 Simple command prefixes and array substitutions preserve enclosing braces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {a,$(a=(<(case x in x) :;; esac)))}
 : {a,$(a=1 case)}
@@ -1230,7 +1230,7 @@ Simple command prefixes and array substitutions preserve enclosing braces
 ==================
 Parameter headers and pattern quoting preserve enclosing braces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 : {a,"${x[0]#'"'}"}
 : {a,"${!x/y/'"'}"}

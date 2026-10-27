@@ -1,7 +1,7 @@
 ==================
 arithmetic for mixes complete groups with crossing parentheses
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((((x y)(z w);0;))); do :; done
 for ((((x y);)(z w)(;))); do :; done
@@ -88,7 +88,7 @@ for ((((x y);)(z w)(;))); do :; done
 ==================
 arithmetic for expressions
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((i=0;i<3;i++)); do :; done
 
@@ -136,7 +136,7 @@ for ((i=0;i<3;i++)); do :; done
 ==================
 arithmetic for braces
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((;;)) { break; }
 
@@ -171,7 +171,7 @@ for ((;;)) { break; }
 ==================
 arithmetic for dynamic
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((i=${start};i<$limit;i+=${step})); do :; done
 
@@ -223,7 +223,7 @@ for ((i=${start};i<$limit;i+=${step})); do :; done
 ==================
 arithmetic for multiline
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((
 i=0;
@@ -278,7 +278,7 @@ do :; done
 ==================
 arithmetic for semicolons cross subscript boundaries
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 for ((a[x;y;z])); do :; done
@@ -326,7 +326,7 @@ for ((a[x;y;z])); do :; done
 ==================
 arithmetic for parentheses cross expressions and retain complete inner groups
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 for (((x+(y z);1;z))); do :; done
@@ -413,7 +413,7 @@ for ((((x;y);z))); do :; done
 ==================
 arithmetic for quotations and substitutions protect internal semicolons
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 
 for ((a["x;y"] + a[$((x;y))] + a[$(echo x; echo y)];0;)); do :; done
@@ -502,7 +502,7 @@ for ((a["x;y"] + a[$((x;y))] + a[$(echo x; echo y)];0;)); do :; done
 ==================
 arithmetic for separator precedes newlines before do
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 ==================
 for ((i = 0; i < 1; i++));
 
@@ -672,7 +672,7 @@ for ((i=0;i<2;i++)); do :; done
 ==================
 arithmetic for fields distinguish all three expressions: "for ((;;)) do break; done\n"
 :language(bash_extglob)
-:language(bash_default)
+:language(bash)
 :cst
 ==================
 for ((;;)) do break; done
