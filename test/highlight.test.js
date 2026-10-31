@@ -1239,6 +1239,56 @@ const cases = [
   },
 ];
 
+for (const { name, source, ranges } of [
+  {
+    name: "pattern captures retain lexical precedence beside quoted parameters",
+    source: 'x="$1"; echo ~ @(a|b) [[:alpha:]][[=a=]]\n',
+    ranges: [
+      [0, 1, "variable"],
+      [1, 2, "operator"],
+      [2, 3, "punctuation.delimiter"],
+      [3, 4, "variable"],
+      [4, 5, "variable.parameter"],
+      [5, 7, "punctuation.delimiter"],
+      [8, 12, "function.call"],
+      [13, 14, "string.special.path"],
+      [15, 16, "operator"],
+      [16, 17, "punctuation.bracket"],
+      [17, 18, "string.regexp"],
+      [18, 19, "operator"],
+      [19, 20, "string.regexp"],
+      [20, 21, "punctuation.bracket"],
+      [22, 24, "punctuation.bracket"],
+      [24, 25, "punctuation.delimiter"],
+      [25, 30, "character.special"],
+      [30, 31, "punctuation.delimiter"],
+      [31, 35, "punctuation.bracket"],
+      [35, 36, "punctuation.delimiter"],
+      [36, 37, "character.special"],
+      [37, 38, "punctuation.delimiter"],
+      [38, 40, "punctuation.bracket"],
+    ],
+  },
+  {
+    name: "continued command and argument captures retain physical ranges",
+    source: "ec\\\nho ab\\\ncd\n",
+    ranges: [
+      [0, 2, "function.call"],
+      [2, 3, "punctuation.special"],
+      [3, 6, "function.call"],
+      [7, 9, "string"],
+      [9, 10, "punctuation.special"],
+      [10, 13, "string"],
+    ],
+  },
+]) {
+  test(`bash_extglob: ${name}`, () => {
+    const grammar = grammars.find(({ name }) => name === "bash_extglob");
+    assert.ok(grammar);
+    assertCaptures(source, highlight(grammar.scope, source), ranges);
+  });
+}
+
 for (const grammar of grammars) {
   for (const { name, parts, extglob = false } of cases) {
     if (extglob && grammar.name !== "bash_extglob") continue;

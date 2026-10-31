@@ -12,10 +12,10 @@
       "external-files": [
         "common/arithmetic.h",
         "common/input.h",
-        "common/source.h",
         "common/scanner.h",
-        "common/lexical-tokens.json",
-        "src/lexical-tokens.h"
+        "common/source.h",
+        "common/tokens.json",
+        "src/tokens.h"
       ]
     },
     {
@@ -27,12 +27,12 @@
       "injection-regex": "^bash_extglob$",
       "highlights": "queries/highlights.scm",
       "external-files": [
+        "bash_extglob/src/tokens.h",
         "common/arithmetic.h",
         "common/input.h",
-        "common/source.h",
         "common/scanner.h",
-        "common/lexical-tokens.json",
-        "bash_extglob/src/lexical-tokens.h",
+        "common/source.h",
+        "common/tokens.json",
         "src/parser.c",
         "src/tree_sitter/parser.h"
       ]
@@ -50,7 +50,7 @@
     "c": false,
     "go": false,
     "node": false,
-    "python": false,
+    "python": true,
     "rust": true,
     "swift": false
   }

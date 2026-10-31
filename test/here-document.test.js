@@ -132,6 +132,38 @@ for (const grammar of grammars) {
     after(() => {
       parser?.close();
     });
+    test("delimiter metadata overflow finishes and whole-source repair matches fresh parsing", () => {
+      const delimiterBytes = 2048;
+      const replyPaddingBytes = 16_384;
+      const repaired = "cat <<EOF\nx\nEOF\n";
+      for (const source of [
+        `cat <<${"a".repeat(delimiterBytes)}\n`,
+        `cat << \${|${" ".repeat(replyPaddingBytes)}:; }\nx\n\${|:; }\n`,
+      ]) {
+        const original = parser.parse(source, {});
+        assert.equal(original.status, 1, original.output);
+        assert.ok(
+          original.tree
+            .split("\n")[0]
+            .endsWith(`[${source.split("\n").length - 1}, 0]`),
+        );
+        const fresh = parser.parse(repaired, { arguments: ["-c"] });
+        const incremental = parser.parse(source, {
+          arguments: ["-c"],
+          edits: [
+            {
+              byte: 0,
+              deleteBytes: Buffer.byteLength(source),
+              insert: repaired,
+            },
+          ],
+        });
+        assert.equal(fresh.status, 0, fresh.output);
+        assert.equal(incremental.status, 0, incremental.output);
+        assert.equal(incremental.tree, fresh.tree);
+      }
+    });
+
     test("local here document source ownership survives edits and suspension", () => {
       const fixtures = [
         "cat <<E\n\\$HOME\nE\n",
@@ -198,39 +230,40 @@ for (const grammar of grammars) {
         valid: true,
       });
     });
-    if (grammar.name === "bash_extglob") {
-      test("here document Unicode delimiters use UTF-8 independently of locale", () => {
-        const source = ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n";
-        const originalLocale = process.env.LC_ALL;
-        try {
-          for (const locale of ["C", "en_US.UTF-8"]) {
-            process.env.LC_ALL = locale;
-            const actual = nodes(source);
-            assert.deepEqual(
-              actual
-                .filter(({ type }) =>
-                  [
-                    "dollar_single_quote_escape",
-                    "quoted_here_document_body",
-                    "here_document_end_text",
-                  ].includes(type),
-                )
-                .map(({ type, text }) => [type, text]),
-              [
-                ["dollar_single_quote_escape", "\\u00e9"],
-                ["dollar_single_quote_escape", "\\U0001f600"],
-                ["quoted_here_document_body", "body\n"],
-                ["here_document_end_text", "é😀"],
-              ],
-              locale,
-            );
-          }
-        } finally {
-          if (originalLocale === undefined) delete process.env.LC_ALL;
-          else process.env.LC_ALL = originalLocale;
+    test("here document Unicode escapes use C locale spelling independently of the environment", () => {
+      const source =
+        ": <<$'\\u00e9\\U0001f600'\nbody\né😀\n\\u00E9\\U0001F600\n";
+      const originalLocale = process.env.LC_ALL;
+      try {
+        for (const locale of ["C", "C.UTF-8"]) {
+          process.env.LC_ALL = locale;
+          const actual = nodes(source);
+          assert.deepEqual(
+            actual
+              .filter(({ type }) =>
+                [
+                  "dollar_single_quote_escape",
+                  "quoted_here_document_body",
+                  "here_document_end_text",
+                ].includes(type),
+              )
+              .map(({ type, text }) => [type, text]),
+            [
+              ["dollar_single_quote_escape", "\\u00e9"],
+              ["dollar_single_quote_escape", "\\U0001f600"],
+              ["quoted_here_document_body", "body\né😀\n"],
+              ["here_document_end_text", "\\u00E9\\U0001F600"],
+            ],
+            locale,
+          );
         }
-      });
+      } finally {
+        if (originalLocale === undefined) delete process.env.LC_ALL;
+        else process.env.LC_ALL = originalLocale;
+      }
+    });
 
+    if (grammar.name === "bash_extglob") {
       test("a joined here document delimiter retains its original spelling", () => {
         const actual = nodes("cat <<EOF\nbody\nE\\\nOF\n");
         assert.equal(
@@ -375,9 +408,9 @@ for (const grammar of grammars) {
         },
         {
           name: "a locale assignment changes without changing a Unicode here delimiter",
-          seed: "LC_ALL=C\n: <<$'\\u00e9'\nbody\né\n",
+          seed: "LC_ALL=C\n: <<$'\\u00e9'\nbody\n\\u00E9\n",
           remove: "LC_ALL=C",
-          insert: "LC_ALL=en_US.UTF-8",
+          insert: "LC_ALL=C.UTF-8",
           valid: true,
         },
         {
@@ -752,7 +785,7 @@ for (const grammar of grammars) {
       }
     });
 
-    test("decoded delimiter byte edits retain incomplete UTF-8 and restore matching", () => {
+    test("decoded delimiter edits change terminators and restore matching", () => {
       for (const [word, end, remove] of [
         ["$'\\xc3\\xa9'", "é", "\\xa9"],
         ["$'\\303\\251'", "é", "\\251"],
@@ -762,6 +795,9 @@ for (const grammar of grammars) {
         ["$'\\xe3\\x81\\x82'", "あ", "\\x82"],
         ["$'\\xf0\\x9f\\x98\\x80'", "😀", "\\x80"],
         [`"\${x:-$'\\xc3\\xa9'}"`, `\${x:-é}`, "\\xa9"],
+        ["$'\\u00e9'", "\\u00E9", "e9"],
+        ["$'\\U0001f600'", "\\U0001F600", "1f600"],
+        [`"\${x:-$'\\u00e9'}"`, `\${x:-\\u00E9}`, "e9"],
       ]) {
         const seed = `cat <<${word}\nbody\n${end}\necho AFTER\n`;
         const actual = nodes(seed);

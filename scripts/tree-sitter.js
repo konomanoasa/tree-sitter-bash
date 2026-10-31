@@ -171,10 +171,14 @@ function runChecked(runner, arguments_, options = { stdio: "inherit" }) {
   return resultStatus(runner.run(arguments_, options));
 }
 
-function lexicalTokenHeader(lexicalTokens) {
+function tokenHeader(tokens) {
+  const enumerators = new Map(
+    tokens.map(({ name, scanner }) => [name, scanner]),
+  );
   const groups = {
-    ...lexicalTokens,
-    whole: lexicalTokens.lexical.filter(({ whole }) => whole),
+    lexical: tokens.filter(({ kind }) => kind === "lexical"),
+    physical: tokens.filter(({ kind }) => kind === "physical"),
+    whole: tokens.filter(({ whole }) => whole),
   };
   const macros = Object.entries(groups).map(([kind, entries]) => {
     const suffixes =
@@ -183,23 +187,22 @@ function lexicalTokenHeader(lexicalTokens) {
         : kind === "whole"
           ? ["whole"]
           : ["prefix", "character"];
-    const rows = entries.map(({ begin, scanner }) => {
+    const rows = entries.map(({ name, scanner }) => {
       const symbols = [
         scanner,
-        ...suffixes.map((suffix) =>
-          `${begin.slice(1)}_${suffix}`.toUpperCase(),
-        ),
+        ...suffixes.map((suffix) => enumerators.get(`${name}_${suffix}`)),
       ];
       return `  X(${symbols.join(", ")})`;
     });
     return `#define BASH_${kind.toUpperCase()}_SOURCE_TOKENS(X) \\\n${rows.join(" \\\n")}`;
   });
-  return `/* Generated from lexical-tokens.json by npm run generate. */\n\n#ifndef TREE_SITTER_BASH_LEXICAL_TOKENS_H_\n#define TREE_SITTER_BASH_LEXICAL_TOKENS_H_\n\n${macros.join("\n\n")}\n\n#endif\n`;
+  const enumerations = tokens.map(({ scanner }) => `  ${scanner},`);
+  return `/* Generated from tokens.json by npm run generate. */\n\n#ifndef TREE_SITTER_BASH_TOKENS_H_\n#define TREE_SITTER_BASH_TOKENS_H_\n\nenum TokenType {\n${enumerations.join("\n")}\n  TOKEN_COUNT,\n};\n\n${macros.join("\n\n")}\n\n#endif\n`;
 }
 
 function generateParsers(outputRoot = root, sourceRoot = root) {
-  const lexicalTokens = JSON.parse(
-    readFileSync(join(sourceRoot, "common", "lexical-tokens.json"), "utf8"),
+  const tokens = JSON.parse(
+    readFileSync(join(sourceRoot, "common", "tokens.json"), "utf8"),
   );
   for (const grammar of grammars) {
     const output = join(outputRoot, grammar.path, "src");
@@ -221,10 +224,7 @@ function generateParsers(outputRoot = root, sourceRoot = root) {
     if (status !== 0) {
       return status;
     }
-    writeFileSync(
-      join(output, "lexical-tokens.h"),
-      lexicalTokenHeader(lexicalTokens),
-    );
+    writeFileSync(join(output, "tokens.h"), tokenHeader(tokens));
   }
 
   const [shared, ...variants] = grammars;

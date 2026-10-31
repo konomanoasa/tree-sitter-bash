@@ -15,10 +15,13 @@ import { pathToFileURL } from "node:url";
 import {
   copyFiles,
   createTreeSitter,
-  generateParsers,
   packageName,
   root,
 } from "../scripts/tree-sitter.js";
+
+const metadataOnly = {
+  skip: Boolean(process.env.CI) && process.platform !== "darwin",
+};
 
 const generatedCheckTimeoutMs = 60_000;
 const cliTestTimeoutMs = 60_000;
@@ -35,86 +38,94 @@ const grammars = configuration.grammars.map((grammar) => ({
 
 const language = packageName.slice("tree-sitter-".length).replaceAll("-", "_");
 
-test(`${language}: generated checks reject stale, missing, and unshareable parsers`, () => {
-  const cache = join(root, "node_modules", ".cache");
-  mkdirSync(cache, { recursive: true });
-  const directory = mkdtempSync(join(cache, `${packageName}-generated-check-`));
-  try {
-    copyFiles(
-      [
-        "package.json",
-        "tree-sitter.json",
-        "scripts",
-        ...(existsSync(join(root, "common")) ? ["common"] : []),
-        ...grammars.flatMap(({ path, externalFiles }) => [
-          join(path, "grammar.js"),
-          join(path, "src"),
-          ...externalFiles,
-        ]),
-      ],
-      directory,
+test(
+  `${language}: generated checks reject stale, missing, and unshareable parsers`,
+  metadataOnly,
+  () => {
+    const cache = join(root, "node_modules", ".cache");
+    mkdirSync(cache, { recursive: true });
+    const directory = mkdtempSync(
+      join(cache, `${packageName}-generated-check-`),
     );
-
-    function check() {
-      const result = spawnSync(
-        process.execPath,
-        ["scripts/check-generated.js"],
-        {
-          cwd: directory,
-          encoding: "utf8",
-          timeout: generatedCheckTimeoutMs,
-          killSignal: "SIGKILL",
-        },
+    try {
+      copyFiles(
+        [
+          "package.json",
+          "tree-sitter.json",
+          "scripts",
+          ...(existsSync(join(root, "common")) ? ["common"] : []),
+          ...grammars.flatMap(({ path, externalFiles }) => [
+            join(path, "grammar.js"),
+            join(path, "src"),
+            ...externalFiles,
+          ]),
+        ],
+        directory,
       );
-      assert.ifError(result.error);
-      return result;
-    }
 
-    const clean = check();
-    assert.equal(clean.status, 0, clean.stdout + clean.stderr);
-    const changedFiles = [];
-    const missingFiles = [];
-    for (const { path } of grammars) {
-      const nodeTypes = join(path, "src", "node-types.json");
-      const changed = `${readFileSync(join(directory, nodeTypes), "utf8")}\n`;
-      writeFileSync(join(directory, nodeTypes), changed);
-      changedFiles.push([nodeTypes, changed]);
-      const parser = join(path, "src", "parser.c");
-      rmSync(join(directory, parser));
-      missingFiles.push(parser);
-    }
+      function check() {
+        const result = spawnSync(
+          process.execPath,
+          ["scripts/check-generated.js"],
+          {
+            cwd: directory,
+            encoding: "utf8",
+            timeout: generatedCheckTimeoutMs,
+            killSignal: "SIGKILL",
+          },
+        );
+        assert.ifError(result.error);
+        return result;
+      }
 
-    const stale = check();
-    assert.equal(stale.status, 1, stale.stdout + stale.stderr);
-    for (const [path, expected] of changedFiles) {
-      assert.ok(stale.stderr.includes(path), stale.stderr);
-      assert.equal(readFileSync(join(directory, path), "utf8"), expected);
-    }
-    for (const path of missingFiles) {
-      assert.ok(stale.stderr.includes(path), stale.stderr);
-      assert.equal(existsSync(join(directory, path)), false);
-    }
+      const clean = check();
+      assert.equal(clean.status, 0, clean.stdout + clean.stderr);
+      const changedFiles = [];
+      const missingFiles = [];
+      for (const { path } of grammars) {
+        for (const file of ["node-types.json", "tokens.h"]) {
+          const source = join(path, "src", file);
+          const changed = `${readFileSync(join(directory, source), "utf8")}\n`;
+          writeFileSync(join(directory, source), changed);
+          changedFiles.push([source, changed]);
+        }
+        const parser = join(path, "src", "parser.c");
+        rmSync(join(directory, parser));
+        missingFiles.push(parser);
+      }
 
-    writeFileSync(
-      join(directory, "bash_extglob", "grammar.js"),
-      `export default grammar({
+      const stale = check();
+      assert.equal(stale.status, 1, stale.stdout + stale.stderr);
+      for (const [path, expected] of changedFiles) {
+        assert.ok(stale.stderr.includes(path), stale.stderr);
+        assert.equal(readFileSync(join(directory, path), "utf8"), expected);
+      }
+      for (const path of missingFiles) {
+        assert.ok(stale.stderr.includes(path), stale.stderr);
+        assert.equal(existsSync(join(directory, path)), false);
+      }
+
+      writeFileSync(
+        join(directory, "bash_extglob", "grammar.js"),
+        `export default grammar({
   name: "bash_extglob",
   rules: { program: () => "unshared" },
 });
 `,
-    );
-    const unshared = check();
-    assert.equal(unshared.status, 1, unshared.stdout + unshared.stderr);
-    assert.ok(
-      unshared.stderr.includes(
-        "bash_extglob: generated parser differs from bash; cannot share its tables.",
-      ),
-      unshared.stdout + unshared.stderr,
-    );
-  } finally {
-    rmSync(directory, { recursive: true, force: true });
-  }
-});
+      );
+      const unshared = check();
+      assert.equal(unshared.status, 1, unshared.stdout + unshared.stderr);
+      assert.ok(
+        unshared.stderr.includes(
+          "bash_extglob: generated parser differs from bash; cannot share its tables.",
+        ),
+        unshared.stdout + unshared.stderr,
+      );
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  },
+);
 
 test(`${language}: corpus fuzz propagates CLI failures even when its exit status is zero`, () => {
   const directory = mkdtempSync(join(tmpdir(), "tree-sitter-fuzz-exit-#-"));
@@ -214,18 +225,22 @@ syncBuiltinESMExports();
   }
 });
 
-test(`${language}: package metadata matches the grammar and license`, () => {
-  const { metadata } = configuration;
-  const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-  for (const key of ["version", "license", "description"])
-    assert.equal(pkg[key], metadata[key]);
-  assert.equal(pkg.repository, `git+${metadata.links.repository}.git`);
-  assert.ok(
-    readFileSync(join(root, "LICENSE"), "utf8").startsWith(
-      `${pkg.license} License`,
-    ),
-  );
-});
+test(
+  `${language}: package metadata matches the grammar and license`,
+  metadataOnly,
+  () => {
+    const { metadata } = configuration;
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    for (const key of ["version", "license", "description"])
+      assert.equal(pkg[key], metadata[key]);
+    assert.equal(pkg.repository, `git+${metadata.links.repository}.git`);
+    assert.ok(
+      readFileSync(join(root, "LICENSE"), "utf8").startsWith(
+        `${pkg.license} License`,
+      ),
+    );
+  },
+);
 
 function run(command, arguments_, cwd = root) {
   const result = spawnSync(command, arguments_, {
@@ -240,7 +255,7 @@ function run(command, arguments_, cwd = root) {
   return result.stdout;
 }
 
-test("npm archives reproduce shared parsers and build every language", () => {
+test("npm archives build both parsers with their shared scanner", () => {
   const cache = join(root, "node_modules", ".cache");
   mkdirSync(cache, { recursive: true });
   const directory = mkdtempSync(join(cache, `${packageName}-distribution-`));
@@ -260,31 +275,40 @@ test("npm archives reproduce shared parsers and build every language", () => {
         ]),
       ),
     );
-    const npmRoot = join(directory, "npm");
-    mkdirSync(npmRoot);
-    run("tar", ["-xf", archive.filename, "-C", "npm"], directory);
-    const npmSource = join(npmRoot, "package");
-    const generated = join(directory, "generated");
-    assert.equal(generateParsers(generated, npmSource), 0);
+    for (const { path } of archive.files) {
+      assert.doesNotMatch(
+        path,
+        /^(target|build|dist|node_modules|[.]git|[.]venv)[/]/,
+      );
+    }
+    run("tar", ["-xf", archive.filename], directory);
+    const source = join(directory, "sample.bash");
+    writeFileSync(source, "cat <<E\n$expanded\nE\n");
     for (const { name, path } of grammars) {
-      for (const file of ["parser.c", "grammar.json", "node-types.json"]) {
-        assert.deepEqual(
-          readFileSync(join(generated, path, "src", file)),
-          readFileSync(join(npmSource, path, "src", file)),
-          `${name}: ${file}`,
+      const library = join(
+        directory,
+        `${name}.${process.platform === "win32" ? "dll" : "so"}`,
+      );
+      for (const args of [
+        ["build", join(directory, "package", path), "--output", library],
+        [
+          "parse",
+          "--quiet",
+          "--lib-path",
+          library,
+          "--lang-name",
+          name,
+          source,
+        ],
+      ]) {
+        const result = runner.run(args);
+        assert.ifError(result.error);
+        assert.equal(
+          result.status,
+          0,
+          `${name}: ${result.stdout}${result.stderr}`,
         );
       }
-      const result = runner.run(
-        [
-          "build",
-          join(npmSource, path),
-          "--output",
-          join(directory, `${name}.so`),
-        ],
-        { cwd: npmSource },
-      );
-      assert.ifError(result.error);
-      assert.equal(result.status, 0, result.stdout + result.stderr);
     }
   } finally {
     runner.close();

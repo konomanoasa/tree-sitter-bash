@@ -23,6 +23,27 @@ export function createParser(grammar = grammars[0]) {
   let sequence = 0;
   return {
     close: runner.close,
+    query(source, query) {
+      const file = join(runner.directory, `${sequence++}.${grammar.name}`);
+      const queryFile = join(runner.directory, "query.scm");
+      writeFileSync(file, source);
+      writeFileSync(queryFile, query);
+      const result = runner.run(
+        [
+          "query",
+          "--lib-path",
+          library,
+          "--lang-name",
+          grammar.name,
+          queryFile,
+          file,
+        ],
+        { timeout: parseTimeoutMs },
+      );
+      assert.ifError(result.error);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      return result.stdout;
+    },
     parse(source, options) {
       const { edits = [], arguments: extra = [] } = options;
       const file = join(runner.directory, `${sequence++}.${grammar.name}`);

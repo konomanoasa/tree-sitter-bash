@@ -36,7 +36,3 @@ npm test
 ## License
 
 [MIT](LICENSE)
-
-## Used By
-
-[bash-ts-mode](https://github.com/konomanoasa/bash-ts-mode)

@@ -19,6 +19,134 @@ for (const grammar of grammars) {
       parser?.close();
     });
     const extglob = grammar.name === "bash_extglob";
+    test("ERE fields retain direct ownership across static and expanded operands", () => {
+      const source = `[[ x =~ ^(a|bc){2,3}?d{4}e{5,}()[[:alpha:][.ch.][=é=][.ab\${p}cd.]]$ ]]`;
+      const result = parser.parse(source, { arguments: ["-c"] });
+      assert.equal(result.status, 0, result.output);
+      const entries = sourceNodes(result.tree, source);
+      for (const { type, text, fields } of [
+        {
+          type: "ere_expression",
+          text: "(a|bc){2,3}?",
+          fields: [["expression", "a|bc"]],
+        },
+        {
+          type: "ere_expression",
+          text: "()",
+          fields: [],
+        },
+        {
+          type: "ere_dupl_symbol",
+          text: "{2,3}?",
+          fields: [
+            ["minimum", "2"],
+            ["maximum", "3"],
+            ["modifier", "?"],
+          ],
+        },
+        { type: "ere_dupl_symbol", text: "{4}", fields: [["minimum", "4"]] },
+        { type: "ere_dupl_symbol", text: "{5,}", fields: [["minimum", "5"]] },
+        {
+          type: "character_class",
+          text: "[:alpha:]",
+          fields: [["name", "alpha"]],
+        },
+        {
+          type: "collating_symbol",
+          text: "[.ch.]",
+          fields: [["element", "ch"]],
+        },
+        {
+          type: "equivalence_class",
+          text: "[=é=]",
+          fields: [["element", "é"]],
+        },
+        {
+          type: "collating_symbol",
+          text: `[.ab\${p}cd.]`,
+          fields: [["element", `ab\${p}cd`]],
+        },
+      ]) {
+        const index = entries.findIndex(
+          (node) => node.type === type && node.text === text,
+        );
+        assert.ok(index >= 0, text);
+        const parent = entries[index];
+        const children = [];
+        for (const node of entries.slice(index + 1)) {
+          if (node.depth <= parent.depth) break;
+          if (node.depth === parent.depth + 2 && node.field !== undefined)
+            children.push([node.field, node.text]);
+        }
+        assert.deepEqual(children, fields, text);
+      }
+      for (const source of ["[[ x =~ ()*?+? ]]", `[[ x =~ "p"()*?+?\${q} ]]`]) {
+        const entries = nodes(source);
+        assert.deepEqual(
+          entries
+            .filter(({ type }) => type === "repetition_modifier")
+            .map(({ text, field }) => [text, field]),
+          [
+            ["?", "modifier"],
+            ["?", "modifier"],
+          ],
+        );
+        const grouped = parser.query(
+          source,
+          '(ere_expression opening: "(" closing: ")" expression: (_) @unexpected)',
+        );
+        assert.doesNotMatch(grouped, /capture:/);
+      }
+    });
+
+    test("ERE group delimiters retain their source ranges beside quotes and expansions", () => {
+      const source = `[[ x =~ "\${p}"(a|b)+\${q}(c) ]]\n`;
+      const result = parser.query(
+        source,
+        '(ere_expression opening: "(" @opening closing: ")" @closing)',
+      );
+      const captures = [
+        ...result.matchAll(
+          /capture: [0-9]+ - (opening|closing), start: [(]0, ([0-9]+)[)], end: [(]0, ([0-9]+)[)]/g,
+        ),
+      ].map(([, field, start, end]) => [Number(start), Number(end), field]);
+      assert.deepEqual(
+        captures,
+        [
+          [14, 15, "opening"],
+          [18, 19, "closing"],
+          [24, 25, "opening"],
+          [26, 27, "closing"],
+        ],
+        result,
+      );
+    });
+
+    test("ERE collating payloads preserve logical lengths and physical continuations", () => {
+      const source = `[[ x =~ [[.é.][.a\\\nb.][=日=][=ab=][.-.][.ab\${p}cd.]] ]]`;
+      const entries = nodes(source);
+      assert.deepEqual(
+        entries
+          .filter(({ field }) => field === "element")
+          .map(({ type, text }) => [type, text]),
+        [
+          ["collating_element_single", "é"],
+          ["collating_element_multi", "a\\\nb"],
+          ["collating_element_single", "日"],
+          ["collating_element_multi", "ab"],
+          ["meta_character", "-"],
+          ["regex_source_expression", `ab\${p}cd`],
+        ],
+      );
+      const at = Buffer.byteLength(source.slice(0, source.indexOf("\\\n")));
+      assert.deepEqual(
+        entries
+          .filter(({ type }) => type === "line_continuation")
+          .map(({ start, end }) => [start, end]),
+        [[at, at + 1]],
+      );
+    });
+
     const nodes = (source) => parseNodes(parser, source);
     test("syntax list edits preserve owners through empty single and multiple elements", () => {
       for (const [seed, remove, insert] of [

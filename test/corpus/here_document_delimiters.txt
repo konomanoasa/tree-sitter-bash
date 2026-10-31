@@ -127,6 +127,46 @@ EOF
             (here_document_end_text)))))))
 
 ==================
+here document non-ASCII Unicode escapes use C locale delimiter spelling
+:language(bash_extglob)
+:language(bash)
+==================
+cat <<$'\u007e\u00e9\U0001f600'
+~é😀
+~\u00E9\U0001F600
+
+------------------
+
+(program
+  (complete_commands
+    (complete_command
+      (list
+        (and_or
+          (pipeline
+            (pipe_sequence
+              (command
+                (simple_command
+                  (word
+                    (literal))
+                  (io_redirect
+                    (io_here
+                      (dless)
+                      (here_end
+                        (word
+                          (dollar_single_quoted
+                            (dollar_single_quote_escape)
+                            (dollar_single_quote_escape)
+                            (dollar_single_quote_escape)))))))))))))
+    (newline_list
+      (here_document_sequence
+        (here_document_line_end)
+        (here_document
+          (quoted_here_document_body
+            (quoted_here_document_text))
+          (here_document_end
+            (here_document_end_text)))))))
+
+==================
 here document ANSI-C hex width
 :language(bash_extglob)
 :language(bash)

@@ -1,30 +1,35 @@
-import lexicalTokens from "./lexical-tokens.json" with { type: "json" };
+import tokens from "./tokens.json" with { type: "json" };
 
-if (Object.keys(lexicalTokens).length !== 2) {
-  throw new Error("Source tokens must define only lexical and physical groups");
-}
+const tokenNames = new Set();
 const sourceKinds = new Map();
 const scannerSymbols = new Set();
 const wholeSources = new Set();
-for (const kind of ["lexical", "physical"]) {
-  if (!Array.isArray(lexicalTokens[kind])) {
-    throw new Error(`Missing ${kind} source tokens`);
+for (const { name, scanner, kind, whole } of tokens) {
+  if (
+    typeof name !== "string" ||
+    !/^_?[a-z][a-z0-9_]*$/.test(name) ||
+    typeof scanner !== "string" ||
+    !/^[A-Z][A-Z0-9_]*$/.test(scanner) ||
+    scanner === "TOKEN_COUNT" ||
+    tokenNames.has(name) ||
+    scannerSymbols.has(scanner) ||
+    (kind !== undefined && !["lexical", "physical"].includes(kind)) ||
+    (whole !== undefined && (whole !== true || kind !== "lexical"))
+  ) {
+    throw new Error(`Invalid or duplicate external token ${name}`);
   }
-  for (const { begin, scanner, whole } of lexicalTokens[kind]) {
-    if (
-      typeof begin !== "string" ||
-      !/^_[a-z][a-z0-9_]*$/.test(begin) ||
-      typeof scanner !== "string" ||
-      !/^[A-Z][A-Z0-9_]*$/.test(scanner) ||
-      sourceKinds.has(begin) ||
-      scannerSymbols.has(scanner) ||
-      (whole !== undefined && (whole !== true || kind !== "lexical"))
-    ) {
-      throw new Error(`Invalid or duplicate source token ${begin}`);
+  tokenNames.add(name);
+  scannerSymbols.add(scanner);
+  if (kind !== undefined) sourceKinds.set(name, kind);
+  if (whole) wholeSources.add(name);
+}
+for (const [name, kind] of sourceKinds) {
+  const suffixes = kind === "lexical" ? ["piece"] : ["prefix", "character"];
+  if (wholeSources.has(name)) suffixes.push("whole");
+  for (const suffix of suffixes) {
+    if (!tokenNames.has(`${name}_${suffix}`)) {
+      throw new Error(`Missing external source token ${name}_${suffix}`);
     }
-    sourceKinds.set(begin, kind);
-    scannerSymbols.add(scanner);
-    if (whole) wholeSources.add(begin);
   }
 }
 const sourceToken = ($, begin, kind, suffix) => {
@@ -37,15 +42,6 @@ const sourceToken = ($, begin, kind, suffix) => {
   }
   return $[`${begin.name}_${suffix}`];
 };
-const sourceExternals = ($) => [
-  ...lexicalTokens.lexical.map(({ begin }) => $[`${begin}_piece`]),
-  ...lexicalTokens.physical.flatMap(({ begin }) => [
-    $[`${begin}_prefix`],
-    $[`${begin}_character`],
-  ]),
-  ...Array.from(wholeSources, (begin) => $[`${begin}_whole`]),
-];
-
 const regexSourceParts = ($) => [
   alias($._ere_source_group_expression, $.ere_expression),
   $._regex_source_group,
@@ -358,8 +354,6 @@ const sourceWord = ($, prefix, braces = false) =>
     ),
   );
 const wordSeparator = ($, marker) => seq(marker, optional($._blank));
-const declarationEndSuffix = ($) =>
-  seq($._declaration_end, field("argument", $.word), optional($._cmd_suffix));
 
 const arithmeticBoundaryLayout = ($, boundary) =>
   seq(boundary, optional($._arithmetic_layout));
@@ -952,20 +946,16 @@ const declarationSuffix = (
     seq(
       $._word_separator,
       choice(
-        declarationEndSuffix($),
+        $._declaration_end_suffix,
         seq(
           choice(field(assignmentField, assignment), field("argument", $.word)),
           optional(continuation),
         ),
       ),
     ),
-    ...redirectedSuffixes($),
+    $._redirected_suffix,
   );
 
-const redirectedSuffixes = ($) =>
-  commandRedirectContinuations($).map((redirect) =>
-    seq(redirect, optional($._cmd_suffix)),
-  );
 const redirectList = ($) =>
   seq(
     field("redirect", $.io_redirect),
@@ -1080,373 +1070,7 @@ export default function defineGrammar(name) {
       $._here_document_content_line_start,
     ],
 
-    externals: ($) => {
-      const tokens = [
-        $._left_brace,
-        $._right_brace,
-        $._io_number_begin,
-        $._bang_begin,
-        $._if_keyword_begin,
-        $._then_keyword_begin,
-        $._elif_keyword_begin,
-        $._else_keyword_begin,
-        $._fi_keyword_begin,
-        $._for_keyword_begin,
-        $._in_keyword_begin,
-        $._do_keyword_begin,
-        $._done_keyword_begin,
-        $._case_keyword_begin,
-        $._esac_keyword_begin,
-        $._while_keyword_begin,
-        $._until_keyword_begin,
-        $._here_end_begin,
-        $._here_end_strip_begin,
-        $._here_end_commit,
-        $._here_document_line_end_begin,
-        $._here_document_body_start,
-        $._quoted_here_document_body_start,
-        $._quoted_here_document_end_begin,
-        $._quoted_here_document_end_text_begin,
-        $._quoted_here_document_text_begin,
-        $._here_document_end_begin,
-        $._here_document_end_commit,
-        $._here_document_sequence_end,
-        $._here_document_content_line_start,
-        $._newline_begin,
-        $._arithmetic_assignment_operator_boundary,
-        $._arithmetic_question_operator_boundary,
-        $._arithmetic_colon_operator_boundary,
-        $._arithmetic_logical_or_operator_boundary,
-        $._arithmetic_logical_and_operator_boundary,
-        $._arithmetic_bitwise_or_operator_boundary,
-        $._arithmetic_bitwise_xor_operator_boundary,
-        $._arithmetic_bitwise_and_operator_boundary,
-        $._arithmetic_equality_operator_boundary,
-        $._arithmetic_relational_operator_boundary,
-        $._arithmetic_shift_operator_boundary,
-        $._arithmetic_additive_operator_boundary,
-        $._arithmetic_multiplicative_operator_boundary,
-        $._arithmetic_closing_boundary,
-        $._arithmetic_left_parenthesis,
-        $._arithmetic_source_left_parenthesis,
-        $._pattern_special_left_bracket,
-        $._comment_boundary,
-        $._trailing_comment_boundary,
-        $._comment_text_begin,
-        $._comment_line_end_begin,
-        $._dollar_expansion_start,
-        $._braced_parameter_number_start,
-        $._braced_positional_parameter_begin,
-        $._backquote_start,
-        $._backquote_end,
-        $._pattern_continuation,
-        $._pattern_end,
-        $._pipe_continuation,
-        $._redirect_list_begin,
-        $._case_item_end,
-        $._function_body_continuation_boundary,
-        $._command_substitution_body_begin,
-        $._pattern_bracket_character_begin,
-        $._parameter_pattern_bracket_character_begin,
-        $._assignment_pattern_bracket_character_begin,
-        $._pattern_bracket_hyphen_begin,
-        $._pattern_bracket_range_operator_begin,
-        $._word_tilde_end,
-        $._assignment_tilde_end,
-        $._assignment_name_begin,
-        $._fname_begin,
-        $._and_or_continuation,
-        $._word_separator_begin,
-        $._term_continuation,
-        $._assignment_separator_begin,
-        $._scalar_assignment_separator_begin,
-        $._redirect_separator_begin,
-        $._pre_newline_blank_begin,
-        $._command_substitution_end,
-        $._separator_newline,
-        $._term_boundary,
-        $._word_pattern_bracket_open,
-        $._parameter_pattern_bracket_open,
-        $._double_quoted_backquote_start,
-        $._dollar_single_quote_escape_begin,
-        $._pattern_character_class_end_colon,
-        $.line_continuation,
-        $._removed_newline,
-        $._plain_word_begin,
-        $._literal_begin,
-        $._assignment_literal_begin,
-        $._parameter_literal_begin,
-        $._name_begin,
-        $._variable_name_begin,
-        $._escaped_character_begin,
-        $._single_quote_content_begin,
-        $._double_quote_text_begin,
-        $._double_quote_escape_begin,
-        $._dollar_single_quote_text_begin,
-        $._double_quoted_parameter_text_begin,
-        $._double_quoted_parameter_escape_begin,
-        $._here_document_text_begin,
-        $._here_document_escape_begin,
-        $._here_document_end_text_begin,
-        $._unbraced_positional_parameter_begin,
-        $._special_parameter_begin,
-        $._special_parameter_hash_begin,
-        $._parameter_value_operator_begin,
-        $._parameter_pattern_operator_begin,
-        $._arithmetic_number_begin,
-        $._arithmetic_variable_begin,
-        $._arithmetic_unary_operator_begin,
-        $._arithmetic_assignment_operator_begin,
-        $._arithmetic_question_operator_begin,
-        $._arithmetic_colon_operator_begin,
-        $._arithmetic_logical_or_operator_begin,
-        $._arithmetic_logical_and_operator_begin,
-        $._arithmetic_bitwise_or_operator_begin,
-        $._arithmetic_bitwise_xor_operator_begin,
-        $._arithmetic_bitwise_and_operator_begin,
-        $._arithmetic_equality_operator_begin,
-        $._arithmetic_relational_operator_begin,
-        $._arithmetic_shift_operator_begin,
-        $._arithmetic_additive_operator_begin,
-        $._arithmetic_multiplicative_operator_begin,
-        $._and_if_begin,
-        $._or_if_begin,
-        $._dsemi_begin,
-        $._semi_and_begin,
-        $._lessand_begin,
-        $._greatand_begin,
-        $._dgreat_begin,
-        $._lessgreat_begin,
-        $._clobber_begin,
-        $._dless_operator_begin,
-        $._dlessdash_operator_begin,
-        $._pattern_star_begin,
-        $._pattern_question_begin,
-        $._pattern_negation_begin,
-        $._pattern_class_content_begin,
-        $._parameter_pattern_class_content_begin,
-        $._pattern_collating_character_begin,
-        $._parameter_pattern_collating_character_begin,
-        $._pattern_equivalence_character_begin,
-        $._parameter_pattern_equivalence_character_begin,
-        $._punct_left_parenthesis,
-        $._punct_right_parenthesis,
-        $._punct_semicolon,
-        $._punct_ampersand,
-        $._punct_pipe,
-        $._punct_less,
-        $._punct_greater,
-        $._punct_equals,
-        $._punct_right_bracket,
-        $._punct_colon,
-        $._punct_dot,
-        $._sq_open,
-        $._sq_close,
-        $._dq_open,
-        $._dq_close,
-        $._dollar_sq_dollar,
-        $._dollar_sq_open,
-        $._dollar_sq_close,
-        $._parameter_open,
-        $._parameter_close,
-        $._command_open,
-        $._command_close,
-        $._arithmetic_expansion_open,
-        $._bracket_arithmetic_open,
-        $._bracket_arithmetic_close,
-        $._numeric_parameter_digit,
-        $._word_tilde_start,
-        $._assignment_tilde_start,
-        $._parameter_tilde_start,
-        $._logical_newline_begin,
-        $._logical_blank_begin,
-        $._closing_blank_begin,
-        $._arithmetic_expansion_end,
-        $._pattern_initial_right_bracket_begin,
-        $._source_begin,
-        $._removed_source,
-        $._here_document_end_line_end_begin,
-        $._word_fallback_literal_begin,
-        $._assignment_fallback_literal_begin,
-        $._parameter_fallback_literal_begin,
-        $._word_bracket_fallback_end,
-        $._assignment_bracket_fallback_end,
-        $._parameter_bracket_fallback_end,
-        $._here_document_sequence_begin,
-        $._parameter_hyphen_begin,
-        $._parameter_question_begin,
-        $._arithmetic_blank_begin,
-        $._parameter_length_operator_begin,
-        $._arithmetic_source_fragment_begin,
-        $._arithmetic_source_operator_begin,
-        $._word_start,
-        $._dollar_dq_dollar,
-        $._process_in_start,
-        $._process_out_start,
-        $._extglob_open,
-        $._extglob_close,
-        $._extglob_bar,
-        $._current_shell_open,
-        $._reply_open,
-        $._substitution_brace_close,
-        $._subscript_open,
-        $._arithmetic_subscript_open,
-        $._subscript_close,
-        $._subscript_all_elements_begin,
-        $._subscript_expression_start,
-        $._subscript_source_start,
-        $._subscript_closing_boundary,
-        $._brace_open,
-        $._brace_close,
-        $._brace_comma,
-        $._extglob_operator_begin,
-        $._extglob_text_begin,
-        $._brace_text_begin,
-        $._parameter_indirection_begin,
-        $._parameter_names_begin,
-        $._parameter_names_indirection_begin,
-        $._parameter_names_text_begin,
-        $._parameter_substring_begin,
-        $._arithmetic_field_expression_start,
-        $._arithmetic_field_source_start,
-        $._arithmetic_field_closing_boundary,
-        $._substring_separator_begin,
-        $._parameter_replace_begin,
-        $._replacement_separator_begin,
-        $._parameter_replacement_reference_begin,
-        $._parameter_case_begin,
-        $._parameter_transform_begin,
-        $._parameter_transform_code_begin,
-        $._arithmetic_power_operator_begin,
-        $._arithmetic_comma_operator_begin,
-        $._arithmetic_update_operator_begin,
-        $._arithmetic_power_operator_boundary,
-        $._arithmetic_comma_operator_boundary,
-        $._arithmetic_update_operator_boundary,
-        $._assignment_argument_end,
-        $._brace_endpoint_begin,
-        $._brace_increment_begin,
-        $._brace_separator_begin,
-        $._brace_literal_open,
-        $._assignment_argument_start,
-        $._brace_sequence_start,
-        $._select_keyword_begin,
-        $._function_keyword_begin,
-        $._time_keyword_begin,
-        $._coproc_keyword_begin,
-        $._dsemi_and_begin,
-        $._pipe_and_begin,
-        $._andgreat_begin,
-        $._anddgreat_begin,
-        $._here_string_begin,
-        $._explicit_fname_begin,
-        $._coproc_name_start,
-        $._coproc_bare_command_start,
-        $._time_option_begin,
-        $._io_variable_open,
-        $._io_variable_close,
-        $._arithmetic_command_open,
-        $._for_arithmetic_open,
-        $._for_expression_start,
-        $._for_source_start,
-        $._assignment_append_begin,
-        $._declaration_name_begin,
-        $._array_assignment_open,
-        $._array_assignment_close,
-        $._array_element_start,
-        $._array_word_start,
-        $._conditional_open_begin,
-        $._conditional_close_begin,
-        $._conditional_unary_begin,
-        $._conditional_binary_begin,
-        $._conditional_match_begin,
-        $._conditional_regex_begin,
-        $._conditional_not_begin,
-        $._conditional_word_start,
-        $._conditional_pattern_start,
-        $._conditional_word_end,
-        $._regex_start,
-        $._regex_end,
-        $._regex_source_group_end,
-        $._ere_character_begin,
-        $._ere_collating_character_begin,
-        $._ere_initial_close_begin,
-        $._ere_compound_character_begin,
-        $._ere_compound_multi_begin,
-        $._ere_equivalence_character_begin,
-        $._ere_equivalence_multi_begin,
-        $._ere_meta_character_begin,
-        $._ere_class_name_begin,
-        $._ere_count_begin,
-        $._ere_fragment_begin,
-        $._ere_wildcard_begin,
-        $._ere_left_anchor_begin,
-        $._ere_right_anchor_begin,
-        $._ere_modifier_begin,
-        $._ere_member_open_begin,
-        $._ere_member_close_begin,
-        $._ere_bar,
-        $._ere_source_bar,
-        $._ere_star,
-        $._ere_plus,
-        $._ere_question,
-        $._ere_bracket_open,
-        $._ere_bracket_close,
-        $._ere_negation,
-        $._ere_hyphen,
-        $._ere_literal_hyphen,
-        $._ere_initial_hyphen,
-        $._ere_interval_open,
-        $._ere_interval_close,
-        $._ere_comma,
-        $._ere_class_open,
-        $._ere_collating_open,
-        $._ere_equivalence_open,
-        $._ere_colon,
-        $._ere_dot,
-        $._ere_equal,
-        $._ere_compound_close,
-        $._ere_range_end_hyphen,
-        $._ere_ordinary_close,
-        $._ere_ordinary_brace,
-        $._regex_open,
-        $._regex_close,
-        $._function_parentheses_start,
-        $._for_semicolon,
-        $._for_closing_boundary,
-        $._conditional_and_boundary,
-        $._conditional_or_boundary,
-        $._time_option_start,
-        $._time_end_begin,
-        $._time_end_start,
-        $._empty_bang_begin,
-        $._declaration_end,
-        $._declaration_assignment_start,
-        $._coproc_declaration_assignment_start,
-        $._command_word_start,
-        $._brace_word_start,
-        $._brace_word_end,
-        $._empty_time_keyword_begin,
-        $._raw_command_name_begin,
-        $._raw_argument_start,
-        $._coproc_raw_argument_start,
-        $._raw_layout_start,
-        ...sourceExternals($),
-      ];
-      const names = new Set();
-      for (const { name } of tokens) {
-        if (names.has(name)) {
-          throw new Error(`Duplicate external token ${name}`);
-        }
-        names.add(name);
-      }
-      for (const begin of sourceKinds.keys()) {
-        if (!names.has(begin)) {
-          throw new Error(`Missing external source token ${begin}`);
-        }
-      }
-      return tokens;
-    },
+    externals: ($) => tokens.map(({ name }) => $[name]),
 
     conflicts: ($) => [
       [$.list],
@@ -1731,7 +1355,7 @@ export default function defineGrammar(name) {
             field("argument", alias($._command_word, $.word)),
             optional($._cmd_suffix),
           ),
-          ...redirectedSuffixes($),
+          $._redirected_suffix,
         ),
 
       _declaration_argument: ($) => alias($.declaration_name, $.literal),
@@ -1746,7 +1370,7 @@ export default function defineGrammar(name) {
           seq(
             $._word_separator,
             choice(
-              declarationEndSuffix($),
+              $._declaration_end_suffix,
               seq(
                 field(
                   "assignment",
@@ -1763,7 +1387,7 @@ export default function defineGrammar(name) {
               ),
             ),
           ),
-          ...redirectedSuffixes($),
+          $._redirected_suffix,
         ),
       _coproc_raw_command: ($) =>
         seq(
@@ -1775,7 +1399,7 @@ export default function defineGrammar(name) {
           seq(
             $._word_separator,
             choice(
-              declarationEndSuffix($),
+              $._declaration_end_suffix,
               seq(
                 $._coproc_raw_argument_start,
                 field("argument", $.word),
@@ -1787,7 +1411,7 @@ export default function defineGrammar(name) {
               ),
             ),
           ),
-          ...redirectedSuffixes($),
+          $._redirected_suffix,
         ),
 
       _redirectable_compound_command: ($) => redirectableCompoundCommand($),
@@ -2141,7 +1765,7 @@ export default function defineGrammar(name) {
           seq(
             $._word_separator,
             choice(
-              declarationEndSuffix($),
+              $._declaration_end_suffix,
               seq(
                 $._raw_argument_start,
                 field("argument", $.word),
@@ -2149,7 +1773,7 @@ export default function defineGrammar(name) {
               ),
             ),
           ),
-          ...redirectedSuffixes($),
+          $._redirected_suffix,
         ),
       _command_name: ($) => field("name", alias($._command_word, $.word)),
       _declaration_command: ($) =>
@@ -2160,6 +1784,20 @@ export default function defineGrammar(name) {
 
       _coproc_declaration_suffix: ($) =>
         declarationSuffix($, "argument", $._coproc_declaration_suffix),
+
+      _declaration_end_suffix: ($) =>
+        seq(
+          $._declaration_end,
+          field("argument", $.word),
+          optional($._cmd_suffix),
+        ),
+
+      _redirected_suffix: ($) =>
+        choice(
+          ...commandRedirectContinuations($).map((redirect) =>
+            seq(redirect, optional($._cmd_suffix)),
+          ),
+        ),
 
       _cmd_prefix: ($) => choice($._redirect_prefix, $._assignment_prefix),
       _redirect_prefix: ($) =>
