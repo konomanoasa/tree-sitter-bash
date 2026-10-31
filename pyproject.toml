@@ -1,6 +1,6 @@
 [project]
 name = "konomanoasa-tree-sitter-bash"
-version = "0.8.0"
+version = "0.9.0"
 description = "Tree-sitter grammars for Bash."
 readme = "README.md"
 license = "MIT"
